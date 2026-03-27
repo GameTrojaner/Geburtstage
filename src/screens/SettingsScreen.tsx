@@ -21,8 +21,9 @@ import { OffsetPickerDialog } from '../components/OffsetPickerDialog';
 import { getOffsetLabel } from '../utils/birthday';
 import { Paths, File } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import * as DocumentPicker from 'expo-document-picker';
 import { exportAllData, importAllData, ExportData } from '../services/database';
-import { AppSettings } from '../types';
+import { AppSettings, DEFAULT_SETTINGS } from '../types';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -118,38 +119,70 @@ export function SettingsScreen() {
 
   const handleImport = async () => {
     try {
-      // Use a simple file reading approach
-      // In production, you'd use expo-document-picker
-      Alert.alert(
-        t('settings.importConfig'),
-        'Place "geburtstage-config.json" in the app documents folder and press OK.',
-        [
-          { text: t('common.cancel'), style: 'cancel' },
-          {
-            text: t('common.ok'),
-            onPress: async () => {
-              try {
-                const file = new File(Paths.document, 'geburtstage-config.json');
-                const content = await file.text();
-                const data: ExportData = JSON.parse(content);
-                await importAllData(data);
-                await loadSettings();
-                await loadFavorites();
-                await loadPinned();
-                await loadHidden();
-                await loadNotificationSettings();
-                await rescheduleNotifications();
-                Alert.alert(t('settings.importSuccess'));
-              } catch (e) {
-                Alert.alert(t('settings.importError'));
-              }
-            },
-          },
-        ]
-      );
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['application/json', 'text/json', '*/*'],
+        copyToCacheDirectory: true,
+        multiple: false,
+      });
+
+      if (result.canceled || !result.assets?.length) {
+        return;
+      }
+
+      const pickedAsset = result.assets[0];
+      const file = new File(pickedAsset.uri);
+      const content = await file.text();
+      const data: ExportData = JSON.parse(content);
+
+      await importAllData(data);
+      await loadSettings();
+      await loadFavorites();
+      await loadPinned();
+      await loadHidden();
+      await loadNotificationSettings();
+      await rescheduleNotifications();
+      Alert.alert(t('settings.importSuccess'));
     } catch (error) {
+      console.error('Import error:', error);
       Alert.alert(t('settings.importError'));
     }
+  };
+
+  const handleResetConfig = async () => {
+    Alert.alert(
+      t('settings.resetConfig'),
+      t('settings.resetConfigConfirm'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.confirm'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              // Reset all settings to defaults and clear data
+              await importAllData({
+                version: 1,
+                settings: DEFAULT_SETTINGS,
+                notificationSettings: [],
+                favorites: [],
+                pinned: [],
+                hidden: [],
+              });
+              await loadSettings();
+              await loadFavorites();
+              await loadPinned();
+              await loadHidden();
+              await loadNotificationSettings();
+              await rescheduleNotifications();
+              Alert.alert(t('settings.resetSuccess'));
+            } catch (error) {
+              console.error('Reset error:', error);
+              Alert.alert(t('settings.resetError'));
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -257,6 +290,13 @@ export function SettingsScreen() {
             title={t('settings.importConfig')}
             left={props => <List.Icon {...props} icon="import" />}
             onPress={handleImport}
+          />
+
+          <List.Item
+            title={t('settings.resetConfig')}
+            description={t('settings.resetConfigDesc')}
+            left={props => <List.Icon {...props} icon="restart" />}
+            onPress={handleResetConfig}
           />
 
           <List.Item

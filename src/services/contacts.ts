@@ -1,6 +1,13 @@
 import * as Contacts from 'expo-contacts';
 import { ContactBirthday } from '../types';
 
+const contactsNeedingNativeEditor = new Set<string>();
+type ContactUpdatePayload = { id: string } & Partial<Contacts.ExistingContact>;
+
+export function shouldUseNativeEditorForContact(contactId: string): boolean {
+  return contactsNeedingNativeEditor.has(contactId);
+}
+
 export async function requestContactsPermission(): Promise<boolean> {
   const { status } = await Contacts.requestPermissionsAsync();
   return status === 'granted';
@@ -30,8 +37,8 @@ export async function getAllContacts(): Promise<ContactBirthday[]> {
     name: contact.name || `${contact.firstName || ''} ${contact.lastName || ''}`.trim() || 'Unknown',
     firstName: contact.firstName ?? undefined,
     lastName: contact.lastName ?? undefined,
-    imageUri: contact.imageAvailable && contact.image ? contact.image.uri : undefined,
-    rawImageUri: contact.imageAvailable && contact.rawImage ? contact.rawImage.uri : undefined,
+    imageUri: contact.image?.uri ?? undefined,
+    rawImageUri: contact.rawImage?.uri ?? undefined,
     birthday: contact.birthday
       ? {
           day: contact.birthday.day!,
@@ -60,11 +67,9 @@ export async function getContactById(contactId: string): Promise<ContactBirthday
     name: contact.name || `${contact.firstName || ''} ${contact.lastName || ''}`.trim() || 'Unknown',
     firstName: contact.firstName ?? undefined,
     lastName: contact.lastName ?? undefined,
-    imageUri: contact.imageAvailable && contact.image ? contact.image.uri : undefined,
-    rawImageUri: contact.imageAvailable && contact.rawImage ? contact.rawImage.uri : undefined,
-    imageBase64: contact.imageAvailable
-      ? (contact.rawImage?.base64 || contact.image?.base64 || undefined)
-      : undefined,
+    imageUri: contact.image?.uri ?? undefined,
+    rawImageUri: contact.rawImage?.uri ?? undefined,
+    imageBase64: contact.rawImage?.base64 || contact.image?.base64 || undefined,
     birthday: contact.birthday
       ? {
           day: contact.birthday.day!,
@@ -80,30 +85,123 @@ export async function saveBirthdayToContact(
   birthday: { day: number; month: number; year?: number }
 ): Promise<boolean> {
   try {
-    const contact = await Contacts.getContactByIdAsync(contactId);
+    // Fetch only birthday + dates to separate existing birthday from other date events
+    const contact = await Contacts.getContactByIdAsync(contactId, [
+      Contacts.Fields.Birthday,
+      Contacts.Fields.Dates,
+    ]);
     if (!contact) return false;
 
-    contact.birthday = {
-      day: birthday.day,
-      month: birthday.month - 1, // expo-contacts months are 0-indexed
-      year: birthday.year,
-    };
+    // Defensive filter: in some provider/device combinations `dates` can still contain
+    // birthday-like entries. Keeping those would re-introduce duplicate birthday inserts.
+    const nonBirthdayDates = (contact.dates ?? []).filter(
+      d => String(d.label ?? '').toLowerCase() !== 'birthday'
+    );
 
-    await Contacts.updateContactAsync(contact);
+    const buildBirthday = (nativeMonth: number) => ({
+      day: birthday.day,
+      month: nativeMonth,
+      ...(birthday.year !== undefined ? { year: birthday.year } : {}),
+    });
+
+    const nativeMonth = birthday.month - 1; // expo-contacts month is 0-indexed
+    console.log(
+      'Saving birthday (UI month is 1-based, native month is 0-based):',
+      JSON.stringify(
+        {
+          inputBirthday: birthday,
+          nativeBirthday: buildBirthday(nativeMonth),
+          nonBirthdayDatesCount: nonBirthdayDates.length,
+        },
+        null,
+        2
+      )
+    );
+
+    await Contacts.updateContactAsync({
+      id: contactId,
+      birthday: buildBirthday(nativeMonth),
+      dates: nonBirthdayDates,
+    } as ContactUpdatePayload);
+    contactsNeedingNativeEditor.delete(contactId);
     return true;
   } catch (error) {
-    console.error('Error saving birthday to contact:', error);
-    return false;
+    console.error('Error saving birthday to contact (attempt 1):', error);
+
+    // Fallback 1: Try again with minimal payload (birthday only, no dates)
+    try {
+      console.log('Attempting fallback: saving birthday without explicit dates array');
+      await Contacts.updateContactAsync({
+        id: contactId,
+        birthday: {
+          day: birthday.day,
+          month: birthday.month - 1,
+          ...(birthday.year !== undefined ? { year: birthday.year } : {}),
+        },
+      } as ContactUpdatePayload);
+      console.log('Fallback attempt succeeded');
+      contactsNeedingNativeEditor.delete(contactId);
+      return true;
+    } catch (fallbackError) {
+      console.error('Error saving birthday to contact (fallback attempt):', fallbackError);
+
+      // Fallback 2: Some providers reject birthdays with year. Retry without year when present.
+      if (birthday.year !== undefined) {
+        try {
+          console.log('Attempting fallback: saving birthday without year');
+          await Contacts.updateContactAsync({
+            id: contactId,
+            birthday: {
+              day: birthday.day,
+              month: birthday.month - 1,
+            },
+          } as ContactUpdatePayload);
+          console.log('Yearless fallback succeeded');
+          contactsNeedingNativeEditor.delete(contactId);
+          return true;
+        } catch (yearlessError) {
+          console.error('Error saving birthday to contact (yearless fallback):', yearlessError);
+        }
+      }
+
+      // Fallback 3 (compatibility): some provider stacks appear to expect month as-is.
+      // We only try this as last resort to avoid hard failure on vendor-specific behavior.
+      try {
+        console.log('Attempting compatibility fallback: saving birthday with non-converted month');
+        await Contacts.updateContactAsync({
+          id: contactId,
+          birthday: {
+            day: birthday.day,
+            month: birthday.month,
+            ...(birthday.year !== undefined ? { year: birthday.year } : {}),
+          },
+        } as ContactUpdatePayload);
+        console.log('Compatibility fallback succeeded');
+        contactsNeedingNativeEditor.delete(contactId);
+        return true;
+      } catch (compatError) {
+        console.error('Error saving birthday to contact (compatibility fallback):', compatError);
+        contactsNeedingNativeEditor.add(contactId);
+        return false;
+      }
+    }
   }
 }
 
 export async function removeBirthdayFromContact(contactId: string): Promise<boolean> {
   try {
-    const contact = await Contacts.getContactByIdAsync(contactId);
+    const contact = await Contacts.getContactByIdAsync(contactId, [
+      Contacts.Fields.Birthday,
+      Contacts.Fields.Dates,
+    ]);
     if (!contact) return false;
 
-    contact.birthday = undefined;
-    await Contacts.updateContactAsync(contact);
+    // Pass only the non-birthday dates; omitting the birthday key means
+    // mutateContact won't re-add it, effectively removing the birthday.
+    await Contacts.updateContactAsync({
+      id: contactId,
+      dates: contact.dates ?? [],
+    } as ContactUpdatePayload);
     return true;
   } catch (error) {
     console.error('Error removing birthday from contact:', error);
@@ -138,4 +236,23 @@ export async function createContactWithBirthday(
     console.error('Error creating contact:', error);
     return null;
   }
+}
+
+export async function openNativeContactEditor(contactId: string): Promise<boolean> {
+  try {
+    await Contacts.presentFormAsync(contactId);
+    return true;
+  } catch (error) {
+    console.error('Error opening native contact editor:', error);
+    return false;
+  }
+}
+
+export async function openNativeEditorAndReloadContact(
+  contactId: string
+): Promise<ContactBirthday | null> {
+  const opened = await openNativeContactEditor(contactId);
+  if (!opened) return null;
+
+  return getContactById(contactId);
 }

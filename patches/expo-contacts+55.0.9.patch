@@ -1,0 +1,15 @@
+diff --git a/node_modules/expo-contacts/android/src/main/java/expo/modules/contacts/models/BaseModel.kt b/node_modules/expo-contacts/android/src/main/java/expo/modules/contacts/models/BaseModel.kt
+index 8b503b9..cf9c8ad 100644
+--- a/node_modules/expo-contacts/android/src/main/java/expo/modules/contacts/models/BaseModel.kt
++++ b/node_modules/expo-contacts/android/src/main/java/expo/modules/contacts/models/BaseModel.kt
+@@ -58,7 +58,9 @@ abstract class BaseModel : CommonProvider {
+     return op.withValue(Columns.MIMETYPE, contentType)
+       .withValue(Columns.TYPE, mapStringToType(label))
+       .withValue(Columns.DATA, data)
+-      .withValue(Columns.ID, id)
++      // Note: Columns.ID (_id) intentionally omitted — specifying the old row _id
++      // when re-inserting after a flush causes UNIQUE constraint failures on contacts
++      // with multiple raw contact accounts (e.g. Google + local).
+       .build()
+   }
+ 

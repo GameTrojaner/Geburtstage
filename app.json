@@ -63,16 +63,17 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#00897B",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
+        "backgroundColor": "#00897B",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "permissions": [
         "android.permission.READ_CONTACTS",
         "android.permission.WRITE_CONTACTS",
         "android.permission.POST_NOTIFICATIONS"
-      ]
+      ],
+      "package": "com.anonymous.Geburtstage"
     },
     "web": {
       "favicon": "./assets/favicon.png"

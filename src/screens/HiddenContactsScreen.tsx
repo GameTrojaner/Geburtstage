@@ -12,7 +12,10 @@ export function HiddenContactsScreen() {
   const { contacts, hidden, unhideContact } = useAppStore();
 
   const hiddenContacts = useMemo(
-    () => contacts.filter(c => hidden.has(c.contactId)),
+    () =>
+      contacts
+        .filter(c => hidden.has(c.contactId))
+        .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })),
     [contacts, hidden]
   );
 

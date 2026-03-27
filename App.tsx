@@ -10,6 +10,7 @@ import { lightTheme, darkTheme } from './src/theme';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { useAppStore } from './src/store';
 import { setupNotificationChannel, requestNotificationPermission } from './src/services/notifications';
+import { warmupDb } from './src/services/database';
 import './src/i18n';
 import i18n from './src/i18n';
 
@@ -31,6 +32,8 @@ export default function App() {
   useEffect(() => {
     (async () => {
       try {
+        // Warm up the DB first so all subsequent operations share a ready connection.
+        await warmupDb();
         await loadSettings();
         await loadFavorites();
         await loadPinned();

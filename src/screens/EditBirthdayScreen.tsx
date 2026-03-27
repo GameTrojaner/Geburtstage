@@ -18,8 +18,15 @@ import { useAppStore } from '../store';
 import { ContactAvatar } from '../components/ContactAvatar';
 import { OffsetPickerDialog } from '../components/OffsetPickerDialog';
 import { ContactBirthday, NotificationSetting } from '../types';
-import { getContactById, saveBirthdayToContact, removeBirthdayFromContact } from '../services/contacts';
-import { formatBirthday, getDaysInMonth, getOffsetLabel } from '../utils/birthday';
+import {
+  getContactById,
+  saveBirthdayToContact,
+  removeBirthdayFromContact,
+  openNativeContactEditor,
+  openNativeEditorAndReloadContact,
+  shouldUseNativeEditorForContact,
+} from '../services/contacts';
+import { getDaysInMonth, getOffsetLabel } from '../utils/birthday';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 
@@ -54,6 +61,7 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const [offsetPickerVisible, setOffsetPickerVisible] = useState(false);
   const [photoVisible, setPhotoVisible] = useState(false);
+  const [editorOnlyMode, setEditorOnlyMode] = useState(false);
 
   // Notification settings for this contact
   const contactNotif = notificationSettings.get(contactId);
@@ -70,6 +78,7 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
     setLoading(true);
     const c = await getContactById(contactId);
     setContact(c);
+    setEditorOnlyMode(shouldUseNativeEditorForContact(contactId));
     if (c?.birthday) {
       setDay(String(c.birthday.day));
       setMonth(String(c.birthday.month));
@@ -126,6 +135,31 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
     await doSave();
   };
 
+  const openNativeEditorAndSync = async (): Promise<boolean> => {
+    const updated = await openNativeEditorAndReloadContact(contactId);
+    if (!updated) {
+      Alert.alert(t('birthday.nativeEditorError'));
+      return false;
+    }
+
+    // After returning from native editor, refresh local + store state.
+    await refreshContact(contactId);
+    setContact(updated);
+
+    if (updated?.birthday) {
+      setDay(String(updated.birthday.day));
+      setMonth(String(updated.birthday.month));
+      setYear(updated.birthday.year ? String(updated.birthday.year) : '');
+      setEditorOnlyMode(false);
+      await rescheduleNotifications();
+      navigation.goBack();
+    } else {
+      setEditorOnlyMode(true);
+    }
+
+    return true;
+  };
+
   const doSave = async () => {
     setSaving(true);
     const d = parseInt(day, 10);
@@ -149,7 +183,8 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
       await rescheduleNotifications();
       navigation.goBack();
     } else {
-      Alert.alert(t('birthday.error'));
+      setEditorOnlyMode(true);
+      await openNativeEditorAndSync();
     }
     setSaving(false);
   };
@@ -192,7 +227,12 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
         {/* Contact Header */}
         <View style={styles.header}>
           <Pressable onPress={() => (contact.imageBase64 || contact.rawImageUri || contact.imageUri) && setPhotoVisible(true)}>
-            <ContactAvatar name={contact.name} imageUri={contact.imageUri} size={80} />
+            <ContactAvatar
+              name={contact.name}
+              imageUri={contact.imageUri}
+              fallbackImageUri={contact.rawImageUri}
+              size={80}
+            />
           </Pressable>
           <Text variant="headlineSmall" style={styles.name}>{contact.name}</Text>
           <View style={styles.quickActions}>
@@ -210,40 +250,55 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
 
         <Divider style={styles.divider} />
 
-        {/* Birthday Date Inputs */}
+        {/* Birthday Date Inputs / Native editor fallback */}
         <Text variant="titleMedium" style={styles.sectionTitle}>
           {hasBirthday ? t('birthday.title') : t('birthday.titleAdd')}
         </Text>
 
-        <View style={styles.dateRow}>
-          <TextInput
-            mode="outlined"
-            label={t('birthday.day')}
-            value={day}
-            onChangeText={setDay}
-            keyboardType="number-pad"
-            maxLength={2}
-            style={styles.dateInput}
-          />
-          <TextInput
-            mode="outlined"
-            label={t('birthday.month')}
-            value={month}
-            onChangeText={setMonth}
-            keyboardType="number-pad"
-            maxLength={2}
-            style={styles.dateInput}
-          />
-          <TextInput
-            mode="outlined"
-            label={t('birthday.year')}
-            value={year}
-            onChangeText={setYear}
-            keyboardType="number-pad"
-            maxLength={4}
-            style={[styles.dateInput, { flex: 1.5 }]}
-          />
-        </View>
+        {editorOnlyMode ? (
+          <View style={styles.editorOnlyBox}>
+            <Text variant="bodyMedium" style={styles.editorOnlyText}>
+              {t('birthday.directWriteUnavailable')}
+            </Text>
+            <Button
+              mode="contained-tonal"
+              icon="open-in-new"
+              onPress={openNativeEditorAndSync}
+            >
+              {t('birthday.openNativeEditor')}
+            </Button>
+          </View>
+        ) : (
+          <View style={styles.dateRow}>
+            <TextInput
+              mode="outlined"
+              label={t('birthday.day')}
+              value={day}
+              onChangeText={setDay}
+              keyboardType="number-pad"
+              maxLength={2}
+              style={styles.dateInput}
+            />
+            <TextInput
+              mode="outlined"
+              label={t('birthday.month')}
+              value={month}
+              onChangeText={setMonth}
+              keyboardType="number-pad"
+              maxLength={2}
+              style={styles.dateInput}
+            />
+            <TextInput
+              mode="outlined"
+              label={t('birthday.year')}
+              value={year}
+              onChangeText={setYear}
+              keyboardType="number-pad"
+              maxLength={4}
+              style={[styles.dateInput, { flex: 1.5 }]}
+            />
+          </View>
+        )}
 
         <Divider style={styles.divider} />
 
@@ -315,15 +370,17 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
         <Divider style={styles.divider} />
 
         {/* Actions */}
-        <Button
-          mode="contained"
-          onPress={handleSave}
-          loading={saving}
-          disabled={saving || !validateDate()}
-          style={styles.saveButton}
-        >
-          {t('birthday.save')}
-        </Button>
+        {!editorOnlyMode && (
+          <Button
+            mode="contained"
+            onPress={handleSave}
+            loading={saving}
+            disabled={saving || !validateDate()}
+            style={styles.saveButton}
+          >
+            {t('birthday.save')}
+          </Button>
+        )}
 
         {hasBirthday && (
           <Button
@@ -396,9 +453,13 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
         <Pressable style={styles.photoOverlay} onPress={() => setPhotoVisible(false)}>
           <Image
             source={
-              contact.imageBase64
-                ? { uri: `data:image/jpeg;base64,${contact.imageBase64}` }
-                : { uri: contact.rawImageUri || contact.imageUri || '' }
+              contact.rawImageUri
+                ? { uri: contact.rawImageUri }
+                : contact.imageUri
+                  ? { uri: contact.imageUri }
+                  : contact.imageBase64
+                    ? { uri: `data:image/jpeg;base64,${contact.imageBase64}` }
+                    : { uri: '' }
             }
             style={styles.photoFull}
             resizeMode="contain"
@@ -464,6 +525,14 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginLeft: 8,
     width: 150,
+  },
+  editorOnlyBox: {
+    padding: 12,
+    borderRadius: 10,
+    gap: 10,
+  },
+  editorOnlyText: {
+    opacity: 0.8,
   },
   saveButton: {
     marginBottom: 12,

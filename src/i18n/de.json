@@ -58,7 +58,11 @@
     "no": "Nein",
     "saved": "Geburtstag gespeichert",
     "deleted": "Geburtstag entfernt",
-    "error": "Fehler beim Speichern"
+    "error": "Fehler beim Speichern",
+    "openNativeEditor": "Im Kontakt-Editor öffnen",
+    "openNativeEditorMessage": "Dieser Kontakt kann direkt nicht beschrieben werden. Möchtest du den nativen Kontakt-Editor öffnen?",
+    "directWriteUnavailable": "Direktes Speichern ist für diesen Kontakt nicht möglich. Bitte den nativen Kontakt-Editor verwenden.",
+    "nativeEditorError": "Kontakt-Editor konnte nicht geöffnet werden"
   },
   "calendar": {
     "title": "Kalender",
@@ -104,9 +108,14 @@
     "data": "Daten",
     "exportConfig": "Einstellungen exportieren",
     "importConfig": "Einstellungen importieren",
+    "resetConfig": "Einstellungen zurücksetzen",
+    "resetConfigDesc": "Alle Einstellungen und Daten löschen",
+    "resetConfigConfirm": "Bist du sicher? Dies löscht alle Einstellungen, Favoriten, angehefteten Elemente und ausgeblendeten Kontakte.",
     "exportSuccess": "Einstellungen exportiert",
     "importSuccess": "Einstellungen importiert",
     "importError": "Fehler beim Importieren",
+    "resetSuccess": "Einstellungen auf Standard zurückgesetzt",
+    "resetError": "Fehler beim Zurücksetzen",
     "confirmWrite": "Bestätigung vor Kontaktänderung",
     "hiddenContacts": "Ausgeblendete Kontakte",
     "hiddenCount": "{{count}} Kontakt ausgeblendet",

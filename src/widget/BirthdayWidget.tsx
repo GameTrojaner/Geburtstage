@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlexWidget, TextWidget, ListWidget } from 'react-native-android-widget';
+import { FlexWidget, TextWidget, ListWidget, ImageWidget } from 'react-native-android-widget';
 
 interface BirthdayItem {
   contactId: string;
@@ -8,6 +8,7 @@ interface BirthdayItem {
   daysUntil: number;
   age?: number;
   isFavorite: boolean;
+  imageDataUri?: `data:image${string}`;
 }
 
 interface BirthdayWidgetProps {
@@ -33,24 +34,33 @@ function BirthdayRow({ item }: { item: BirthdayItem }) {
         width: 'match_parent',
       }}
     >
-      <FlexWidget
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: 18,
-          backgroundColor: item.daysUntil === 0 ? '#00897B' : '#E0F2F1',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <TextWidget
-          text={item.name.charAt(0).toUpperCase()}
-          style={{
-            fontSize: 16,
-            color: item.daysUntil === 0 ? '#FFFFFF' : '#00897B',
-          }}
+      {item.imageDataUri ? (
+        <ImageWidget
+          image={item.imageDataUri}
+          imageWidth={36}
+          imageHeight={36}
+          radius={18}
         />
-      </FlexWidget>
+      ) : (
+        <FlexWidget
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 18,
+            backgroundColor: item.daysUntil === 0 ? '#00897B' : '#E0F2F1',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <TextWidget
+            text={item.name.charAt(0).toUpperCase()}
+            style={{
+              fontSize: 16,
+              color: item.daysUntil === 0 ? '#FFFFFF' : '#00897B',
+            }}
+          />
+        </FlexWidget>
+      )}
       <FlexWidget style={{ flex: 1, marginLeft: 10, flexDirection: 'column' }}>
         <TextWidget
           text={`${item.name}${item.isFavorite ? ' ♥' : ''}`}

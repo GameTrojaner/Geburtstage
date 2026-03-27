@@ -35,7 +35,6 @@ export async function setupNotificationChannel(): Promise<void> {
     await Notifications.setNotificationChannelAsync('birthdays', {
       name: 'Birthdays',
       importance: Notifications.AndroidImportance.HIGH,
-      sound: 'default',
       vibrationPattern: [0, 250, 250, 250],
     });
   } catch (e) {
@@ -61,6 +60,7 @@ function calculateAge(birthday: { day: number; month: number; year?: number }, o
 
 export async function scheduleAllNotifications(
   contacts: ContactBirthday[],
+  maxDaysAhead: number = 180,
 ): Promise<void> {
   const Notifications = await getNotificationsModule();
   if (!Notifications) return;
@@ -80,14 +80,28 @@ export async function scheduleAllNotifications(
     notifMap.set(ns.contactId, ns);
   }
 
-  const contactsWithBirthday = contacts.filter(c => c.birthday);
+  // Filter contacts: only include those with birthdays, enabled notifications, and within the time window
+  const now = new Date();
+  const maxDate = new Date(now.getTime() + maxDaysAhead * 24 * 60 * 60 * 1000);
 
-  for (const contact of contactsWithBirthday) {
+  const contactsToNotify = contacts.filter(contact => {
+    if (!contact.birthday) return false;
+
+    const contactNotif = notifMap.get(contact.contactId);
+    if (contactNotif && !contactNotif.enabled) return false;
+
+    // Check if next birthday is within the time window
+    const nextBday = getNextBirthday(contact.birthday);
+    return nextBday <= maxDate;
+  });
+
+  let scheduledCount = 0;
+  const maxAlarms = 450; // Leave buffer below Android's 500 limit
+
+  for (const contact of contactsToNotify) {
     if (!contact.birthday) continue;
 
     const contactNotif = notifMap.get(contact.contactId);
-    if (contactNotif && !contactNotif.enabled) continue;
-
     const offsets = contactNotif?.offsets ?? settings.defaultNotificationOffsets;
     const timeStr = contactNotif?.time ?? settings.defaultNotificationTime;
     const [hours, minutes] = timeStr.split(':').map(Number);
@@ -96,11 +110,19 @@ export async function scheduleAllNotifications(
     const age = calculateAge(contact.birthday, nextBday);
 
     for (const offset of offsets) {
+      // Stop scheduling if approaching limit
+      if (scheduledCount >= maxAlarms) {
+        console.warn(
+          `Notification scheduling limit approaching: ${scheduledCount}/${maxAlarms} alarms scheduled. Skipped notifications for remaining contacts.`
+        );
+        return;
+      }
+
       const notifDate = new Date(nextBday);
       notifDate.setDate(notifDate.getDate() - offset);
       notifDate.setHours(hours, minutes, 0, 0);
 
-      if (notifDate <= new Date()) continue;
+      if (notifDate <= now) continue;
 
       let body: string;
       if (offset === 0) {
@@ -113,19 +135,25 @@ export async function scheduleAllNotifications(
           : `${contact.name} hat in ${offset} Tagen Geburtstag!`;
       }
 
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: '🎂 Geburtstag',
-          body,
-          sound: 'default',
-          data: { contactId: contact.contactId },
-        },
-        trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.DATE,
-          date: notifDate,
-          channelId: 'birthdays',
-        },
-      });
+      try {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: '🎂 Geburtstag',
+            body,
+            data: { contactId: contact.contactId },
+          },
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.DATE,
+            date: notifDate,
+            channelId: 'birthdays',
+          },
+        });
+        scheduledCount++;
+      } catch (e) {
+        console.error(`Failed to schedule notification for ${contact.name}:`, e);
+      }
     }
   }
+
+  console.log(`Successfully scheduled ${scheduledCount} notifications.`);
 }

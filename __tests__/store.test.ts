@@ -45,10 +45,15 @@ jest.mock('../src/services/notifications', () => ({
   scheduleAllNotifications: jest.fn().mockResolvedValue(undefined),
 }));
 
+jest.mock('../src/services/photoCache', () => ({
+  cacheContactPhotos: jest.fn().mockResolvedValue(undefined),
+}));
+
 import { useAppStore } from '../src/store';
 
 // Reset store between tests
 beforeEach(() => {
+  jest.clearAllMocks();
   useAppStore.setState({
     contacts: [],
     contactsLoading: false,
@@ -62,11 +67,18 @@ beforeEach(() => {
 
 describe('Store - loadContacts', () => {
   it('loads contacts from service', async () => {
+    const { cacheContactPhotos } = jest.requireMock('../src/services/photoCache') as {
+      cacheContactPhotos: jest.Mock;
+    };
+
     await useAppStore.getState().loadContacts();
     const { contacts, contactsLoading } = useAppStore.getState();
+
     expect(contacts).toHaveLength(3);
     expect(contacts[0].name).toBe('Alice');
     expect(contactsLoading).toBe(false);
+    expect(cacheContactPhotos).toHaveBeenCalledTimes(1);
+    expect(cacheContactPhotos).toHaveBeenCalledWith(contacts);
   });
 });
 

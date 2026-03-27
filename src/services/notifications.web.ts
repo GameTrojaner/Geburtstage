@@ -14,6 +14,7 @@ export async function setupNotificationChannel(): Promise<void> {
 
 export async function scheduleAllNotifications(
   _contacts: ContactBirthday[],
+  _maxDaysAhead?: number,
 ): Promise<void> {
   // No-op on web
 }

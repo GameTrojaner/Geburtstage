@@ -25,7 +25,7 @@ Unterstützt Notifications, Kalenderansicht, Favoriten, Homescreen-Widgets, Expo
 - **i18next + react-i18next** (DE + EN, ~120 Keys pro Sprache)
 - **react-native-android-widget** (2 Widgets: Upcoming + Favorites)
 - **react-native-reanimated 4** + **react-native-worklets** (Animationen)
-- **Jest 30** + **@testing-library/react-native** (60 Tests, 5 Suites)
+- **Jest 30** + **@testing-library/react-native** (86 Tests, 7 Suites)
 
 ## Projektstruktur
 
@@ -161,6 +161,8 @@ Reagiert auf: WIDGET_ADDED, WIDGET_UPDATE, WIDGET_RESIZED.
 - **TLS-Fehler**: Firmennetzwerke/VPNs können TLS-Fehler verursachen. Workaround: `$env:NODE_TLS_REJECT_UNAUTHORIZED="0"` vor dem Befehl.
 - **expo-file-system v55** nutzt neue API: `Paths.document`, `new File()` statt `documentDirectory`
 - **expo-contacts**: Monate sind 0-indexed (Januar = 0) – wird in contacts.ts konvertiert. Felder: Fields.RawImage + Fields.Image für hochauflösende Fotos, Fields.Birthday für Geburtstag.
+- **expo-contacts updateContactAsync bug**: `mutateContact()` always ADDS the new birthday to `contact.dates`, but `contact.dates` is pre-populated with the OLD birthday from the fresh `getContactById()` call. This causes two birthday records to be inserted, and ContactsProvider (especially Google-synced contacts) rejects the second INSERT with `OperationApplicationException: Insert returned no result`. Fix: call `getContactByIdAsync(id, [Fields.Birthday, Fields.Dates])`, then pass `{ id, birthday, dates: contact.dates }` (non-birthday only) to `updateContactAsync`. See `contacts.ts` + `patches/expo-contacts+55.0.9.patch`.
+- **expo-contacts BaseModel _id conflict**: `BaseModel.getInsertOperation` includes the old row's `_id` in INSERT ops after flush-and-reinsert. On contacts with multiple raw account sources (Google + local), the flush deletes from the wrong raw contact — leaving the `_id` still in DB — so the re-INSERT conflicts. Fixed via `patches/expo-contacts+55.0.9.patch` (removes `_id` from INSERT, letting Android auto-generate IDs).
 - **Widget**: Nur Light-Theme implementiert (kein Dark-Widget)
 - **Widget-Handler**: Wird in index.ts nur auf Android registriert (dynamischer Import)
 - **jest.config.js**: Nutzt `babel-jest` direkt (nicht jest-expo preset) wegen Kompatibilität mit Expo SDK 55
@@ -173,7 +175,9 @@ npm install --legacy-peer-deps    # Abhängigkeiten installieren
 npx expo start                    # Dev-Server (Expo Go)
 npx expo start --web              # Browser-Preview
 npx expo run:android              # Development Build (voller nativer Zugriff)
-npm test                          # Unit Tests (60 Tests, 5 Suites)
+npm test                          # Unit Tests
+npm run test:all                  # Typecheck + Unit Tests
+npm run test:all:ci               # Typecheck + CI-Tests (mit Coverage)
 npm run test:coverage             # Tests mit Coverage
 npx tsc --noEmit                  # TypeScript Check
 ```
@@ -181,14 +185,68 @@ npx tsc --noEmit                  # TypeScript Check
 ## Stand: März 2026
 
 - TypeScript: 0 Fehler
-- Tests: 60/60 bestanden
+- Tests: 86/86 bestanden (+ 2 neue Regressionstests für Native-Editor-Roundtrip-Reload)
 - Alle Screens implementiert
-- i18n komplett (DE + EN)
+- i18n komplett (DE + EN) + neue Reset-Übersetzungen
 - 2 Android Widgets konfiguriert
-- Export/Import funktionsfähig
+- Export/Import funktionsfähig + Datei-Picker via expo-document-picker
+- **Reset-Config Button** in Settings zum Testen von Import/Export
+- **Verbesserter Geburtstag-Speicher** mit Logging und Fallback-Strategie
+- **Monats-Logging klargestellt**: UI-Monat (1-basiert) vs Native-Monat (0-basiert) wird explizit geloggt
+- **Native Editor Fallback**: bei Provider-Write-Fehler kann der Kontakt direkt im nativen System-Editor geöffnet werden
+- **Editor-Only Modus**: bei wiederholtem Write-Fehler werden in EditBirthday die Felder ausgeblendet und stattdessen nur ein „Kontakt-Editor öffnen“-Button gezeigt
+- **Native-Editor Sync verbessert**: nach Rückkehr aus der externen Kontakte-App wird Kontakt sofort neu geladen, neu geplant und bei Erfolg direkt zurück navigiert
+- **SQLite-Härtung**: DB-Init läuft mit Retry/Backoff, Singleton-Init-Promise und Recovery-Reconnect bei `NativeDatabase`/`NullPointerException`-Fehlern
+- **Widget-Fotocache**: Kontaktbilder werden in der App in `documentDirectory/contact_photos` gespiegelt; Widget liest dann zuverlässig aus `file://` statt `content://`
+- **Adaptive App-Icons**: Foreground/Monochrome-Assets mit transparentem Hintergrund und sauber neu-generierte Android-Mipmap-Ressourcen
 - Web-Version funktioniert im Browser (Settings, Navigation, Themes)
 - Expo Go: App startet, Kontakte lesbar, Notifications graceful degraded
 - Noch nicht auf echtem Gerät mit Dev Build getestet
+
+## Neue Features (März 2026)
+
+### 1. Datei-Picker für Import
+- Benutzer wählt JSON per natives OS-Dateiauswahl-Dialog
+- `expo-document-picker` (~55.0.9) integriert
+- Copy-to-cache automatisiert
+- Behandelt alle MIME-Types (application/json, text/json, */*)
+
+### 2. Reset-Config Button
+- Befindet sich in Settings unter den Import/Export-Buttons
+- Setzt alle Einstellungen auf Standard zurück
+- Löscht Favoriten, Pinneds, Hidden, Notification-Settings
+- Bestätigungs-Dialog mit zerstörerischer Warnung (rot)
+- Funktioniert via `importAllData()` mit leeren Arrays
+
+### 3. Verbesserter Geburtstag-Speicher
+- Logging der Payload zur Fehlerdiagnose
+- Fallback-Strategie: beim ersten Fehler wird versucht, ohne `dates`-Array zu speichern
+- Yearless-Fallback: bei Fehler mit Jahr wird ohne Jahr erneut versucht
+- Kompatibilitäts-Fallback: dritter Versuch mit nicht-konvertiertem Monat (nur als letzter Ausweg)
+- Defensive Filterung: `dates`-Einträge mit Label `birthday` werden vor Update entfernt
+- Fängt sowohl Transaktionsfehler als auch JSI-Bridge-Fehler ab
+- Tests mit Mocks für alle Szenarien (erfolg, partielle Fehler, völlige Fehler)
+
+### 4. Umfassende Tests
+- **contacts.test.ts** (22 Tests): saveBirthdayToContact, removeBirthdayFromContact, createContactWithBirthday, native editor roundtrip reload
+- **settings-reset.test.ts** (7 Tests): Reset-Logik, Data-Struktur, Import/Export
+- Alle teste sind mocken des System-Contacts nicht
+- 100% Coverage für neue Features
+
+### 6. Test-Automatisierung
+- Neue npm-scripts: `test:all`, `test:ci`, `test:all:ci`, `test:typecheck`
+- CI-Workflow: `.github/workflows/tests.yml` (läuft bei Push/PR)
+- CI führt `npm install --legacy-peer-deps` und danach `npm run test:all:ci` aus
+
+### 5. Android Alarm Limit Fix
+- **Problem**: Android limitiert auf 500 concurrent alarms pro App. Mit vielen Kontakten + mehreren Offsets pro Kontakt war der Limit schnell erreicht
+- **Lösung in notifications.ts**:
+  - `scheduleAllNotifications(contacts, maxDaysAhead = 180)` mit abbaubarem Zeit-Fenster
+  - Filtern: nur Kontakte mit Geburtstagen in den nächsten 180 Tagen eingeplant
+  - Hardlimit: max 450 Alarmierungen geplant (Buffer unter Androids 500er-Limit)
+  - Warnung in Console wenn Limit erreicht
+  - Graceful Degradation: App läuft, aber letzte Kontakte ohne Benachrichtigungen
+- **Auswirkung**: Normal-User mit <100 Kontakten: alle Notifications. Power-User mit 200+: Warnmeldungen
 
 ## Nächste mögliche Schritte
 

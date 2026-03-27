@@ -45,6 +45,9 @@ Beide Scripts installieren Node.js, Git, optional Android Studio, setzen Umgebun
 | `npx expo start --android` | App im Android-Emulator starten |
 | `npx expo run:android` | **Development Build** auf Gerät/Emulator (voller native Zugriff) |
 | `npm test` | Alle Unit-Tests ausführen |
+| `npm run test:all` | TypeScript-Check + Unit-Tests |
+| `npm run test:ci` | Jest im CI-Modus mit Coverage |
+| `npm run test:all:ci` | TypeScript-Check + CI-Tests |
 | `npm run test:watch` | Tests im Watch-Modus |
 | `npm run test:coverage` | Tests mit Coverage-Report |
 | `npx tsc --noEmit` | TypeScript-Check ohne Build |
@@ -128,6 +131,12 @@ Damit **alle Features** funktionieren (Kontakte schreiben, Notifications, Widget
 # Alle Tests einmalig
 npm test
 
+# Typecheck + Tests (empfohlen lokal)
+npm run test:all
+
+# CI-Lauf (inkl. Coverage)
+npm run test:all:ci
+
 # Watch-Modus (bei Dateiänderungen)
 npm run test:watch
 
@@ -135,7 +144,7 @@ npm run test:watch
 npm run test:coverage
 ```
 
-Aktuell: **60 Tests** in 5 Suites (birthday, types, store, i18n, export).
+Aktuell: **86 Tests** in 7 Suites (birthday, types, store, i18n, export, contacts, settings-reset).
 
 ## Features
 
@@ -145,7 +154,8 @@ Aktuell: **60 Tests** in 5 Suites (birthday, types, store, i18n, export).
 - **Foto-Zoom**: Antippen des Kontaktfotos in der Bearbeitungsansicht öffnet Vollbild-Overlay (hochauflösendes Bild via RawImage + Base64)
 - **Benachrichtigungen**: Pro Kontakt aktivierbar/deaktivierbar, Offset-Picker mit Zahl + Einheit (Tage/Wochen/Monate), eigene Uhrzeit
 - **Favoriten & Pinned**: Schnellzugriff auf wichtige Kontakte
-- **Export/Import**: Einstellungen als JSON exportieren/importieren
+- **Export/Import**: Einstellungen als JSON exportieren/importieren; Datei-Picker zur nativen Dateiauswahl (expo-document-picker) beim Importieren
+- **Konfiguration zurücksetzen**: Test-Button in Einstellungen zum Zurücksetzen aller Einstellungen auf Defaults (mit Sicherheitsbestätigung)
 - **Mehrsprachig**: Deutsch/Englisch, System-Erkennung funktioniert korrekt
 - **Dark/Light Mode**: System oder manuell
 - **Android Widgets**: 2 Homescreen-Widgets (Upcoming + Favorites)
@@ -186,7 +196,8 @@ Geburtstage/
 │   │   ├── database.ts        # SQLite (Settings, Favoriten, Hidden, Export)
 │   │   ├── database.web.ts    # Web-Variante (localStorage statt SQLite)
 │   │   ├── notifications.ts   # Push-Notifications
-│   │   └── notifications.web.ts # Web-Stub (No-op)
+│   │   ├── notifications.web.ts # Web-Stub (No-op)
+│   │   └── photoCache.ts      # Kontaktfoto-Cache für Widget-Avatare
 │   ├── store/
 │   │   └── index.ts           # Zustand State Management
 │   ├── theme/
@@ -200,6 +211,8 @@ Geburtstage/
 │       └── widgetTaskHandler.tsx # Widget-Datenlogik
 └── __tests__/
     ├── birthday.test.ts       # Datums-/Gruppierungs-Tests
+   ├── contacts.test.ts       # Kontakt-Write-Fallbacks + Native-Editor-Roundtrip
+   ├── settings-reset.test.ts # Reset-/Import-/Export-Regressionstests
     ├── types.test.ts          # Default-Settings-Tests
     ├── store.test.ts          # Store-Aktionen-Tests
     ├── i18n.test.ts           # Übersetzungs-Vollständigkeit

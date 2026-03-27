@@ -7,6 +7,7 @@ import { AppSettings, ContactBirthday, DEFAULT_SETTINGS, NotificationSetting } f
 import * as db from '../services/database';
 import * as contactsService from '../services/contacts';
 import * as notificationsService from '../services/notifications';
+import { cacheContactPhotos } from '../services/photoCache';
 
 interface AppState {
   // Contacts
@@ -62,6 +63,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       const contacts = await contactsService.getAllContacts();
       set({ contacts, contactsLoading: false });
+      // Fire-and-forget: cache photos for widget use (must run in main app process).
+      cacheContactPhotos(contacts).catch(() => {});
     } catch (error) {
       console.error('Error loading contacts:', error);
       set({ contactsLoading: false });

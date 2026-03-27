@@ -193,7 +193,47 @@ if [ -f "package-lock.json" ]; then
   rm -f package-lock.json
 fi
 
-npm install --legacy-peer-deps
+# Pruefen ob das Dateisystem Symlinks unterstuetzt (exFAT/FAT32 tun das nicht)
+NPM_EXTRA_FLAGS=""
+NO_SYMLINKS=false
+SYMLINK_TEST_FILE=".symlink_test_$$"
+SYMLINK_TARGET_FILE=".symlink_target_$$"
+touch "$SYMLINK_TARGET_FILE" 2>/dev/null || true
+if ! ln -s "$SYMLINK_TARGET_FILE" "$SYMLINK_TEST_FILE" 2>/dev/null; then
+  echo -e "${YELLOW}[WARNUNG] Dateisystem unterstuetzt keine Symlinks (z.B. exFAT/FAT32).${NC}"
+  echo -e "${YELLOW}         npm wird mit --no-bin-links --ignore-scripts ausgefuehrt.${NC}"
+  echo -e "${YELLOW}         Bin-Wrapper werden manuell erstellt.${NC}"
+  echo -e "${YELLOW}         Empfehlung: Projekt auf ext4-Partition verschieben fuer volle Kompatibilitaet.${NC}"
+  NPM_EXTRA_FLAGS="--no-bin-links --ignore-scripts"
+  NO_SYMLINKS=true
+fi
+rm -f "$SYMLINK_TEST_FILE" "$SYMLINK_TARGET_FILE" 2>/dev/null || true
+
+npm install --legacy-peer-deps $NPM_EXTRA_FLAGS
+
+# Falls keine Symlinks: .bin Wrapper-Scripts manuell erstellen
+if [ "$NO_SYMLINKS" = true ]; then
+  echo -e "${GRAY}         Erstelle .bin Wrapper-Scripts...${NC}"
+  mkdir -p node_modules/.bin
+
+  # Wrapper erstellen: Name -> Paket/Binary-Pfad
+  create_bin_wrapper() {
+    local name="$1"
+    local target="$2"
+    cat > "node_modules/.bin/$name" << WRAPPER
+#!/bin/sh
+exec node "\$(dirname "\$0")/../$target" "\$@"
+WRAPPER
+    chmod +x "node_modules/.bin/$name"
+  }
+
+  create_bin_wrapper "expo"    "expo/bin/cli"
+  create_bin_wrapper "jest"    "jest/bin/jest.js"
+  create_bin_wrapper "tsc"     "typescript/bin/tsc"
+  create_bin_wrapper "tsserver" "typescript/bin/tsserver"
+
+  echo -e "${GREEN}[OK] .bin Wrapper fuer expo, jest, tsc erstellt${NC}"
+fi
 
 echo -e "${GREEN}[OK] Abhaengigkeiten installiert${NC}"
 

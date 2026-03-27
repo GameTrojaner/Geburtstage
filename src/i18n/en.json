@@ -58,7 +58,11 @@
     "no": "No",
     "saved": "Birthday saved",
     "deleted": "Birthday removed",
-    "error": "Error saving birthday"
+    "error": "Error saving birthday",
+    "openNativeEditor": "Open in contact editor",
+    "openNativeEditorMessage": "This contact cannot be written directly. Do you want to open the native contact editor?",
+    "directWriteUnavailable": "Direct saving is not possible for this contact. Please use the native contact editor.",
+    "nativeEditorError": "Could not open contact editor"
   },
   "calendar": {
     "title": "Calendar",
@@ -104,9 +108,14 @@
     "data": "Data",
     "exportConfig": "Export settings",
     "importConfig": "Import settings",
+    "resetConfig": "Reset settings",
+    "resetConfigDesc": "Clear all settings and data",
+    "resetConfigConfirm": "Are you sure? This will delete all settings, favorites, pinned items, and hidden contacts.",
     "exportSuccess": "Settings exported",
     "importSuccess": "Settings imported",
     "importError": "Error importing settings",
+    "resetSuccess": "Settings reset to defaults",
+    "resetError": "Error resetting settings",
     "confirmWrite": "Confirm before saving to contact",
     "hiddenContacts": "Hidden contacts",
     "hiddenCount": "{{count}} contact hidden",
