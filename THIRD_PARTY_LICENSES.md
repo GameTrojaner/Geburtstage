@@ -1,6 +1,6 @@
 # Third-Party Licenses
 
-Generated from installed package metadata on 2026-03-27T23:30:22.761Z.
+Generated from installed package metadata.
 
 ## Runtime Dependencies
 

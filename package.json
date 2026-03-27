@@ -1,6 +1,7 @@
 {
   "name": "geburtstage",
   "version": "1.0.0",
+  "license": "GPL-3.0-or-later",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",

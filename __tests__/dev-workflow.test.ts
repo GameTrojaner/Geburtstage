@@ -67,5 +67,14 @@ describe('Developer workflow guards', () => {
 
     const thirdPartyLicensesPath = path.join(repoRoot, 'THIRD_PARTY_LICENSES.md');
     expect(fs.existsSync(thirdPartyLicensesPath)).toBe(true);
+
+    const licensePath = path.join(repoRoot, 'LICENSE');
+    expect(fs.existsSync(licensePath)).toBe(true);
+
+    const patentsPath = path.join(repoRoot, 'PATENTS.md');
+    expect(fs.existsSync(patentsPath)).toBe(true);
+
+    const contributingPath = path.join(repoRoot, 'CONTRIBUTING.md');
+    expect(fs.existsSync(contributingPath)).toBe(true);
   });
 });

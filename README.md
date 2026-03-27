@@ -2,6 +2,12 @@
 
 React Native App (Expo SDK 55) zum Anzeigen und Verwalten von Geburtstagen aus den Telefonkontakten.
 
+## Lizenz
+
+- Projektlizenz: `GPL-3.0-or-later` (siehe `LICENSE`)
+- Contributor-Patentregel: `PATENTS.md`
+- Contributor-Richtlinien: `CONTRIBUTING.md`
+
 ## Voraussetzungen
 
 - **Node.js** >= 18 (empfohlen: 20 LTS)

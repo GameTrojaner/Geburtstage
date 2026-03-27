@@ -52,12 +52,10 @@ const root = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 const dependencies = Object.keys(root.dependencies || {}).map(getPackageMeta).sort(sortByName);
 const devDependencies = Object.keys(root.devDependencies || {}).map(getPackageMeta).sort(sortByName);
 
-const now = new Date().toISOString();
-
 const lines = [
   '# Third-Party Licenses',
   '',
-  `Generated from installed package metadata on ${now}.`,
+  'Generated from installed package metadata.',
   '',
   '## Runtime Dependencies',
   '',

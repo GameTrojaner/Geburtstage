@@ -51,5 +51,6 @@ Status: implemented in repository
   - Runs install, `fdroid:check`, `licenses:check`, typecheck, tests, and Android `assembleDebug`.
 
 ## Manual follow-up (outside code)
-- Set app license in `fdroid/metadata/com.anonymous.Geburtstage.yml` (`License: TODO-SET-SPDX-LICENSE`).
+- Keep app license in `fdroid/metadata/com.anonymous.Geburtstage.yml` in sync with `LICENSE` and `package.json` (`GPL-3.0-or-later`).
+- Keep contributor patent policy aligned (`PATENTS.md`, `CONTRIBUTING.md`).
 - Submit metadata in F-Droid format and follow their review process.

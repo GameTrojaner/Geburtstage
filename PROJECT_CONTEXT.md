@@ -168,6 +168,8 @@ Reagiert auf: WIDGET_ADDED, WIDGET_UPDATE, WIDGET_RESIZED.
 - **jest.config.js**: Nutzt `babel-jest` direkt (nicht jest-expo preset) wegen Kompatibilität mit Expo SDK 55
 - **react-native-worklets**: Wird von reanimated 4.x babel plugin benötigt, muss installiert sein
 - **F-Droid Profil**: `FDROID_BUILD=1` aktiviert die dedizierte Expo-Konfiguration aus `app.config.js` (OTA disabled, Notifications-Modus `local-only`); validierbar via `npm run fdroid:check`
+- **Lizenz**: Projekt ist `GPL-3.0-or-later` (`LICENSE`); Metadaten in `package.json` und `fdroid/metadata/com.anonymous.Geburtstage.yml` synchron halten
+- **Patentpolitik**: Contributor Non-Assertion via `PATENTS.md`; Beitragspfad in `CONTRIBUTING.md`
 - **Third-Party-Lizenzen**: `THIRD_PARTY_LICENSES.md` wird per `npm run licenses:generate` aus installierten Paketen erzeugt und via `npm run licenses:check` validiert
 - **F-Droid Metadaten**: Entwurf liegt unter `fdroid/metadata/com.anonymous.Geburtstage.yml` (Quelle fuer spaetere fdroiddata-Submission)
 - **CI**: `.github/workflows/fdroid-readiness.yml` prueft F-Droid-Checks, Lizenzdoku-Aktualitaet, Typecheck, Tests und Android `assembleDebug`
