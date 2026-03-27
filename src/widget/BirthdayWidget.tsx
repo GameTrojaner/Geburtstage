@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlexWidget, TextWidget, ListWidget, ImageWidget } from 'react-native-android-widget';
+import { FlexWidget, TextWidget, ImageWidget } from 'react-native-android-widget';
 
 interface BirthdayItem {
   contactId: string;
@@ -14,6 +14,11 @@ interface BirthdayItem {
 interface BirthdayWidgetProps {
   birthdays: BirthdayItem[];
   title: string;
+}
+
+export function getVisibleWidgetRows(birthdays: BirthdayItem[]): BirthdayItem[] {
+  // Keep RemoteViews rendering simple to avoid collection adapter edge cases.
+  return birthdays.slice(0, 3);
 }
 
 function BirthdayRow({ item }: { item: BirthdayItem }) {
@@ -86,6 +91,8 @@ function BirthdayRow({ item }: { item: BirthdayItem }) {
 }
 
 export function BirthdayWidget({ birthdays, title }: BirthdayWidgetProps) {
+  const visibleRows = getVisibleWidgetRows(birthdays);
+
   return (
     <FlexWidget
       style={{
@@ -118,7 +125,7 @@ export function BirthdayWidget({ birthdays, title }: BirthdayWidgetProps) {
       </FlexWidget>
 
       {/* Birthday list */}
-      {birthdays.length === 0 ? (
+      {visibleRows.length === 0 ? (
         <FlexWidget
           style={{
             width: 'match_parent',
@@ -133,16 +140,17 @@ export function BirthdayWidget({ birthdays, title }: BirthdayWidgetProps) {
           />
         </FlexWidget>
       ) : (
-        <ListWidget
+        <FlexWidget
           style={{
             width: 'match_parent',
             height: 'match_parent',
+            flexDirection: 'column',
           }}
         >
-          {birthdays.map((item) => (
+          {visibleRows.map((item) => (
             <BirthdayRow key={item.contactId} item={item} />
           ))}
-        </ListWidget>
+        </FlexWidget>
       )}
     </FlexWidget>
   );

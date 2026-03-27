@@ -233,8 +233,43 @@ export async function createContactWithBirthday(
     const contactId = await Contacts.addContactAsync(contact);
     return contactId;
   } catch (error) {
-    console.error('Error creating contact:', error);
+    // Expected on some providers/devices; caller falls back to native contact editor.
+    console.warn('Direct contact creation failed, will use native editor fallback:', error);
     return null;
+  }
+}
+
+export async function openNativeCreateContact(
+  name: string,
+  birthday?: { day: number; month: number; year?: number }
+): Promise<boolean> {
+  try {
+    const trimmedName = name.trim();
+    const parts = trimmedName.split(/\s+/).filter(Boolean);
+    const firstName = parts[0] || '';
+    const lastName = parts.slice(1).join(' ') || undefined;
+
+    const prefilledContact: Contacts.Contact = {
+      contactType: Contacts.ContactTypes.Person,
+      firstName,
+      lastName,
+      name: trimmedName,
+      ...(birthday
+        ? {
+            birthday: {
+              day: birthday.day,
+              month: birthday.month - 1,
+              ...(birthday.year !== undefined ? { year: birthday.year } : {}),
+            },
+          }
+        : {}),
+    };
+
+    await Contacts.presentFormAsync(undefined, prefilledContact, { isNew: true });
+    return true;
+  } catch (error) {
+    console.error('Error opening native create contact form:', error);
+    return false;
   }
 }
 

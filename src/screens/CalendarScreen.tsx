@@ -5,7 +5,6 @@ import { Calendar, DateData } from 'react-native-calendars';
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../store';
 import { ContactAvatar } from '../components/ContactAvatar';
-import { createContactWithBirthday } from '../services/contacts';
 import { formatBirthdayISO, getUpcomingAge, formatBirthday } from '../utils/birthday';
 import { ContactBirthday } from '../types';
 import { useNavigation } from '@react-navigation/native';
@@ -101,8 +100,6 @@ export function CalendarScreen() {
   // Contact picker dialog state
   const [pickerVisible, setPickerVisible] = useState(false);
   const [pickerSearch, setPickerSearch] = useState('');
-  const [createDialogVisible, setCreateDialogVisible] = useState(false);
-  const [newContactName, setNewContactName] = useState('');
 
   const contactsWithoutBirthday = useMemo(
     () => visibleContacts.filter(c => !c.birthday).sort((a, b) => a.name.localeCompare(b.name)),
@@ -126,22 +123,6 @@ export function CalendarScreen() {
       prefillDay: selectedDay,
       prefillMonth: selectedMonth,
     });
-  };
-
-  const handleCreateContact = async () => {
-    if (!newContactName.trim() || !selectedDate) return;
-    const contactId = await createContactWithBirthday(
-      newContactName.trim(),
-      { day: selectedDay, month: selectedMonth }
-    );
-    setCreateDialogVisible(false);
-    setNewContactName('');
-    if (contactId) {
-      await loadContacts();
-      Alert.alert(t('calendar.contactCreated'));
-    } else {
-      Alert.alert(t('calendar.contactCreateError'));
-    }
   };
 
   const commitMonthChange = useCallback((direction: 1 | -1) => {
@@ -316,17 +297,6 @@ export function CalendarScreen() {
                   >
                     {t('calendar.assignBirthday')}
                   </Button>
-                  <Button
-                    mode="outlined"
-                    icon="account-plus-outline"
-                    onPress={() => {
-                      setNewContactName('');
-                      setCreateDialogVisible(true);
-                    }}
-                    style={styles.actionButton}
-                  >
-                    {t('calendar.createContact')}
-                  </Button>
                 </View>
               )}
             </View>
@@ -379,26 +349,6 @@ export function CalendarScreen() {
           />
         </Surface>
       </Modal>
-
-      {/* Create contact dialog */}
-      <Portal>
-        <Dialog visible={createDialogVisible} onDismiss={() => setCreateDialogVisible(false)}>
-          <Dialog.Title>{t('calendar.createContact')}</Dialog.Title>
-          <Dialog.Content>
-            <TextInput
-              mode="outlined"
-              label={t('calendar.newContactName')}
-              value={newContactName}
-              onChangeText={setNewContactName}
-              autoFocus
-            />
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setCreateDialogVisible(false)}>{t('common.cancel')}</Button>
-            <Button onPress={handleCreateContact} disabled={!newContactName.trim()}>{t('common.save')}</Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
     </Surface>
   );
 }

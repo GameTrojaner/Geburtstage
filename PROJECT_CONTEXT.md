@@ -25,7 +25,7 @@ Unterstützt Notifications, Kalenderansicht, Favoriten, Homescreen-Widgets, Expo
 - **i18next + react-i18next** (DE + EN, ~120 Keys pro Sprache)
 - **react-native-android-widget** (2 Widgets: Upcoming + Favorites)
 - **react-native-reanimated 4** + **react-native-worklets** (Animationen)
-- **Jest 30** + **@testing-library/react-native** (89 Tests, 8 Suites)
+- **Jest 29** + **@testing-library/react-native** (91 Tests, 9 Suites)
 
 ## Projektstruktur
 
@@ -75,14 +75,14 @@ E:\Dev\Geburtstage\
 │   │   ├── ContactsScreen.tsx       # Searchbar + Chip-Filter + Swipe-to-Hide (Snackbar mit Undo)
 │   │   ├── EditBirthdayScreen.tsx   # Tag/Monat/Jahr inline, Foto-Zoom-Modal, OffsetPickerDialog, prefillDay/prefillMonth
 │   │   ├── CalendarScreen.tsx       # Pan-Geste (folgt Finger, Spring-Animation), Today-FAB, Tag-Toggle,
-│   │   │                            #   Geburtstag zuweisen (Kontakt wählen / neuen Kontakt erstellen)
+│   │   │                            #   Geburtstag zuweisen (Kontakt aus bestehender Liste wählen)
 │   │   ├── SettingsScreen.tsx       # Theme, Sprache, Notifications, OffsetPickerDialog, Export/Import
 │   │   └── HiddenContactsScreen.tsx # Vollbild-Ansicht ausgeblendeter Kontakte (FlatList + Show-Button)
 │   ├── navigation/
 │   │   ├── AppNavigator.tsx         # Bottom Tabs (Home, Contacts, Calendar, Settings) + Stack (EditBirthday, HiddenContacts)
 │   │   └── types.ts                 # RootStackParamList (MainTabs, EditBirthday + prefill, HiddenContacts), TabParamList
 │   └── widget/
-│       ├── BirthdayWidget.tsx       # FlexWidget/TextWidget/ListWidget (Light Theme)
+│       ├── BirthdayWidget.tsx       # FlexWidget/TextWidget/ImageWidget (statisches 3-Zeilen-Rendering, Light Theme)
 │       └── widgetTaskHandler.tsx    # Lädt Kontakte + Favoriten aus SQLite, rendert Widget
 │
 └── __tests__/
@@ -153,7 +153,7 @@ Reagiert auf: WIDGET_ADDED, WIDGET_UPDATE, WIDGET_RESIZED.
 - **Sprache System**: Beim Wechsel auf „System" wird die Gerätesprache per expo-localization erkannt und aktiv gesetzt (nicht nur beim App-Start).
 - **Notification UX**: Aktivieren/Deaktivieren ist jetzt Top-Level (nicht mehr unter „Eigene Erinnerungen"). Der „+" Button für Offsets wird nur gezeigt wenn noch Optionen verfügbar sind.
 - **Offset-Picker**: Shared OffsetPickerDialog-Komponente (Zahl + Einheit: Tage/Wochen/Monate). Wird in EditBirthdayScreen und SettingsScreen verwendet.
-- **Kalender**: Interaktive Pan-Geste (GestureDetector, folgt dem Finger via onUpdate/translateX, Spring-back bei unvollständigem Swipe, Velocity-Trigger). FAB „Heute" wenn nicht aktueller Monat. Tag-Toggle (erneutes Tippen deselektiert), „Alle im Monat zeigen" Chip, „Geburtstag zuweisen" Button öffnet Kontakt-Auswahl-Modal, „Neuen Kontakt erstellen" Dialog.
+- **Kalender**: Interaktive Pan-Geste (GestureDetector, folgt dem Finger via onUpdate/translateX, Spring-back bei unvollständigem Swipe, Velocity-Trigger). FAB „Heute" wenn nicht aktueller Monat. Tag-Toggle (erneutes Tippen deselektiert), „Alle im Monat zeigen" Chip, „Geburtstag zuweisen" Button öffnet Kontakt-Auswahl-Modal.
 - **Foto-Zoom**: Antippen des Kontaktfotos in EditBirthdayScreen öffnet Vollbild-Overlay. Bildquelle-Priorität: imageBase64 → rawImageUri → imageUri.
 - **Kontakte-Sortierung**: ContactsScreen sortiert rein alphabetisch (keine Favoriten-Priorisierung mehr).
 - **Expo Go Version**: Play Store Version oft veraltet — APK von https://expo.dev/go empfohlen
@@ -164,7 +164,7 @@ Reagiert auf: WIDGET_ADDED, WIDGET_UPDATE, WIDGET_RESIZED.
 - **expo-contacts updateContactAsync bug**: `mutateContact()` always ADDS the new birthday to `contact.dates`, but `contact.dates` is pre-populated with the OLD birthday from the fresh `getContactById()` call. This causes two birthday records to be inserted, and ContactsProvider (especially Google-synced contacts) rejects the second INSERT with `OperationApplicationException: Insert returned no result`. Fix: call `getContactByIdAsync(id, [Fields.Birthday, Fields.Dates])`, then pass `{ id, birthday, dates: contact.dates }` (non-birthday only) to `updateContactAsync`. See `contacts.ts` + `patches/expo-contacts+55.0.9.patch`.
 - **expo-contacts BaseModel _id conflict**: `BaseModel.getInsertOperation` includes the old row's `_id` in INSERT ops after flush-and-reinsert. On contacts with multiple raw account sources (Google + local), the flush deletes from the wrong raw contact — leaving the `_id` still in DB — so the re-INSERT conflicts. Fixed via `patches/expo-contacts+55.0.9.patch` (removes `_id` from INSERT, letting Android auto-generate IDs).
 - **Widget**: Nur Light-Theme implementiert (kein Dark-Widget)
-- **Widget-Handler**: Wird in index.ts nur auf Android registriert (dynamischer Import)
+- **Widget-Handler**: Wird in index.ts nur auf Android registriert (statische Registrierung beim App-Start)
 - **jest.config.js**: Nutzt `babel-jest` direkt (nicht jest-expo preset) wegen Kompatibilität mit Expo SDK 55
 - **react-native-worklets**: Wird von reanimated 4.x babel plugin benötigt, muss installiert sein
 
@@ -185,7 +185,7 @@ npx tsc --noEmit                  # TypeScript Check
 ## Stand: März 2026
 
 - TypeScript: 0 Fehler
-- Tests: 86/86 bestanden (+ 2 neue Regressionstests für Native-Editor-Roundtrip-Reload)
+- Tests: 91/91 bestanden (inkl. widget-layout Suite)
 - Alle Screens implementiert
 - i18n komplett (DE + EN) + neue Reset-Übersetzungen
 - 2 Android Widgets konfiguriert

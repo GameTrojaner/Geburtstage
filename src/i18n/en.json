@@ -76,6 +76,7 @@
     "showAllMonth": "Show full month",
     "newContactName": "New contact name",
     "contactCreated": "Contact created",
+    "contactCreateNativeOpened": "Contact could not be created directly. Native contact editor was opened.",
     "contactCreateError": "Error creating contact"
   },
   "settings": {

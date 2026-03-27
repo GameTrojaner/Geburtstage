@@ -3,6 +3,7 @@ import {
   saveBirthdayToContact,
   removeBirthdayFromContact,
   createContactWithBirthday,
+  openNativeCreateContact,
   openNativeContactEditor,
   openNativeEditorAndReloadContact,
   shouldUseNativeEditorForContact,
@@ -432,6 +433,9 @@ describe('Contact Services', () => {
     });
 
     it('should return null if creation fails', async () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
       (Contacts.addContactAsync as jest.Mock).mockRejectedValue(
         new Error('Creation failed')
       );
@@ -442,10 +446,59 @@ describe('Contact Services', () => {
       });
 
       expect(result).toBeNull();
+      expect(warnSpy).toHaveBeenCalledWith(
+        'Direct contact creation failed, will use native editor fallback:',
+        expect.any(Error)
+      );
+      expect(errorSpy).not.toHaveBeenCalledWith(
+        'Error creating contact:',
+        expect.anything()
+      );
+
+      warnSpy.mockRestore();
+      errorSpy.mockRestore();
     });
   });
 
   describe('openNativeContactEditor', () => {
+    it('should open native create contact form with prefilled birthday', async () => {
+      (Contacts.presentFormAsync as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await openNativeCreateContact('Max Mustermann', {
+        day: 7,
+        month: 11,
+        year: 1999,
+      });
+
+      expect(result).toBe(true);
+      expect(Contacts.presentFormAsync).toHaveBeenCalledWith(
+        undefined,
+        {
+          contactType: 'person',
+          firstName: 'Max',
+          lastName: 'Mustermann',
+          name: 'Max Mustermann',
+          birthday: {
+            day: 7,
+            month: 10,
+            year: 1999,
+          },
+        },
+        { isNew: true }
+      );
+    });
+
+    it('should return false when opening native create contact form fails', async () => {
+      (Contacts.presentFormAsync as jest.Mock).mockRejectedValue(new Error('Open create failed'));
+
+      const result = await openNativeCreateContact('Test Person', {
+        day: 1,
+        month: 1,
+      });
+
+      expect(result).toBe(false);
+    });
+
     it('should open native editor successfully', async () => {
       (Contacts.presentFormAsync as jest.Mock).mockResolvedValue(undefined);
 
