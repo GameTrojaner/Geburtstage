@@ -99,7 +99,7 @@ if (-not $SkipAndroidStudio) {
             Write-Host "[OK] Android Studio installiert" -ForegroundColor Green
             Write-Host "[INFO] ANDROID_HOME = $androidHome" -ForegroundColor Cyan
             Write-Host "[INFO] Bitte Android Studio oeffnen und den SDK Manager ausfuehren:" -ForegroundColor Yellow
-            Write-Host "       - Android SDK Platform 34" -ForegroundColor Yellow
+            Write-Host "       - Android SDK Platform (passend zur aktuellen Expo/RN compileSdk)" -ForegroundColor Yellow
             Write-Host "       - Android SDK Build-Tools" -ForegroundColor Yellow
             Write-Host "       - Android Emulator (optional)" -ForegroundColor Yellow
         } else {
@@ -124,10 +124,10 @@ try {
         Remove-Item -Recurse -Force "node_modules"
     }
     if (Test-Path "package-lock.json") {
-        Remove-Item -Force "package-lock.json"
+        npm ci --legacy-peer-deps
+    } else {
+        npm install --legacy-peer-deps
     }
-    
-    npm install --legacy-peer-deps
     
     if ($LASTEXITCODE -eq 0) {
         Write-Host "[OK] Abhaengigkeiten installiert" -ForegroundColor Green

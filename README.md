@@ -144,7 +144,7 @@ npm run test:watch
 npm run test:coverage
 ```
 
-Aktuell: **86 Tests** in 7 Suites (birthday, types, store, i18n, export, contacts, settings-reset).
+Aktuell: **89 Tests** in 8 Suites (birthday, types, store, i18n, export, contacts, settings-reset, dev-workflow).
 
 ## Features
 
@@ -212,6 +212,7 @@ Geburtstage/
 └── __tests__/
     ├── birthday.test.ts       # Datums-/Gruppierungs-Tests
    ├── contacts.test.ts       # Kontakt-Write-Fallbacks + Native-Editor-Roundtrip
+   ├── dev-workflow.test.ts   # Guardrails fuer Setup-Skripte und Copilot-Workflow-Regeln
    ├── settings-reset.test.ts # Reset-/Import-/Export-Regressionstests
     ├── types.test.ts          # Default-Settings-Tests
     ├── store.test.ts          # Store-Aktionen-Tests

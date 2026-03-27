@@ -166,7 +166,7 @@ if [ "$SKIP_ANDROID" = false ]; then
 
       echo -e "${CYAN}[INFO] ANDROID_HOME = $ANDROID_HOME${NC}"
       echo -e "${YELLOW}[INFO] Bitte Android Studio oeffnen und den SDK Manager ausfuehren:${NC}"
-      echo -e "${YELLOW}       - Android SDK Platform 34${NC}"
+      echo -e "${YELLOW}       - Android SDK Platform (passend zur aktuellen Expo/RN compileSdk)${NC}"
       echo -e "${YELLOW}       - Android SDK Build-Tools${NC}"
       echo -e "${YELLOW}       - Android Emulator (optional)${NC}"
     else
@@ -189,9 +189,6 @@ if [ -d "node_modules" ]; then
   echo -e "${GRAY}         Alte node_modules werden geloescht...${NC}"
   rm -rf node_modules
 fi
-if [ -f "package-lock.json" ]; then
-  rm -f package-lock.json
-fi
 
 # Pruefen ob das Dateisystem Symlinks unterstuetzt (exFAT/FAT32 tun das nicht)
 NPM_EXTRA_FLAGS=""
@@ -209,7 +206,11 @@ if ! ln -s "$SYMLINK_TARGET_FILE" "$SYMLINK_TEST_FILE" 2>/dev/null; then
 fi
 rm -f "$SYMLINK_TEST_FILE" "$SYMLINK_TARGET_FILE" 2>/dev/null || true
 
-npm install --legacy-peer-deps $NPM_EXTRA_FLAGS
+if [ -f "package-lock.json" ]; then
+  npm ci --legacy-peer-deps $NPM_EXTRA_FLAGS
+else
+  npm install --legacy-peer-deps $NPM_EXTRA_FLAGS
+fi
 
 # Falls keine Symlinks: .bin Wrapper-Scripts manuell erstellen
 if [ "$NO_SYMLINKS" = true ]; then

@@ -25,7 +25,7 @@ Unterstützt Notifications, Kalenderansicht, Favoriten, Homescreen-Widgets, Expo
 - **i18next + react-i18next** (DE + EN, ~120 Keys pro Sprache)
 - **react-native-android-widget** (2 Widgets: Upcoming + Favorites)
 - **react-native-reanimated 4** + **react-native-worklets** (Animationen)
-- **Jest 30** + **@testing-library/react-native** (86 Tests, 7 Suites)
+- **Jest 30** + **@testing-library/react-native** (89 Tests, 8 Suites)
 
 ## Projektstruktur
 
@@ -199,6 +199,8 @@ npx tsc --noEmit                  # TypeScript Check
 - **SQLite-Härtung**: DB-Init läuft mit Retry/Backoff, Singleton-Init-Promise und Recovery-Reconnect bei `NativeDatabase`/`NullPointerException`-Fehlern
 - **Widget-Fotocache**: Kontaktbilder werden in der App in `documentDirectory/contact_photos` gespiegelt; Widget liest dann zuverlässig aus `file://` statt `content://`
 - **Adaptive App-Icons**: Foreground/Monochrome-Assets mit transparentem Hintergrund und sauber neu-generierte Android-Mipmap-Ressourcen
+- **Repo-Workflow-Regeln**: `.github/copilot-instructions.md` definiert verpflichtende Prompt-Checks (Typecheck + Tests, Doku-/Script-Updatepflicht)
+- **Workflow-Regressionstest**: `__tests__/dev-workflow.test.ts` prueft Presence/Essentials der Copilot-Regeln und lockfile-first Install-Logik in Setup-Skripten
 - Web-Version funktioniert im Browser (Settings, Navigation, Themes)
 - Expo Go: App startet, Kontakte lesbar, Notifications graceful degraded
 - Noch nicht auf echtem Gerät mit Dev Build getestet
