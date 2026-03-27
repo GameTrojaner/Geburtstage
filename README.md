@@ -50,6 +50,8 @@ Beide Scripts installieren Node.js, Git, optional Android Studio, setzen Umgebun
 | `npm run test:all:ci` | TypeScript-Check + CI-Tests |
 | `npm run test:watch` | Tests im Watch-Modus |
 | `npm run test:coverage` | Tests mit Coverage-Report |
+| `npm run fdroid:check` | Prueft F-Droid Build-Constraints (`FDROID_BUILD=1`) |
+| `npm run fdroid:android` | Android Build mit F-Droid Profil (`FDROID_BUILD=1`) |
 | `npx tsc --noEmit` | TypeScript-Check ohne Build |
 
 ## App testen
@@ -144,7 +146,19 @@ npm run test:watch
 npm run test:coverage
 ```
 
-Aktuell: **91 Tests** in 9 Suites (birthday, types, store, i18n, export, contacts, settings-reset, dev-workflow, widget-layout).
+Aktuell: **94 Tests** in 9 Suites (birthday, types, store, i18n, export, contacts, settings-reset, dev-workflow, widget-layout).
+
+## F-Droid Readiness
+
+- Checkliste: `FDROID_CHECKLIST.md`
+- F-Droid Config-Checks ausfuehren:
+   ```bash
+   npm run fdroid:check
+   ```
+- F-Droid Android-Build ausfuehren:
+   ```bash
+   npm run fdroid:android
+   ```
 
 ## Features
 

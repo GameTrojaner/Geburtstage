@@ -14,6 +14,8 @@
     "test:all:ci": "npm run test:typecheck && npm run test:ci",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "fdroid:check": "node scripts/fdroid-check.cjs",
+    "fdroid:android": "FDROID_BUILD=1 npx expo run:android",
     "postinstall": "patch-package"
   },
   "dependencies": {

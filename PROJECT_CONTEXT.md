@@ -25,7 +25,7 @@ Unterstützt Notifications, Kalenderansicht, Favoriten, Homescreen-Widgets, Expo
 - **i18next + react-i18next** (DE + EN, ~120 Keys pro Sprache)
 - **react-native-android-widget** (2 Widgets: Upcoming + Favorites)
 - **react-native-reanimated 4** + **react-native-worklets** (Animationen)
-- **Jest 29** + **@testing-library/react-native** (91 Tests, 9 Suites)
+- **Jest 29** + **@testing-library/react-native** (94 Tests, 9 Suites)
 
 ## Projektstruktur
 
@@ -167,6 +167,7 @@ Reagiert auf: WIDGET_ADDED, WIDGET_UPDATE, WIDGET_RESIZED.
 - **Widget-Handler**: Wird in index.ts nur auf Android registriert (statische Registrierung beim App-Start)
 - **jest.config.js**: Nutzt `babel-jest` direkt (nicht jest-expo preset) wegen Kompatibilität mit Expo SDK 55
 - **react-native-worklets**: Wird von reanimated 4.x babel plugin benötigt, muss installiert sein
+- **F-Droid Profil**: `FDROID_BUILD=1` aktiviert eine dedizierte Expo-Konfiguration aus `app.config.js` (OTA disabled, `expo-notifications` Plugin entfernt, `POST_NOTIFICATIONS` Permission entfernt); validierbar via `npm run fdroid:check`
 
 ## Befehle
 
@@ -180,12 +181,14 @@ npm run test:all                  # Typecheck + Unit Tests
 npm run test:all:ci               # Typecheck + CI-Tests (mit Coverage)
 npm run test:coverage             # Tests mit Coverage
 npx tsc --noEmit                  # TypeScript Check
+npm run fdroid:check              # F-Droid Profil-Checks
+npm run fdroid:android            # Android Build mit F-Droid Profil
 ```
 
 ## Stand: März 2026
 
 - TypeScript: 0 Fehler
-- Tests: 91/91 bestanden (inkl. widget-layout Suite)
+- Tests: 94/94 bestanden (inkl. widget-layout Suite)
 - Alle Screens implementiert
 - i18n komplett (DE + EN) + neue Reset-Übersetzungen
 - 2 Android Widgets konfiguriert

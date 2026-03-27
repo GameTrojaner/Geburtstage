@@ -3,10 +3,11 @@ import { ContactBirthday, NotificationSetting, AppSettings } from '../types';
 import { getAllNotificationSettings, getSettings } from './database';
 
 const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+const isFdroidBuild = Boolean((Constants.expoConfig as any)?.extra?.fdroidBuild);
 
 // Lazy import – completely skip in Expo Go (notifications removed since SDK 53)
 async function getNotificationsModule() {
-  if (isExpoGo) return null;
+  if (isExpoGo || isFdroidBuild) return null;
   try {
     const mod = await import('expo-notifications');
     if (typeof mod.requestPermissionsAsync !== 'function') return null;

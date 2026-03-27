@@ -30,4 +30,23 @@ describe('Developer workflow guards', () => {
     expect(content).toContain('npm install --legacy-peer-deps');
     expect(content).not.toContain('Remove-Item -Force "package-lock.json"');
   });
+
+  it('contains fdroid readiness assets and automated config checks', () => {
+    const appConfigPath = path.join(repoRoot, 'app.config.js');
+    const appConfig = fs.readFileSync(appConfigPath, 'utf8');
+
+    expect(appConfig).toContain('FDROID_BUILD');
+    expect(appConfig).toContain('expo-notifications');
+    expect(appConfig).toContain('android.permission.POST_NOTIFICATIONS');
+    expect(appConfig).toContain('autolinking');
+    expect(appConfig).toContain('enabled: false');
+
+    const packageJsonPath = path.join(repoRoot, 'package.json');
+    const packageJson = fs.readFileSync(packageJsonPath, 'utf8');
+    expect(packageJson).toContain('fdroid:check');
+    expect(packageJson).toContain('fdroid:android');
+
+    const checklistPath = path.join(repoRoot, 'FDROID_CHECKLIST.md');
+    expect(fs.existsSync(checklistPath)).toBe(true);
+  });
 });
