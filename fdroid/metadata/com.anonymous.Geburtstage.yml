@@ -1,0 +1,45 @@
+# F-Droid metadata draft for submission to fdroiddata
+# NOTE: This file is intentionally kept in-repo as a source-of-truth draft.
+#       Final submission is done in the official fdroiddata repository.
+
+Categories:
+  - Time
+  - Writing
+License: TODO-SET-SPDX-LICENSE
+AuthorName: Geburtstage Maintainers
+WebSite: https://github.com/GameTrojaner/Geburtstage
+SourceCode: https://github.com/GameTrojaner/Geburtstage
+IssueTracker: https://github.com/GameTrojaner/Geburtstage/issues
+
+AutoName: Geburtstage
+Summary: Local birthday reminders from contacts
+Description: |
+  Geburtstage is a privacy-focused birthday reminder app.
+
+  Features:
+  * Reads birthdays from local contacts.
+  * Lets users edit birthdays directly in contacts.
+  * Uses local scheduled reminders (no server required).
+  * Supports widgets and offline data export/import.
+
+RepoType: git
+Repo: https://github.com/GameTrojaner/Geburtstage.git
+
+Builds:
+  - versionName: 1.0.0
+    versionCode: 1
+    commit: HEAD
+    subdir: .
+    sudo:
+      - apt-get update
+      - apt-get install -y npm openjdk-17-jdk
+    init:
+      - npm ci --legacy-peer-deps
+    build:
+      - npm run fdroid:check
+      - cd android && ./gradlew assembleRelease
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: 1.0.0
+CurrentVersionCode: 1

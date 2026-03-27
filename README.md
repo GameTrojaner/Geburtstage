@@ -52,6 +52,8 @@ Beide Scripts installieren Node.js, Git, optional Android Studio, setzen Umgebun
 | `npm run test:coverage` | Tests mit Coverage-Report |
 | `npm run fdroid:check` | Prueft F-Droid Build-Constraints (`FDROID_BUILD=1`) |
 | `npm run fdroid:android` | Android Build mit F-Droid Profil (`FDROID_BUILD=1`) |
+| `npm run licenses:generate` | Generiert `THIRD_PARTY_LICENSES.md` aus installierten Paketen |
+| `npm run licenses:check` | Prueft, dass `THIRD_PARTY_LICENSES.md` aktuell ist |
 | `npx tsc --noEmit` | TypeScript-Check ohne Build |
 
 ## App testen
@@ -151,6 +153,8 @@ Aktuell: **94 Tests** in 9 Suites (birthday, types, store, i18n, export, contact
 ## F-Droid Readiness
 
 - Checkliste: `FDROID_CHECKLIST.md`
+- Metadaten-Entwurf: `fdroid/metadata/com.anonymous.Geburtstage.yml`
+- CI Workflow: `.github/workflows/fdroid-readiness.yml`
 - F-Droid Config-Checks ausfuehren:
    ```bash
    npm run fdroid:check

@@ -1,0 +1,51 @@
+name: F-Droid Readiness
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  readiness:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: F-Droid profile checks
+        run: npm run fdroid:check
+
+      - name: Third-party licenses up-to-date
+        run: npm run licenses:check
+
+      - name: Typecheck
+        run: npm run test:typecheck
+
+      - name: Unit tests
+        run: npm test -- --runInBand
+
+      - name: Android compile smoke test
+        run: |
+          chmod +x android/gradlew
+          cd android
+          ./gradlew assembleDebug

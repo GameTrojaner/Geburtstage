@@ -167,7 +167,10 @@ Reagiert auf: WIDGET_ADDED, WIDGET_UPDATE, WIDGET_RESIZED.
 - **Widget-Handler**: Wird in index.ts nur auf Android registriert (statische Registrierung beim App-Start)
 - **jest.config.js**: Nutzt `babel-jest` direkt (nicht jest-expo preset) wegen Kompatibilität mit Expo SDK 55
 - **react-native-worklets**: Wird von reanimated 4.x babel plugin benötigt, muss installiert sein
-- **F-Droid Profil**: `FDROID_BUILD=1` aktiviert eine dedizierte Expo-Konfiguration aus `app.config.js` (OTA disabled, `expo-notifications` Plugin entfernt, `POST_NOTIFICATIONS` Permission entfernt); validierbar via `npm run fdroid:check`
+- **F-Droid Profil**: `FDROID_BUILD=1` aktiviert die dedizierte Expo-Konfiguration aus `app.config.js` (OTA disabled, Notifications-Modus `local-only`); validierbar via `npm run fdroid:check`
+- **Third-Party-Lizenzen**: `THIRD_PARTY_LICENSES.md` wird per `npm run licenses:generate` aus installierten Paketen erzeugt und via `npm run licenses:check` validiert
+- **F-Droid Metadaten**: Entwurf liegt unter `fdroid/metadata/com.anonymous.Geburtstage.yml` (Quelle fuer spaetere fdroiddata-Submission)
+- **CI**: `.github/workflows/fdroid-readiness.yml` prueft F-Droid-Checks, Lizenzdoku-Aktualitaet, Typecheck, Tests und Android `assembleDebug`
 
 ## Befehle
 
@@ -183,6 +186,8 @@ npm run test:coverage             # Tests mit Coverage
 npx tsc --noEmit                  # TypeScript Check
 npm run fdroid:check              # F-Droid Profil-Checks
 npm run fdroid:android            # Android Build mit F-Droid Profil
+npm run licenses:generate         # Third-Party-Lizenzdoku generieren
+npm run licenses:check            # Third-Party-Lizenzdoku pruefen
 ```
 
 ## Stand: März 2026

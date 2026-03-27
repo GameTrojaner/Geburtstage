@@ -9,18 +9,17 @@ Status: implemented in repository
   - `fdroid:check` validates this.
 
 ## 2) Remove notification-specific Android permission/plugin for F-Droid build
-- Requirement: avoid shipping unnecessary notification-specific integration in F-Droid profile.
-- Implemented for `FDROID_BUILD=1`:
-  - Removes `expo-notifications` plugin from Expo config.
-  - Removes `android.permission.POST_NOTIFICATIONS`.
-  - Excludes `expo-notifications` from Expo autolinking.
-  - Exposes `expo.extra.fdroidBuild=true` to runtime.
-  - `fdroid:check` validates all three points.
+- Requirement: keep notifications F-Droid-compatible and local-only (no remote push backend).
+- Implemented:
+  - Keeps `expo-notifications` plugin enabled.
+  - Keeps `android.permission.POST_NOTIFICATIONS` for Android 13+ local notifications.
+  - Declares `expo.extra.notificationsMode='local-only'`.
+  - `fdroid:check` validates that notifications code does not use Expo push token APIs.
 
 ## 3) Runtime behavior must match F-Droid profile
-- Requirement: app should not attempt notifications path in F-Droid profile.
+- Requirement: app should use local scheduled notifications only.
 - Implemented:
-  - `src/services/notifications.ts` disables notifications module when `extra.fdroidBuild` is true.
+  - `src/services/notifications.ts` schedules local date-based notifications and does not use push tokens.
 
 ## 4) Repeatable verification command
 - Requirement: single command to verify F-Droid profile rules.
@@ -39,6 +38,18 @@ Status: implemented in repository
   - README section with commands.
   - PROJECT_CONTEXT update.
 
+## 7) Third-party license documentation
+- Requirement: maintain a reviewable list of third-party dependencies and their licenses.
+- Implemented:
+  - `THIRD_PARTY_LICENSES.md` generated via `npm run licenses:generate`.
+  - `npm run licenses:check` fails if the generated file is out of date.
+
+## 8) GitHub CI pipeline
+- Requirement: provide a pipeline that can be run on GitHub to validate readiness.
+- Implemented:
+  - `.github/workflows/fdroid-readiness.yml`
+  - Runs install, `fdroid:check`, `licenses:check`, typecheck, tests, and Android `assembleDebug`.
+
 ## Manual follow-up (outside code)
-- Confirm chosen app/project license is F-Droid-compatible.
+- Set app license in `fdroid/metadata/com.anonymous.Geburtstage.yml` (`License: TODO-SET-SPDX-LICENSE`).
 - Submit metadata in F-Droid format and follow their review process.

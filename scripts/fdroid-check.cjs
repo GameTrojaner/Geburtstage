@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 
 function loadFdroidConfig() {
   process.env.FDROID_BUILD = '1';
@@ -31,26 +32,27 @@ pass('OTA updates are disabled.');
 
 const plugins = expo.plugins || [];
 const hasNotificationsPlugin = plugins.some((plugin) => getPluginName(plugin) === 'expo-notifications');
-if (hasNotificationsPlugin) {
-  fail('expo-notifications plugin must be removed in FDROID_BUILD=1 config.');
+if (!hasNotificationsPlugin) {
+  fail('expo-notifications plugin must remain enabled for local notifications.');
 }
-pass('expo-notifications plugin is removed for FDROID_BUILD=1.');
+pass('expo-notifications plugin is enabled.');
 
 const androidPermissions = expo.android?.permissions || [];
-if (androidPermissions.includes('android.permission.POST_NOTIFICATIONS')) {
-  fail('POST_NOTIFICATIONS permission must be removed in FDROID_BUILD=1 config.');
+if (!androidPermissions.includes('android.permission.POST_NOTIFICATIONS')) {
+  fail('POST_NOTIFICATIONS permission must be present for Android 13+ local notifications.');
 }
-pass('POST_NOTIFICATIONS permission is removed for FDROID_BUILD=1.');
+pass('POST_NOTIFICATIONS permission is present for local notifications.');
 
-const autolinkingExclude = expo.autolinking?.exclude || [];
-if (!autolinkingExclude.includes('expo-notifications')) {
-  fail('expo-notifications must be excluded from autolinking in FDROID_BUILD=1 config.');
+const notificationsPath = path.resolve(__dirname, '..', 'src', 'services', 'notifications.ts');
+const notificationsContent = fs.readFileSync(notificationsPath, 'utf8');
+if (/getExpoPushTokenAsync|ExpoPushToken|push token/i.test(notificationsContent)) {
+  fail('notifications.ts must stay local-only and must not use Expo push tokens.');
 }
-pass('expo-notifications is excluded from autolinking for FDROID_BUILD=1.');
+pass('notifications.ts uses local-only scheduling (no Expo push token usage).');
 
-if (!expo.extra || expo.extra.fdroidBuild !== true) {
-  fail('expo.extra.fdroidBuild must be true when FDROID_BUILD=1.');
+if (!expo.extra || expo.extra.notificationsMode !== 'local-only') {
+  fail('expo.extra.notificationsMode must be set to local-only.');
 }
-pass('fdroid build flag is exported to runtime config.');
+pass('notifications mode is declared as local-only.');
 
 console.log('[fdroid-check] All checks passed.');

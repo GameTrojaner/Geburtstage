@@ -16,6 +16,8 @@
     "test:coverage": "jest --coverage",
     "fdroid:check": "node scripts/fdroid-check.cjs",
     "fdroid:android": "FDROID_BUILD=1 npx expo run:android",
+    "licenses:generate": "node scripts/generate-third-party-licenses.cjs",
+    "licenses:check": "npm run licenses:generate && git diff --exit-code THIRD_PARTY_LICENSES.md",
     "postinstall": "patch-package"
   },
   "dependencies": {
