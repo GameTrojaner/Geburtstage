@@ -175,7 +175,7 @@ Aktuell: **94 Tests** in 9 Suites (birthday, types, store, i18n, export, contact
 - **Geburtstags-Übersicht**: Gruppiert nach Heute/Diese Woche/Monat/Nächster Monat/Später/Vergangen, Swipe-to-Hide auf der Startseite
 - **Kontakte ausblenden**: Swipe-Geste nach links zum Ausblenden, Undo-Snackbar, eigener Bildschirm zum Wiederherstellen (Einstellungen → Ausgeblendete Kontakte)
 - **Kalender**: Interaktive Pan-Geste zum Monatswechsel (folgt dem Finger mit Spring-Animation), Tages-Auswahl mit Toggle, „Heute"-FAB-Button, Geburtstag zuweisen (Kontakt aus bestehender Liste wählen)
-- **Foto-Zoom**: Antippen des Kontaktfotos in der Bearbeitungsansicht öffnet Vollbild-Overlay (hochauflösendes Bild via RawImage + Base64)
+- **Foto-Zoom**: Antippen des Kontaktfotos in der Bearbeitungsansicht öffnet Vollbild-Overlay (bevorzugt hochaufgeloestes Base64-Bild, fallback auf RawImage/Image-URI)
 - **Benachrichtigungen**: Pro Kontakt aktivierbar/deaktivierbar, Offset-Picker mit Zahl + Einheit (Tage/Wochen/Monate), eigene Uhrzeit
 - **Favoriten & Pinned**: Schnellzugriff auf wichtige Kontakte
 - **Export/Import**: Einstellungen als JSON exportieren/importieren; Datei-Picker zur nativen Dateiauswahl (expo-document-picker) beim Importieren

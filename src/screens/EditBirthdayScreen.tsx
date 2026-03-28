@@ -27,6 +27,7 @@ import {
   shouldUseNativeEditorForContact,
 } from '../services/contacts';
 import { getDaysInMonth, getOffsetLabel } from '../utils/birthday';
+import { getPhotoModalSource } from '../utils/photo';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 
@@ -220,13 +221,14 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
   const isFav = favorites.has(contactId);
   const isPin = pinned.has(contactId);
   const hasBirthday = !!contact.birthday;
+  const photoSource = getPhotoModalSource(contact);
 
   return (
     <Surface style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Contact Header */}
         <View style={styles.header}>
-          <Pressable onPress={() => (contact.imageBase64 || contact.rawImageUri || contact.imageUri) && setPhotoVisible(true)}>
+          <Pressable onPress={() => photoSource && setPhotoVisible(true)}>
             <ContactAvatar
               name={contact.name}
               imageUri={contact.imageUri}
@@ -452,15 +454,7 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
       >
         <Pressable style={styles.photoOverlay} onPress={() => setPhotoVisible(false)}>
           <Image
-            source={
-              contact.rawImageUri
-                ? { uri: contact.rawImageUri }
-                : contact.imageUri
-                  ? { uri: contact.imageUri }
-                  : contact.imageBase64
-                    ? { uri: `data:image/jpeg;base64,${contact.imageBase64}` }
-                    : { uri: '' }
-            }
+            source={photoSource ?? { uri: '' }}
             style={styles.photoFull}
             resizeMode="contain"
           />

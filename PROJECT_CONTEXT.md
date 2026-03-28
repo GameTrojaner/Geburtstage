@@ -154,7 +154,7 @@ Reagiert auf: WIDGET_ADDED, WIDGET_UPDATE, WIDGET_RESIZED.
 - **Notification UX**: Aktivieren/Deaktivieren ist jetzt Top-Level (nicht mehr unter „Eigene Erinnerungen"). Der „+" Button für Offsets wird nur gezeigt wenn noch Optionen verfügbar sind.
 - **Offset-Picker**: Shared OffsetPickerDialog-Komponente (Zahl + Einheit: Tage/Wochen/Monate). Wird in EditBirthdayScreen und SettingsScreen verwendet.
 - **Kalender**: Interaktive Pan-Geste (GestureDetector, folgt dem Finger via onUpdate/translateX, Spring-back bei unvollständigem Swipe, Velocity-Trigger). FAB „Heute" wenn nicht aktueller Monat. Tag-Toggle (erneutes Tippen deselektiert), „Alle im Monat zeigen" Chip, „Geburtstag zuweisen" Button öffnet Kontakt-Auswahl-Modal.
-- **Foto-Zoom**: Antippen des Kontaktfotos in EditBirthdayScreen öffnet Vollbild-Overlay. Bildquelle-Priorität: imageBase64 → rawImageUri → imageUri.
+- **Foto-Zoom**: Antippen des Kontaktfotos in EditBirthdayScreen oeffnet Vollbild-Overlay. Bildquelle-Prioritaet: imageBase64 -> rawImageUri -> imageUri (schaerfer auf Geraeten mit Thumbnail-URIs).
 - **Kontakte-Sortierung**: ContactsScreen sortiert rein alphabetisch (keine Favoriten-Priorisierung mehr).
 - **Expo Go Version**: Play Store Version oft veraltet — APK von https://expo.dev/go empfohlen
 - **Web-Support**: `.web.ts` Stubs für database (localStorage), contacts (leere Daten) und notifications (no-op). Metro wählt automatisch die `.web.ts` Variante.
