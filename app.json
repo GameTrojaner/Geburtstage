@@ -73,7 +73,7 @@
         "android.permission.WRITE_CONTACTS",
         "android.permission.POST_NOTIFICATIONS"
       ],
-      "package": "com.anonymous.Geburtstage"
+      "package": "io.github.gametrojaner.geburtstage"
     },
     "web": {
       "favicon": "./assets/favicon.png"
