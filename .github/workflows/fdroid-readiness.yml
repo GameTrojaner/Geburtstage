@@ -44,6 +44,9 @@ jobs:
       - name: Unit tests
         run: npm test -- --runInBand
 
+      - name: Generate Android project (CI)
+        run: npx expo prebuild --platform android --non-interactive
+
       - name: Android compile smoke test
         working-directory: android
         run: |
