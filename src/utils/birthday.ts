@@ -125,10 +125,42 @@ export function getDaysInMonth(month: number, year: number): number {
   return new Date(year, month, 0).getDate();
 }
 
+/**
+ * Computes the date on which a notification should be sent.
+ * Offset encoding:
+ * - Positive  → exact day subtraction (e.g. 7 = 7 days before, 30 = exactly 30 days before)
+ * - Negative  → calendar-month subtraction (-1 = 1 month before, -2 = 2 months before, ...)
+ *   The day is clamped to the last valid day of the target month to handle leap-year
+ *   edge cases (e.g. "1 month before March 29" in a non-leap year → Feb 28, not March 1).
+ */
+export function calculateNotificationDate(
+  nextBday: Date,
+  offset: number,
+  hours: number,
+  minutes: number,
+): Date {
+  const notifDate = new Date(nextBday);
+  if (offset < 0) {
+    const originalDay = notifDate.getDate();
+    const targetMonth = notifDate.getMonth() - (-offset);
+    // Set day to 1 first to avoid JS auto-advancing the month on overflow
+    notifDate.setDate(1);
+    notifDate.setMonth(targetMonth);
+    // Clamp to the last valid day of the target month (handles leap-year edge cases)
+    const daysInTarget = new Date(notifDate.getFullYear(), notifDate.getMonth() + 1, 0).getDate();
+    notifDate.setDate(Math.min(originalDay, daysInTarget));
+  } else {
+    notifDate.setDate(notifDate.getDate() - offset);
+  }
+  notifDate.setHours(hours, minutes, 0, 0);
+  return notifDate;
+}
+
 export function getOffsetLabel(offset: number, t: (key: string, opts?: Record<string, unknown>) => string): string {
   if (offset === 0) return t('settings.offsetSameDay');
-  if (offset % 30 === 0) {
-    const months = offset / 30;
+  // Negative offsets = calendar months (see calculateNotificationDate encoding)
+  if (offset < 0) {
+    const months = -offset;
     if (months === 1) return t('settings.offsetMonthBefore');
     return t('settings.offsetMonthsBefore', { count: months });
   }

@@ -8,6 +8,7 @@ import {
   getInitials,
   getDaysInMonth,
   getOffsetLabel,
+  calculateNotificationDate,
 } from '../src/utils/birthday';
 import { ContactBirthday } from '../src/types';
 
@@ -164,12 +165,20 @@ describe('getOffsetLabel', () => {
   });
 
   it('returns 1 month for 30', () => {
-    expect(getOffsetLabel(30, mockT)).toBe('1 month before');
+    // 30 is now exact days, NOT a month (months are encoded as negative numbers)
+    expect(getOffsetLabel(30, mockT)).toBe('30 days before');
+  });
+
+  it('returns months for negative offsets (-1 = 1 month, -2 = 2 months, etc.)', () => {
+    expect(getOffsetLabel(-1, mockT)).toBe('1 month before');
+    expect(getOffsetLabel(-2, mockT)).toBe('2 months before');
+    expect(getOffsetLabel(-3, mockT)).toBe('3 months before');
   });
 
   it('returns months for multiples of 30', () => {
-    expect(getOffsetLabel(60, mockT)).toBe('2 months before');
-    expect(getOffsetLabel(90, mockT)).toBe('3 months before');
+    // These are no longer months; they are exact-day offsets
+    expect(getOffsetLabel(60, mockT)).toBe('60 days before');
+    expect(getOffsetLabel(90, mockT)).toBe('90 days before');
   });
 });
 
@@ -229,5 +238,114 @@ describe('groupBirthdayContacts', () => {
     expect(groups.passed[0].name).toBe('Frank');
     expect(groups.today).toHaveLength(0);
     expect(groups.thisWeek).toHaveLength(0);
+  });
+});
+
+describe('calculateNotificationDate', () => {
+  // Use real (non-faked) dates so setMonth / setDate arithmetic is independent of mocked time
+
+  it('returns birthday date unchanged for offset 0', () => {
+    const bday = new Date(2026, 3, 28, 0, 0, 0); // April 28
+    const result = calculateNotificationDate(bday, 0, 9, 0);
+    expect(result.getFullYear()).toBe(2026);
+    expect(result.getMonth()).toBe(3); // April
+    expect(result.getDate()).toBe(28);
+    expect(result.getHours()).toBe(9);
+    expect(result.getMinutes()).toBe(0);
+  });
+
+  it('subtracts exact days for non-month offsets (e.g. 7 days)', () => {
+    const bday = new Date(2026, 3, 28, 0, 0, 0); // April 28
+    const result = calculateNotificationDate(bday, 7, 9, 0);
+    expect(result.getMonth()).toBe(3); // still April
+    expect(result.getDate()).toBe(21); // April 21
+  });
+
+  it('subtracts exact days for two-week offset (14 days)', () => {
+    const bday = new Date(2026, 3, 28, 0, 0, 0); // April 28
+    const result = calculateNotificationDate(bday, 14, 9, 0);
+    expect(result.getMonth()).toBe(3); // April
+    expect(result.getDate()).toBe(14);
+  });
+
+  it('uses calendar-month subtraction for offset -1 (1 month before April 28 = March 28)', () => {
+    const bday = new Date(2026, 3, 28, 0, 0, 0); // April 28
+    const result = calculateNotificationDate(bday, -1, 9, 0);
+    // Calendar month: April 28 minus 1 month = March 28 (not March 29 via fixed 30 days)
+    expect(result.getMonth()).toBe(2); // March
+    expect(result.getDate()).toBe(28);
+  });
+
+  it('explicit 30-day offset subtracts exactly 30 days (28.03. → 26.02., nicht 28.02.)', () => {
+    const bday = new Date(2026, 2, 28, 0, 0, 0); // March 28, 2026
+    const result = calculateNotificationDate(bday, 30, 9, 0);
+    // 30 exact days before March 28 = February 26 (March has 28 days from Feb 26 perspective:
+    // Feb has 28 days in 2026, so Feb 26 + 30 = March 28 ✓)
+    expect(result.getFullYear()).toBe(2026);
+    expect(result.getMonth()).toBe(1); // February
+    expect(result.getDate()).toBe(26);
+  });
+
+  it('uses calendar-month subtraction for offset -2 (2 months before April 28 = February 28)', () => {
+    const bday = new Date(2026, 3, 28, 0, 0, 0); // April 28
+    const result = calculateNotificationDate(bday, -2, 9, 0);
+    expect(result.getMonth()).toBe(1); // February
+    expect(result.getDate()).toBe(28);
+  });
+
+  it('uses calendar-month subtraction for offset -3 (3 months before April 28 = January 28)', () => {
+    const bday = new Date(2026, 3, 28, 0, 0, 0); // April 28
+    const result = calculateNotificationDate(bday, -3, 9, 0);
+    expect(result.getMonth()).toBe(0); // January
+    expect(result.getDate()).toBe(28);
+  });
+
+  it('sets the correct notification time', () => {
+    const bday = new Date(2026, 3, 28, 0, 0, 0);
+    const result = calculateNotificationDate(bday, -1, 8, 30);
+    expect(result.getHours()).toBe(8);
+    expect(result.getMinutes()).toBe(30);
+  });
+
+  // --- Schaltjahr-Grenzfälle ---
+
+  it('29.02. birthday (Schaltjahr 2028): 1 Monat vorher = 29.01.2028', () => {
+    const bday = new Date(2028, 1, 29, 0, 0, 0); // Feb 29, 2028
+    const result = calculateNotificationDate(bday, -1, 9, 0);
+    expect(result.getFullYear()).toBe(2028);
+    expect(result.getMonth()).toBe(0); // January
+    expect(result.getDate()).toBe(29);
+  });
+
+  it('29.03. birthday (Nicht-Schaltjahr 2026): 1 Monat vorher = 28.02.2026 (kein 29. Feb)', () => {
+    const bday = new Date(2026, 2, 29, 0, 0, 0); // March 29, 2026
+    const result = calculateNotificationDate(bday, -1, 9, 0);
+    expect(result.getFullYear()).toBe(2026);
+    expect(result.getMonth()).toBe(1); // February
+    expect(result.getDate()).toBe(28); // clamped to last day of Feb in non-leap year
+  });
+
+  it('29.03. birthday (Schaltjahr 2028): 1 Monat vorher = 29.02.2028', () => {
+    const bday = new Date(2028, 2, 29, 0, 0, 0); // March 29, 2028
+    const result = calculateNotificationDate(bday, -1, 9, 0);
+    expect(result.getFullYear()).toBe(2028);
+    expect(result.getMonth()).toBe(1); // February
+    expect(result.getDate()).toBe(29); // Feb 29 exists in 2028
+  });
+
+  it('31.03. birthday: 1 Monat vorher = 28.02. (Nicht-Schaltjahr) / 29.02. (Schaltjahr)', () => {
+    // Non-leap year: March 31 − 1 month → Feb 28
+    const bdayNonLeap = new Date(2026, 2, 31, 0, 0, 0);
+    const resultNonLeap = calculateNotificationDate(bdayNonLeap, -1, 9, 0);
+    expect(resultNonLeap.getFullYear()).toBe(2026);
+    expect(resultNonLeap.getMonth()).toBe(1);
+    expect(resultNonLeap.getDate()).toBe(28);
+
+    // Leap year: March 31 − 1 month → Feb 29
+    const bdayLeap = new Date(2028, 2, 31, 0, 0, 0);
+    const resultLeap = calculateNotificationDate(bdayLeap, -1, 9, 0);
+    expect(resultLeap.getFullYear()).toBe(2028);
+    expect(resultLeap.getMonth()).toBe(1);
+    expect(resultLeap.getDate()).toBe(29);
   });
 });

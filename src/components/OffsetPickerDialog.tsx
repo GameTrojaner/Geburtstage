@@ -18,17 +18,19 @@ export function OffsetPickerDialog({ visible, onDismiss, onAdd, existingOffsets 
   const [amount, setAmount] = useState('1');
   const [unit, setUnit] = useState<Unit>('days');
 
-  const toDays = (val: number, u: Unit): number => {
+  const toOffset = (val: number, u: Unit): number => {
     switch (u) {
       case 'days': return val;
       case 'weeks': return val * 7;
-      case 'months': return val * 30;
+      // Months are encoded as negative integers (-1 = 1 month, -2 = 2 months, ...)
+      // so they can be distinguished from an explicit "30 days" offset.
+      case 'months': return -val;
     }
   };
 
   const parsedAmount = parseInt(amount, 10);
   const isValid = !isNaN(parsedAmount) && parsedAmount >= 0;
-  const resultDays = isValid ? toDays(parsedAmount, unit) : -1;
+  const resultDays = isValid ? toOffset(parsedAmount, unit) : Number.MIN_SAFE_INTEGER;
   const isDuplicate = isValid && existingOffsets.includes(resultDays);
 
   const handleAdd = () => {

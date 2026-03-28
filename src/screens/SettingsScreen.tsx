@@ -69,7 +69,9 @@ export function SettingsScreen() {
 
   const addDefaultOffset = async (days: number) => {
     if (!settings.defaultNotificationOffsets.includes(days)) {
-      const newOffsets = [...settings.defaultNotificationOffsets, days].sort((a, b) => a - b);
+      // Sort key: negative offsets are months (-1 = 1 month ≈ 30 days for ordering)
+      const sortKey = (o: number) => o < 0 ? -o * 30 : o;
+      const newOffsets = [...settings.defaultNotificationOffsets, days].sort((a, b) => sortKey(a) - sortKey(b));
       await updateSetting('defaultNotificationOffsets', newOffsets);
     }
     setOffsetDialogVisible(false);

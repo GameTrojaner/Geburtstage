@@ -235,7 +235,9 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
 
   const addOffset = (days: number) => {
     if (!notifOffsets.includes(days)) {
-      setNotifOffsets([...notifOffsets, days].sort((a, b) => a - b));
+      // Sort key: negative offsets are months (-1 = 1 month ≈ 30 days for ordering)
+      const sortKey = (o: number) => o < 0 ? -o * 30 : o;
+      setNotifOffsets([...notifOffsets, days].sort((a, b) => sortKey(a) - sortKey(b)));
     }
     setOffsetPickerVisible(false);
   };
