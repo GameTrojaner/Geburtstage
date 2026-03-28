@@ -6,6 +6,11 @@
   <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
+  <!-- Required for exact birthday notification alarms on Android 12+ (API 31+).
+       USE_EXACT_ALARM is auto-granted on API 33+ for calendar/reminder apps.
+       SCHEDULE_EXACT_ALARM requires user approval via Settings on API 31-32. -->
+  <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
+  <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
   <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
   <uses-permission android:name="android.permission.VIBRATE"/>
   <uses-permission android:name="android.permission.WRITE_CONTACTS"/>

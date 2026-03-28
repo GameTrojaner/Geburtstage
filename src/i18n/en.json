@@ -94,6 +94,8 @@
     "languageEn": "English",
     "notifications": "Notifications",
     "notificationsEnabled": "Notifications enabled",
+    "exactAlarmWarning": "Precise notifications require the \"Alarms & reminders\" permission. Without it Android may delay notifications by several minutes.",
+    "exactAlarmButton": "Grant permission",
     "defaultTime": "Default time",
     "defaultOffsets": "Default reminders",
     "offsetSameDay": "Same day",

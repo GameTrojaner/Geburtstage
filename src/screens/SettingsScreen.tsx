@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import {
   Button,
@@ -28,6 +28,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import appJson from '../../app.json';
+import { canScheduleExactAlarms, openExactAlarmSettings } from '../native/exactAlarm';
 
 export function SettingsScreen() {
   const { t } = useTranslation();
@@ -40,6 +41,11 @@ export function SettingsScreen() {
   const [offsetDialogVisible, setOffsetDialogVisible] = useState(false);
   const [timeDialogVisible, setTimeDialogVisible] = useState(false);
   const [tempTime, setTempTime] = useState(settings.defaultNotificationTime);
+  const [exactAlarmGranted, setExactAlarmGranted] = useState(true);
+
+  useEffect(() => {
+    canScheduleExactAlarms().then(setExactAlarmGranted);
+  }, []);
 
   const hiddenContacts = useMemo(
     () => contacts.filter(c => hidden.has(c.contactId)),
@@ -225,6 +231,25 @@ export function SettingsScreen() {
             )}
           />
 
+          {settings.notificationsEnabled && !exactAlarmGranted && (
+            <View style={[styles.exactAlarmBanner, { backgroundColor: theme.colors.errorContainer }]}>
+              <Text variant="bodySmall" style={{ color: theme.colors.onErrorContainer, flex: 1 }}>
+                {t('settings.exactAlarmWarning')}
+              </Text>
+              <Button
+                mode="contained-tonal"
+                compact
+                onPress={async () => {
+                  await openExactAlarmSettings();
+                  // Re-check after user potentially grants permission
+                  setTimeout(() => canScheduleExactAlarms().then(setExactAlarmGranted), 500);
+                }}
+              >
+                {t('settings.exactAlarmButton')}
+              </Button>
+            </View>
+          )}
+
           {settings.notificationsEnabled && (
             <>
               <List.Item
@@ -391,5 +416,14 @@ const styles = StyleSheet.create({
   },
   offsetChip: {
     marginRight: 0,
+  },
+  exactAlarmBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    padding: 12,
+    borderRadius: 8,
   },
 });
