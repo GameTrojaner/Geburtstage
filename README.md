@@ -179,7 +179,7 @@ Aktuell: **94 Tests** in 9 Suites (birthday, types, store, i18n, export, contact
 - **Foto-Zoom**: Antippen des Kontaktfotos in der Bearbeitungsansicht öffnet Vollbild-Overlay (bevorzugt hochaufgeloestes Base64-Bild, fallback auf RawImage/Image-URI)
 - **Benachrichtigungen**: Pro Kontakt aktivierbar/deaktivierbar, Offset-Picker mit Zahl + Einheit (Tage/Wochen/Monate), eigene Uhrzeit
 - **Favoriten & Pinned**: Schnellzugriff auf wichtige Kontakte
-- **Export/Import**: Einstellungen als JSON exportieren/importieren; Datei-Picker zur nativen Dateiauswahl (expo-document-picker) beim Importieren
+- **Export/Import**: Einstellungen als JSON exportieren/importieren; Datei-Picker zur nativen Dateiauswahl (expo-document-picker) beim Importieren. Beim Import werden Kontakt-Referenzen automatisch auf die aktuell vorhandene Kontaktliste bereinigt.
 - **Konfiguration zurücksetzen**: Test-Button in Einstellungen zum Zurücksetzen aller Einstellungen auf Defaults (mit Sicherheitsbestätigung)
 - **Mehrsprachig**: Deutsch/Englisch, System-Erkennung funktioniert korrekt
 - **Dark/Light Mode**: System oder manuell

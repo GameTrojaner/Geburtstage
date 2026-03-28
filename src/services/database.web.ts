@@ -4,6 +4,7 @@
  * avoiding the expo-sqlite WASM dependency issue.
  */
 import { AppSettings, DEFAULT_SETTINGS, NotificationSetting } from '../types';
+import { sanitizeImportData } from '../utils/importSanitizer';
 
 const STORAGE_PREFIX = 'geburtstage_';
 
@@ -186,15 +187,18 @@ export async function exportAllData(): Promise<ExportData> {
   return { version: 1, settings, notificationSettings, favorites, pinned, hidden };
 }
 
-export async function importAllData(data: ExportData): Promise<void> {
+export async function importAllData(data: ExportData, existingContactIds?: Set<string>): Promise<void> {
   if (data.version !== 1) throw new Error('Unsupported export version');
-  await saveSettings(data.settings);
+
+  const sanitized = sanitizeImportData(data, existingContactIds);
+
+  await saveSettings(sanitized.settings);
   const nsMap: Record<string, NotificationSetting> = {};
-  for (const ns of data.notificationSettings) {
+  for (const ns of sanitized.notificationSettings) {
     nsMap[ns.contactId] = ns;
   }
   saveNotificationSettingsMap(nsMap);
-  setItem('favorites', JSON.stringify(data.favorites));
-  setItem('pinned', JSON.stringify(data.pinned));
-  setItem('hidden', JSON.stringify(data.hidden ?? []));
+  setItem('favorites', JSON.stringify(sanitized.favorites));
+  setItem('pinned', JSON.stringify(sanitized.pinned));
+  setItem('hidden', JSON.stringify(sanitized.hidden));
 }

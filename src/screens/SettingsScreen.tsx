@@ -133,8 +133,9 @@ export function SettingsScreen() {
       const file = new File(pickedAsset.uri);
       const content = await file.text();
       const data: ExportData = JSON.parse(content);
+      const existingContactIds = new Set(contacts.map(contact => contact.contactId));
 
-      await importAllData(data);
+      await importAllData(data, existingContactIds);
       await loadSettings();
       await loadFavorites();
       await loadPinned();

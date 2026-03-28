@@ -1,5 +1,6 @@
 import { ExportData } from '../src/services/database';
 import { AppSettings, DEFAULT_SETTINGS } from '../src/types';
+import { sanitizeImportData } from '../src/utils/importSanitizer';
 
 /**
  * Test the export/import data format validation.
@@ -65,5 +66,41 @@ describe('ExportData format', () => {
     const json = JSON.stringify(data);
     const parsed: ExportData = JSON.parse(json);
     expect(parsed.notificationSettings[0].offsets).toEqual([0, 1, 3, 7, 14]);
+  });
+
+  it('sanitizes imported contact references against existing contacts', () => {
+    const data: ExportData = {
+      version: 1,
+      settings: DEFAULT_SETTINGS,
+      notificationSettings: [
+        { contactId: 'c1', enabled: true, offsets: [0], time: '09:00' },
+        { contactId: 'c2', enabled: false, offsets: [7], time: '09:00' },
+      ],
+      favorites: ['c1', 'c3', 'c1'],
+      pinned: ['c2', 'c4'],
+      hidden: ['c1', 'c9', 'c1'],
+    };
+
+    const sanitized = sanitizeImportData(data, new Set(['c1', 'c2']));
+
+    expect(sanitized.notificationSettings.map(item => item.contactId)).toEqual(['c1', 'c2']);
+    expect(sanitized.favorites).toEqual(['c1']);
+    expect(sanitized.pinned).toEqual(['c2']);
+    expect(sanitized.hidden).toEqual(['c1']);
+  });
+
+  it('keeps all references when no contact set is provided', () => {
+    const data: ExportData = {
+      version: 1,
+      settings: DEFAULT_SETTINGS,
+      notificationSettings: [{ contactId: 'x', enabled: true, offsets: [0], time: '09:00' }],
+      favorites: ['x'],
+      pinned: ['y'],
+      hidden: [],
+    };
+
+    const sanitized = sanitizeImportData(data);
+
+    expect(sanitized).toEqual(data);
   });
 });

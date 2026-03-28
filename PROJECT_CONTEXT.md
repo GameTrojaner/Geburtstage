@@ -208,6 +208,7 @@ npm run licenses:check            # Third-Party-Lizenzdoku pruefen
 - **Editor-Only Modus**: bei wiederholtem Write-Fehler werden in EditBirthday die Felder ausgeblendet und stattdessen nur ein „Kontakt-Editor öffnen“-Button gezeigt
 - **Native-Editor Sync verbessert**: nach Rückkehr aus der externen Kontakte-App wird Kontakt sofort neu geladen, neu geplant und bei Erfolg direkt zurück navigiert
 - **SQLite-Härtung**: DB-Init läuft mit Retry/Backoff, Singleton-Init-Promise und Recovery-Reconnect bei `NativeDatabase`/`NullPointerException`-Fehlern
+- **Import-Sanitierung**: Beim Konfig-Import werden Favoriten/Pinned/Hidden/Custom-Notifications auf existierende Kontakte reduziert, damit keine verwaisten IDs aus fremden Kontaktlisten verbleiben.
 - **Widget-Fotocache**: Kontaktbilder werden in der App in `documentDirectory/contact_photos` gespiegelt; Widget liest dann zuverlässig aus `file://` statt `content://`
 - **Adaptive App-Icons**: Foreground/Monochrome-Assets mit transparentem Hintergrund und sauber neu-generierte Android-Mipmap-Ressourcen
 - **Repo-Workflow-Regeln**: `.github/copilot-instructions.md` definiert verpflichtende Prompt-Checks (Typecheck + Tests, Doku-/Script-Updatepflicht)

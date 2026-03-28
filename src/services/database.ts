@@ -1,5 +1,6 @@
 import * as SQLite from 'expo-sqlite';
 import { AppSettings, DEFAULT_SETTINGS, NotificationSetting } from '../types';
+import { sanitizeImportData } from '../utils/importSanitizer';
 
 const DB_NAME = 'geburtstage.db';
 
@@ -285,28 +286,30 @@ export async function exportAllData(): Promise<ExportData> {
   return { version: 1, settings, notificationSettings, favorites, pinned, hidden };
 }
 
-export async function importAllData(data: ExportData): Promise<void> {
+export async function importAllData(data: ExportData, existingContactIds?: Set<string>): Promise<void> {
   if (data.version !== 1) throw new Error('Unsupported export version');
 
-  await saveSettings(data.settings);
+  const sanitized = sanitizeImportData(data, existingContactIds);
+
+  await saveSettings(sanitized.settings);
 
   await withDbRecovery(database => database.runAsync('DELETE FROM notification_settings'));
-  for (const ns of data.notificationSettings) {
+  for (const ns of sanitized.notificationSettings) {
     await saveNotificationSetting(ns);
   }
 
   await withDbRecovery(database => database.runAsync('DELETE FROM favorites'));
-  for (const fav of data.favorites) {
+  for (const fav of sanitized.favorites) {
     await addFavorite(fav);
   }
 
   await withDbRecovery(database => database.runAsync('DELETE FROM pinned'));
-  for (const pin of data.pinned) {
+  for (const pin of sanitized.pinned) {
     await addPinned(pin);
   }
 
   await withDbRecovery(database => database.runAsync('DELETE FROM hidden'));
-  for (const h of data.hidden ?? []) {
+  for (const h of sanitized.hidden) {
     await addHidden(h);
   }
 }
