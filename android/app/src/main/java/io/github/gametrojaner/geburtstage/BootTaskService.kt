@@ -56,7 +56,6 @@ class BootTaskService : HeadlessJsTaskService() {
                 .setContentText("Rescheduling birthday reminders…")
                 .setSmallIcon(R.drawable.notification_icon)
                 .setOngoing(true)
-                .setSilent(true)
                 .build()
         } else {
             Notification.Builder(this)
