@@ -1,0 +1,56 @@
+name: Auto Version Bump
+
+# Runs whenever a PR is merged into main.
+# Increments the fix version by default (beta.N → beta.N+1).
+# Add the label  [minor]  anywhere in the PR body to bump the minor version instead.
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  bump:
+    name: Bump version
+    # Only run when the PR was actually merged (not just closed/abandoned)
+    if: github.event.pull_request.merged == true
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Use a PAT so the push triggers downstream workflows (GITHUB_TOKEN pushes are ignored by Actions)
+          token: ${{ secrets.ACTIONS_PAT || secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Determine bump type
+        id: bump-type
+        run: |
+          BODY="${{ github.event.pull_request.body }}"
+          if echo "$BODY" | grep -qi '\[minor\]'; then
+            echo "type=minor" >> "$GITHUB_OUTPUT"
+            echo "Bump type: minor (found [minor] in PR body)"
+          else
+            echo "type=fix" >> "$GITHUB_OUTPUT"
+            echo "Bump type: fix (default)"
+          fi
+
+      - name: Run bump-version script
+        run: node .github/scripts/bump-version.cjs ${{ steps.bump-type.outputs.type }}
+
+      - name: Commit & push
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          git add package.json app.json android/app/build.gradle \
+                  fdroid/metadata/io.github.gametrojaner.geburtstage.yml
+          git commit -m "chore(release): ${NEW_VERSION} [skip ci]"
+          git push
