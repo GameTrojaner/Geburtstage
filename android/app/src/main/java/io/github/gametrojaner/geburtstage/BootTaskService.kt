@@ -38,7 +38,7 @@ class BootTaskService : HeadlessJsTaskService() {
     private fun buildNotification(): Notification {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                CHANNEL_ID,
+                BOOT_CHANNEL_ID,
                 "Birthday reminders",
                 NotificationManager.IMPORTANCE_LOW,
             ).apply {
@@ -51,7 +51,7 @@ class BootTaskService : HeadlessJsTaskService() {
 
         @Suppress("DEPRECATION")
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Notification.Builder(this, CHANNEL_ID)
+            Notification.Builder(this, BOOT_CHANNEL_ID)
                 .setContentTitle("Geburtstage")
                 .setContentText("Rescheduling birthday reminders…")
                 .setSmallIcon(R.drawable.notification_icon)
@@ -67,7 +67,7 @@ class BootTaskService : HeadlessJsTaskService() {
     }
 
     companion object {
-        private const val CHANNEL_ID = "birthdays"
+        private const val BOOT_CHANNEL_ID = "boot_reschedule_service"
         private const val NOTIFICATION_ID = 9001
     }
 }

@@ -28,7 +28,7 @@ Repo: https://github.com/GameTrojaner/Geburtstage.git
 Builds:
   - versionName: 1.0.0-beta.2
     versionCode: 1
-    commit: chore(release)%3A 1.0.0-beta.2
+    commit: v1.0.0-beta.2
     subdir: .
     sudo:
       - apt-get update

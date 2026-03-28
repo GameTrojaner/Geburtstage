@@ -113,12 +113,11 @@ const fdroidPath = 'fdroid/metadata/io.github.gametrojaner.geburtstage.yml';
 let fdroid = readFile(fdroidPath);
 
 // Freeze the current HEAD entry with the old version's release tag
-const oldTag = `chore(release): ${oldVersion}`;
-const oldTagEncoded = oldTag.replace(/:/g, '%3A');
+const oldTagRef = `v${oldVersion}`;
 const lastHeadIdx = fdroid.lastIndexOf('\n    commit: HEAD');
 if (lastHeadIdx !== -1) {
   fdroid = fdroid.slice(0, lastHeadIdx)
-    + `\n    commit: ${oldTagEncoded}`
+    + `\n    commit: ${oldTagRef}`
     + fdroid.slice(lastHeadIdx + '\n    commit: HEAD'.length);
 }
 

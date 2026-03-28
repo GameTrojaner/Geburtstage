@@ -8,7 +8,7 @@ type Unit = 'days' | 'weeks' | 'months';
 interface OffsetPickerDialogProps {
   visible: boolean;
   onDismiss: () => void;
-  onAdd: (days: number) => void;
+  onAdd: (offset: number) => void;
   existingOffsets: number[];
 }
 
@@ -30,12 +30,12 @@ export function OffsetPickerDialog({ visible, onDismiss, onAdd, existingOffsets 
 
   const parsedAmount = parseInt(amount, 10);
   const isValid = !isNaN(parsedAmount) && parsedAmount >= 0;
-  const resultDays = isValid ? toOffset(parsedAmount, unit) : Number.MIN_SAFE_INTEGER;
-  const isDuplicate = isValid && existingOffsets.includes(resultDays);
+  const resultOffset = isValid ? toOffset(parsedAmount, unit) : Number.MIN_SAFE_INTEGER;
+  const isDuplicate = isValid && existingOffsets.includes(resultOffset);
 
   const handleAdd = () => {
     if (isValid && !isDuplicate) {
-      onAdd(resultDays);
+      onAdd(resultOffset);
       setAmount('1');
       setUnit('days');
     }
