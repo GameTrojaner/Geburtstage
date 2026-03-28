@@ -27,6 +27,7 @@ import { AppSettings, DEFAULT_SETTINGS } from '../types';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
+import appJson from '../../app.json';
 
 export function SettingsScreen() {
   const { t } = useTranslation();
@@ -318,7 +319,7 @@ export function SettingsScreen() {
           <List.Subheader>{t('settings.about')}</List.Subheader>
           <List.Item
             title={t('settings.version')}
-            description="1.0.0"
+            description={appJson.expo.version}
             left={props => <List.Icon {...props} icon="information" />}
           />
         </List.Section>

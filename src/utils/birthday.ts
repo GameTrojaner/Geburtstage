@@ -26,18 +26,7 @@ export function getAge(birthday: { day: number; month: number; year?: number }):
   return nextBday.getFullYear() - birthday.year;
 }
 
-export function getUpcomingAge(birthday: { day: number; month: number; year?: number }): number | undefined {
-  if (!birthday.year) return undefined;
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  let nextBday = new Date(now.getFullYear(), birthday.month - 1, birthday.day);
-
-  if (nextBday < today) {
-    nextBday = new Date(now.getFullYear() + 1, birthday.month - 1, birthday.day);
-  }
-
-  return nextBday.getFullYear() - birthday.year;
-}
+export const getUpcomingAge = getAge;
 
 export function formatBirthday(birthday: { day: number; month: number; year?: number }): string {
   const day = String(birthday.day).padStart(2, '0');

@@ -25,7 +25,7 @@ Unterstützt Notifications, Kalenderansicht, Favoriten, Homescreen-Widgets, Expo
 - **i18next + react-i18next** (DE + EN, ~120 Keys pro Sprache)
 - **react-native-android-widget** (2 Widgets: Upcoming + Favorites)
 - **react-native-reanimated 4** + **react-native-worklets** (Animationen)
-- **Jest 29** + **@testing-library/react-native** (94 Tests, 9 Suites)
+- **Jest 29** + **@testing-library/react-native** (120 Tests, 12 Suites)
 
 ## Projektstruktur
 
@@ -63,7 +63,7 @@ E:\Dev\Geburtstage\
 │   ├── store/index.ts               # Zustand store mit:
 │   │                                #   contacts[], settings, favorites Set, pinned Set,
 │   │                                #   notificationSettings Map, alle async actions
-│   ├── utils/birthday.ts            # getDaysUntilBirthday, getAge, getUpcomingAge, formatBirthday,
+│   ├── utils/birthday.ts            # getDaysUntilBirthday, getAge, getUpcomingAge (alias für getAge), formatBirthday,
 │   │                                #   formatBirthdayISO, groupBirthdayContacts, getInitials, getDaysInMonth,
 │   │                                #   getOffsetLabel (shared: Tage/Wochen/Monate Anzeige)
 │   ├── components/
@@ -111,7 +111,7 @@ interface AppSettings {
   theme: 'system' | 'light' | 'dark';
   language: 'system' | 'de' | 'en';
   notificationsEnabled: boolean;
-  defaultNotificationOffsets: number[];   // z.B. [0, 1, 7] = am Tag, 1 Tag vorher, 1 Woche vorher
+  defaultNotificationOffsets: number[];   // Positiv = exakte Tage; Negativ = Kalendermonate (z.B. -1 = 1 Monat, 7 = 7 Tage)
   defaultNotificationTime: string;        // "09:00"
   confirmBeforeWriting: boolean;
 }
@@ -174,7 +174,7 @@ Reagiert auf: WIDGET_ADDED, WIDGET_UPDATE, WIDGET_RESIZED.
 - **Patentpolitik**: Contributor Non-Assertion via `PATENTS.md`; Beitragspfad in `CONTRIBUTING.md`
 - **Third-Party-Lizenzen**: `THIRD_PARTY_LICENSES.md` wird per `npm run licenses:generate` aus installierten Paketen erzeugt und via `npm run licenses:check` validiert
 - **F-Droid Metadaten**: Entwurf liegt unter `fdroid/metadata/io.github.gametrojaner.geburtstage.yml` (Quelle fuer spaetere fdroiddata-Submission)
-- **CI**: `.github/workflows/fdroid-readiness.yml` prueft F-Droid-Checks, Lizenzdoku-Aktualitaet, Typecheck, Tests und Android `assembleDebug`
+- **CI**: `.github/workflows/ci.yml` – Typecheck + Tests + Debug-APK bei PRs; `.github/workflows/auto-version.yml` – automatische Versionserhöhung bei Merge (fix oder `[minor]`); `.github/workflows/release.yml` – manueller Release mit signiertem APK; `.github/workflows/fdroid-readiness.yml` prueft F-Droid-Checks, Lizenzdoku-Aktualitaet, Typecheck, Tests und Android `assembleDebug`
 
 ## Befehle
 
@@ -196,8 +196,12 @@ npm run licenses:check            # Third-Party-Lizenzdoku pruefen
 
 ## Stand: März 2026
 
+- **Notification-Offset-Kodierung**: Positive Werte = exakte Tage; negative Werte = Kalendermonate (z.B. `-1` = 1 Monat, `-2` = 2 Monate). Kodierung: `OffsetPickerDialog.tsx → toOffset()`; Darstellung: `getOffsetLabel()` in `birthday.ts`; Berechnung: `calculateNotificationDate()` in `birthday.ts` (Schaltjahr-sicher via Tages-Klammern).
+- **Benachrichtigungs-Bug (behoben)**: 1 Monat vor Geburtstag wurde als exakt 30 Tage berechnet, was zu falschen Benachrichtigungs-Zeitpunkten führte. Behoben durch `setMonth()` mit Schaltjahr-Klammerung.
+- **CI/CD**: 3 GitHub-Actions-Workflows: `ci.yml` (Typecheck + Tests + Debug-APK), `auto-version.yml` (Versionserhöhung bei Merge), `release.yml` (manueller Release mit signiertem APK). Shared Script: `.github/scripts/bump-version.cjs`.
+
 - TypeScript: 0 Fehler
-- Tests: 94/94 bestanden (inkl. widget-layout Suite)
+- **Tests**: 120/120 bestanden (12 Suites: birthday, contacts, types, store, i18n, export, home-filter, notification-settings, edit-birthday-photo, settings-reset, dev-workflow, widget-layout)
 - Alle Screens implementiert
 - i18n komplett (DE + EN) + neue Reset-Übersetzungen
 - 2 Android Widgets konfiguriert

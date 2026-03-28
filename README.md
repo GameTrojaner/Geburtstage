@@ -154,7 +154,27 @@ npm run test:watch
 npm run test:coverage
 ```
 
-Aktuell: **94 Tests** in 9 Suites (birthday, types, store, i18n, export, contacts, settings-reset, dev-workflow, widget-layout).
+Aktuell: **120 Tests** in 12 Suites (birthday, contacts, types, store, i18n, export, home-filter, notification-settings, edit-birthday-photo, settings-reset, dev-workflow, widget-layout).
+
+## Notification-Offset-Kodierung
+
+- **Positive Werte**: Exakte Anzahl Tage vor dem Geburtstag (z.B. `1` = 1 Tag, `7` = 1 Woche, `30` = genau 30 Tage).
+- **Negative Werte**: Kalenderbasierte Monate (z.B. `-1` = 1 Monat, `-2` = 2 Monate). Der 28. April minus 1 Monat ergibt immer den 28. März – auch in Schaltjahren korrekt geklammert.
+- Diese Trennung verhindert die Verwechslung von "1 Monat" und "30 Tage".
+- Kodierung liegt in `OffsetPickerDialog.tsx` (`toOffset()`), Darstellung in `getOffsetLabel()` (`birthday.ts`), Berechnung in `calculateNotificationDate()` (`birthday.ts`).
+
+## CI/CD (GitHub Actions)
+
+| Workflow | Auslöser | Zweck |
+|---|---|---|
+| `ci.yml` | Push + PR auf main | Typecheck, Tests, Debug-APK (nur bei PR) |
+| `auto-version.yml` | PR auf main gemergt | Version automatisch erhöhen (fix oder `[minor]`) |
+| `release.yml` | Manuell | Signiertes Release-APK bauen + GitHub Release erstellen |
+
+Der `auto-version.yml` Workflow nutzt `.github/scripts/bump-version.cjs`, das:
+- `package.json`, `app.json`, `android/app/build.gradle` und die F-Droid YAML aktualisiert.
+- Den bisherigen `HEAD` Eintrag in der F-Droid YAML einfriert.
+- Einen neuen `commit: HEAD` Eintrag für die neue Version erstellt.
 
 ## F-Droid Readiness
 
