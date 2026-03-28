@@ -159,7 +159,7 @@ Aktuell: **94 Tests** in 9 Suites (birthday, types, store, i18n, export, contact
 ## F-Droid Readiness
 
 - Checkliste: `FDROID_CHECKLIST.md`
-- Metadaten-Entwurf: `fdroid/metadata/com.anonymous.Geburtstage.yml`
+- Metadaten-Entwurf: `fdroid/metadata/io.github.gametrojaner.geburtstage.yml`
 - CI Workflow: `.github/workflows/fdroid-readiness.yml`
 - F-Droid Config-Checks ausfuehren:
    ```bash

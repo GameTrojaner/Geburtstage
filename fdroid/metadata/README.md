@@ -5,12 +5,12 @@ This directory stores the in-repository draft metadata used to prepare F-Droid s
 ## Important
 
 - Official F-Droid metadata lives in the `fdroiddata` repository.
-- The `License` field in `com.anonymous.Geburtstage.yml` must be set to a valid SPDX identifier before submission.
+- The `License` field in `io.github.gametrojaner.geburtstage.yml` must be set to a valid SPDX identifier before submission.
 - Keep `Summary`, `Description`, and version fields in sync with project releases.
 
 ## Suggested submission workflow
 
-1. Update `fdroid/metadata/com.anonymous.Geburtstage.yml` in this repo.
+1. Update `fdroid/metadata/io.github.gametrojaner.geburtstage.yml` in this repo.
 2. Run:
    - `npm run fdroid:check`
    - `npm run test:typecheck`

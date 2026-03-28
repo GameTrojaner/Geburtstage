@@ -61,7 +61,7 @@ describe('Developer workflow guards', () => {
       repoRoot,
       'fdroid',
       'metadata',
-      'com.anonymous.Geburtstage.yml'
+      'io.github.gametrojaner.geburtstage.yml'
     );
     expect(fs.existsSync(fdroidMetadataPath)).toBe(true);
 
