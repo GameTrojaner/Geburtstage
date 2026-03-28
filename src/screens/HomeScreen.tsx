@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
-import { Text, useTheme, Divider, Surface, Snackbar } from 'react-native-paper';
+import { Text, useTheme, Divider, Surface, Snackbar, Chip } from 'react-native-paper';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../store';
 import { BirthdayCard } from '../components/BirthdayCard';
 import { groupBirthdayContacts, BirthdayGroup } from '../utils/birthday';
+import { filterHomeContacts, HomeFilter } from '../utils/home';
 import { ContactBirthday } from '../types';
 import { requestContactsPermission } from '../services/contacts';
 import { useNavigation } from '@react-navigation/native';
@@ -43,11 +44,17 @@ export function HomeScreen() {
 
   const [snackVisible, setSnackVisible] = useState(false);
   const [lastHidden, setLastHidden] = useState<{ id: string; name: string } | null>(null);
+  const [homeFilter, setHomeFilter] = useState<HomeFilter>('all');
   const swipeableRefs = useRef<Map<string, Swipeable | null>>(new Map());
 
   const visibleContacts = useMemo(
     () => contacts.filter(c => !hidden.has(c.contactId)),
     [contacts, hidden]
+  );
+
+  const filteredContacts = useMemo(
+    () => filterHomeContacts(visibleContacts, favorites, homeFilter),
+    [visibleContacts, favorites, homeFilter]
   );
 
   useEffect(() => {
@@ -64,7 +71,7 @@ export function HomeScreen() {
     await loadContacts();
   }, [loadContacts]);
 
-  const groups = groupBirthdayContacts(visibleContacts, pinned);
+  const groups = groupBirthdayContacts(filteredContacts, pinned);
 
   const sections: Section[] = [];
 
@@ -173,6 +180,16 @@ export function HomeScreen() {
         data={sections}
         renderItem={renderItem}
         keyExtractor={(item) => item.key}
+        ListHeaderComponent={
+          <View style={styles.filterRow}>
+            <Chip selected={homeFilter === 'all'} onPress={() => setHomeFilter('all')} compact>
+              {t('home.filterAll')}
+            </Chip>
+            <Chip selected={homeFilter === 'favorites'} onPress={() => setHomeFilter('favorites')} compact>
+              {t('home.filterFavorites')}
+            </Chip>
+          </View>
+        }
         refreshControl={
           <RefreshControl refreshing={contactsLoading} onRefresh={onRefresh} colors={[theme.colors.primary]} />
         }
@@ -218,5 +235,12 @@ const styles = StyleSheet.create({
     marginVertical: 4,
     marginRight: 16,
     borderRadius: 12,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 4,
   },
 });

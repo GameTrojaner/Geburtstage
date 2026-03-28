@@ -150,6 +150,7 @@ Reagiert auf: WIDGET_ADDED, WIDGET_UPDATE, WIDGET_RESIZED.
 - **GestureHandlerRootView**: Umschließt die gesamte App in App.tsx — nötig für Swipeable (Kontakte ausblenden) und Kalender-Swipe.
 - **Kontakte ausblenden**: Swipe nach links in ContactsScreen und HomeScreen → Snackbar mit Undo. Ausgeblendete werden überall gefiltert (Home, Kalender, Kontakte). Wiederherstellen über eigenen Bildschirm: Einstellungen → „Ausgeblendete Kontakte" (HiddenContactsScreen).
 - **Vergangen-Gruppe**: Geburtstage die in diesem Jahr schon vorbei sind, erscheinen am Ende der HomeScreen-Liste in der Gruppe „Vergangen".
+- **Home-Filter**: HomeScreen bietet zusaetzlich einen `Alle`/`Favoriten` Filter oberhalb der Gruppierung.
 - **Sprache System**: Beim Wechsel auf „System" wird die Gerätesprache per expo-localization erkannt und aktiv gesetzt (nicht nur beim App-Start).
 - **Notification UX**: Aktivieren/Deaktivieren ist jetzt Top-Level (nicht mehr unter „Eigene Erinnerungen"). Der „+" Button für Offsets wird nur gezeigt wenn noch Optionen verfügbar sind.
 - **Offset-Picker**: Shared OffsetPickerDialog-Komponente (Zahl + Einheit: Tage/Wochen/Monate). Wird in EditBirthdayScreen und SettingsScreen verwendet.

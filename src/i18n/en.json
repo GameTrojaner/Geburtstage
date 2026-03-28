@@ -17,6 +17,8 @@
     "later": "Later",
     "passed": "Passed",
     "pinned": "Pinned",
+    "filterAll": "All",
+    "filterFavorites": "Favorites",
     "noBirthdays": "No birthdays found",
     "turnsYears": "turns {{age}}",
     "birthdayToday": "🎂 Birthday today!",

@@ -17,6 +17,8 @@
     "later": "Später",
     "passed": "Vergangen",
     "pinned": "Angepinnt",
+    "filterAll": "Alle",
+    "filterFavorites": "Favoriten",
     "noBirthdays": "Keine Geburtstage gefunden",
     "turnsYears": "wird {{age}}",
     "birthdayToday": "🎂 Hat heute Geburtstag!",

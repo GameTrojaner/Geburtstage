@@ -173,6 +173,7 @@ Aktuell: **94 Tests** in 9 Suites (birthday, types, store, i18n, export, contact
 ## Features
 
 - **Geburtstags-Übersicht**: Gruppiert nach Heute/Diese Woche/Monat/Nächster Monat/Später/Vergangen, Swipe-to-Hide auf der Startseite
+- **Startseiten-Filter**: Umschaltbarer Filter `Alle` / `Favoriten` fuer die Geburtstagsliste
 - **Kontakte ausblenden**: Swipe-Geste nach links zum Ausblenden, Undo-Snackbar, eigener Bildschirm zum Wiederherstellen (Einstellungen → Ausgeblendete Kontakte)
 - **Kalender**: Interaktive Pan-Geste zum Monatswechsel (folgt dem Finger mit Spring-Animation), Tages-Auswahl mit Toggle, „Heute"-FAB-Button, Geburtstag zuweisen (Kontakt aus bestehender Liste wählen)
 - **Foto-Zoom**: Antippen des Kontaktfotos in der Bearbeitungsansicht öffnet Vollbild-Overlay (bevorzugt hochaufgeloestes Base64-Bild, fallback auf RawImage/Image-URI)
