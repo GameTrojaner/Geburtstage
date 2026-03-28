@@ -17,7 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../store';
 import { ContactAvatar } from '../components/ContactAvatar';
 import { OffsetPickerDialog } from '../components/OffsetPickerDialog';
-import { ContactBirthday, NotificationSetting } from '../types';
+import { ContactBirthday } from '../types';
 import {
   getContactById,
   saveBirthdayToContact,
@@ -28,6 +28,7 @@ import {
 } from '../services/contacts';
 import { getDaysInMonth, getOffsetLabel } from '../utils/birthday';
 import { getPhotoModalSource } from '../utils/photo';
+import { buildNotificationSettingForContact, isValidNotificationTime } from '../utils/notificationSettings';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 
@@ -169,14 +170,16 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
 
     const success = await saveBirthdayToContact(contactId, { day: d, month: m, year: y });
     if (success) {
-      // Save notification settings if custom or disabled
-      if (!notifEnabled || useCustomNotif) {
-        await updateNotificationSetting({
-          contactId,
-          enabled: notifEnabled,
-          offsets: useCustomNotif ? notifOffsets : settings.defaultNotificationOffsets,
-          time: useCustomNotif ? notifTime : settings.defaultNotificationTime,
-        });
+      const notificationSetting = buildNotificationSettingForContact(
+        contactId,
+        notifEnabled,
+        useCustomNotif,
+        notifOffsets,
+        notifTime,
+        settings
+      );
+      if (notificationSetting) {
+        await updateNotificationSetting(notificationSetting);
       } else {
         await deleteNotificationSetting(contactId);
       }
@@ -188,6 +191,33 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
       await openNativeEditorAndSync();
     }
     setSaving(false);
+  };
+
+  const handleSaveNotificationSettings = async () => {
+    if (useCustomNotif && notifEnabled) {
+      if (notifOffsets.length === 0 || !isValidNotificationTime(notifTime)) {
+        Alert.alert(t('notification.invalidSettings'));
+        return;
+      }
+    }
+
+    const notificationSetting = buildNotificationSettingForContact(
+      contactId,
+      notifEnabled,
+      useCustomNotif,
+      notifOffsets,
+      notifTime,
+      settings
+    );
+
+    if (notificationSetting) {
+      await updateNotificationSetting(notificationSetting);
+    } else {
+      await deleteNotificationSetting(contactId);
+    }
+
+    await rescheduleNotifications();
+    Alert.alert(t('notification.saved'));
   };
 
   const handleDelete = async () => {
@@ -369,6 +399,14 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
           </>
         )}
 
+        <Button
+          mode="outlined"
+          onPress={handleSaveNotificationSettings}
+          style={styles.saveNotificationButton}
+        >
+          {t('notification.saveSettings')}
+        </Button>
+
         <Divider style={styles.divider} />
 
         {/* Actions */}
@@ -533,6 +571,9 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     borderColor: 'transparent',
+  },
+  saveNotificationButton: {
+    marginTop: 8,
   },
   photoOverlay: {
     flex: 1,

@@ -153,6 +153,7 @@ Reagiert auf: WIDGET_ADDED, WIDGET_UPDATE, WIDGET_RESIZED.
 - **Home-Filter**: HomeScreen bietet zusaetzlich einen `Alle`/`Favoriten` Filter oberhalb der Gruppierung.
 - **Sprache System**: Beim Wechsel auf „System" wird die Gerätesprache per expo-localization erkannt und aktiv gesetzt (nicht nur beim App-Start).
 - **Notification UX**: Aktivieren/Deaktivieren ist jetzt Top-Level (nicht mehr unter „Eigene Erinnerungen"). Der „+" Button für Offsets wird nur gezeigt wenn noch Optionen verfügbar sind.
+- **Reminder-Entkopplung**: Eigene Erinnerungen pro Kontakt koennen separat gespeichert werden, auch wenn der Kontakt-Geburtstag nicht direkt schreibbar ist.
 - **Offset-Picker**: Shared OffsetPickerDialog-Komponente (Zahl + Einheit: Tage/Wochen/Monate). Wird in EditBirthdayScreen und SettingsScreen verwendet.
 - **Kalender**: Interaktive Pan-Geste (GestureDetector, folgt dem Finger via onUpdate/translateX, Spring-back bei unvollständigem Swipe, Velocity-Trigger). FAB „Heute" wenn nicht aktueller Monat. Tag-Toggle (erneutes Tippen deselektiert), „Alle im Monat zeigen" Chip, „Geburtstag zuweisen" Button öffnet Kontakt-Auswahl-Modal.
 - **Foto-Zoom**: Antippen des Kontaktfotos in EditBirthdayScreen oeffnet Vollbild-Overlay. Bildquelle-Prioritaet: imageBase64 -> rawImageUri -> imageUri (schaerfer auf Geraeten mit Thumbnail-URIs).

@@ -138,7 +138,10 @@
     "enabled": "Aktiviert",
     "customTime": "Eigene Uhrzeit",
     "customOffsets": "Eigene Erinnerungen",
-    "useDefault": "Standard verwenden"
+    "useDefault": "Standard verwenden",
+    "saveSettings": "Erinnerungen speichern",
+    "saved": "Erinnerungen gespeichert",
+    "invalidSettings": "Bitte gueltige Erinnerungen und Uhrzeit einstellen"
   },
   "common": {
     "save": "Speichern",

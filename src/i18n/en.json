@@ -138,7 +138,10 @@
     "enabled": "Enabled",
     "customTime": "Custom time",
     "customOffsets": "Custom reminders",
-    "useDefault": "Use default"
+    "useDefault": "Use default",
+    "saveSettings": "Save reminders",
+    "saved": "Reminders saved",
+    "invalidSettings": "Please set valid reminders and a valid time"
   },
   "common": {
     "save": "Save",
