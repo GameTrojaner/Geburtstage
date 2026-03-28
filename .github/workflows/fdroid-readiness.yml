@@ -45,7 +45,7 @@ jobs:
         run: npm test -- --runInBand
 
       - name: Android compile smoke test
+        working-directory: android
         run: |
-          chmod +x android/gradlew
-          cd android
+          chmod +x ./gradlew
           ./gradlew assembleDebug
