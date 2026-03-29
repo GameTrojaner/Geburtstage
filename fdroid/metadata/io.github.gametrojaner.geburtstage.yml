@@ -39,7 +39,20 @@ Builds:
       - npm run fdroid:check
       - cd android && ./gradlew assembleRelease
 
+  - versionName: 1.0.0-beta.3
+    versionCode: 2
+    commit: HEAD
+    subdir: .
+    sudo:
+      - apt-get update
+      - apt-get install -y npm openjdk-17-jdk
+    init:
+      - npm ci --legacy-peer-deps
+    build:
+      - npm run fdroid:check
+      - cd android && ./gradlew assembleRelease
+
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.0.0-beta.2
-CurrentVersionCode: 1
+CurrentVersion: 1.0.0-beta.3
+CurrentVersionCode: 2
