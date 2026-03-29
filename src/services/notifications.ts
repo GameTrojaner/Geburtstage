@@ -60,6 +60,13 @@ function calculateAge(birthday: { day: number; month: number; year?: number }, o
   return onDate.getFullYear() - birthday.year;
 }
 
+export function getNotificationLeadDays(nextBday: Date, notifDate: Date): number {
+  const birthdayDate = new Date(nextBday.getFullYear(), nextBday.getMonth(), nextBday.getDate());
+  const notificationDate = new Date(notifDate.getFullYear(), notifDate.getMonth(), notifDate.getDate());
+  const diffMs = birthdayDate.getTime() - notificationDate.getTime();
+  return Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+}
+
 export async function scheduleAllNotifications(
   contacts: ContactBirthday[],
   maxDaysAhead: number = 180,
@@ -124,9 +131,7 @@ export async function scheduleAllNotifications(
 
       if (notifDate <= now) continue;
 
-      const daysUntil = Math.round(
-        (nextBday.getTime() - notifDate.getTime()) / (1000 * 60 * 60 * 24),
-      );
+      const daysUntil = getNotificationLeadDays(nextBday, notifDate);
 
       let body: string;
       if (offset === 0) {

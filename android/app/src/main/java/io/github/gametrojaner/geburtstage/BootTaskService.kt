@@ -29,7 +29,7 @@ class BootTaskService : HeadlessJsTaskService() {
         HeadlessJsTaskConfig(
             "RescheduleNotifications",
             Arguments.createMap(),
-            10_000,  // JS task timeout in ms
+            90_000,  // JS task timeout in ms
             true,    // allowed to run while app is in foreground
         )
 

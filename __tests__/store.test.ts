@@ -89,6 +89,27 @@ describe('Store - loadSettings', () => {
     expect(settings.theme).toBe('system');
     expect(settings.notificationsEnabled).toBe(true);
   });
+
+  it('migrates legacy default offsets on load and persists migration', async () => {
+    const db = jest.requireMock('../src/services/database') as {
+      getSettings: jest.Mock;
+      saveSetting: jest.Mock;
+    };
+
+    db.getSettings.mockResolvedValueOnce({
+      theme: 'system',
+      language: 'system',
+      notificationsEnabled: true,
+      defaultNotificationOffsets: [0, 30, 60],
+      defaultNotificationTime: '09:00',
+      confirmBeforeWriting: true,
+    });
+
+    await useAppStore.getState().loadSettings();
+
+    expect(useAppStore.getState().settings.defaultNotificationOffsets).toEqual([0, -1, -2]);
+    expect(db.saveSetting).toHaveBeenCalledWith('defaultNotificationOffsets', JSON.stringify([0, -1, -2]));
+  });
 });
 
 describe('Store - favorites', () => {
@@ -199,5 +220,26 @@ describe('Store - notification settings', () => {
     });
     await useAppStore.getState().deleteNotificationSetting('c1');
     expect(useAppStore.getState().notificationSettings.has('c1')).toBe(false);
+  });
+
+  it('migrates legacy per-contact offsets when loading notification settings', async () => {
+    const db = jest.requireMock('../src/services/database') as {
+      getAllNotificationSettings: jest.Mock;
+      saveNotificationSetting: jest.Mock;
+    };
+
+    db.getAllNotificationSettings.mockResolvedValueOnce([
+      { contactId: 'c1', enabled: true, offsets: [0, 30, 60], time: '09:00' },
+    ]);
+
+    await useAppStore.getState().loadNotificationSettings();
+
+    expect(useAppStore.getState().notificationSettings.get('c1')?.offsets).toEqual([0, -1, -2]);
+    expect(db.saveNotificationSetting).toHaveBeenCalledWith({
+      contactId: 'c1',
+      enabled: true,
+      offsets: [0, -1, -2],
+      time: '09:00',
+    });
   });
 });
