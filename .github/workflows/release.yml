@@ -77,15 +77,34 @@ jobs:
       - name: Decode keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/release.keystore
+          set -euo pipefail
+
+          missing_vars=()
+          for var in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [ -z "${!var:-}" ]; then
+              missing_vars+=("$var")
+            fi
+          done
+
+          if [ "${#missing_vars[@]}" -gt 0 ]; then
+            echo "::error::Missing required release secrets: ${missing_vars[*]}"
+            exit 1
+          fi
+
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > android/app/release.keystore
           echo "KEYSTORE_PATH=$(pwd)/android/app/release.keystore" >> "$GITHUB_ENV"
-          echo "KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}"  >> "$GITHUB_ENV"
-          echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}"                  >> "$GITHUB_ENV"
-          echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}"            >> "$GITHUB_ENV"
 
       - name: Convert keystore to JKS (BouncyCastle compatibility)
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
+          set -euo pipefail
           keytool -importkeystore \
             -srckeystore android/app/release.keystore \
             -destkeystore /tmp/release.jks \
@@ -106,9 +125,9 @@ jobs:
         run: cd android && ./gradlew assembleRelease --no-daemon
         env:
           KEYSTORE_PATH:     ${{ env.KEYSTORE_PATH }}
-          KEYSTORE_PASSWORD: ${{ env.KEYSTORE_PASSWORD }}
-          KEY_ALIAS:         ${{ env.KEY_ALIAS }}
-          KEY_PASSWORD:      ${{ env.KEY_PASSWORD }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS:         ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD:      ${{ secrets.KEY_PASSWORD }}
 
       - name: Remove keystore from workspace
         if: always()
