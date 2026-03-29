@@ -84,6 +84,21 @@ jobs:
           echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}"                  >> "$GITHUB_ENV"
           echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}"            >> "$GITHUB_ENV"
 
+      - name: Convert keystore to JKS (BouncyCastle compatibility)
+        run: |
+          keytool -importkeystore \
+            -srckeystore android/app/release.keystore \
+            -destkeystore /tmp/release.jks \
+            -deststoretype JKS \
+            -srcstorepass:env KEYSTORE_PASSWORD \
+            -deststorepass:env KEYSTORE_PASSWORD \
+            -srcalias "$KEY_ALIAS" \
+            -destalias "$KEY_ALIAS" \
+            -srckeypass:env KEY_PASSWORD \
+            -destkeypass:env KEY_PASSWORD \
+            -noprompt
+          mv /tmp/release.jks android/app/release.keystore
+
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
