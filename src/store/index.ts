@@ -8,6 +8,7 @@ import * as db from '../services/database';
 import * as contactsService from '../services/contacts';
 import * as notificationsService from '../services/notifications';
 import { cacheContactPhotos } from '../services/photoCache';
+import { normalizeLegacyOffsets } from '../utils/notificationSettings';
 
 interface AppState {
   // Contacts
@@ -89,7 +90,16 @@ export const useAppStore = create<AppState>((set, get) => ({
   loadSettings: async () => {
     try {
       const settings = await db.getSettings();
-      set({ settings });
+      const normalized = normalizeLegacyOffsets(settings.defaultNotificationOffsets);
+      const nextSettings = normalized.migrated
+        ? { ...settings, defaultNotificationOffsets: normalized.offsets }
+        : settings;
+
+      if (normalized.migrated) {
+        await db.saveSetting('defaultNotificationOffsets', JSON.stringify(normalized.offsets));
+      }
+
+      set({ settings: nextSettings });
     } catch (error) {
       console.error('Error loading settings:', error);
     }
@@ -199,7 +209,12 @@ export const useAppStore = create<AppState>((set, get) => ({
       const all = await db.getAllNotificationSettings();
       const map = new Map<string, NotificationSetting>();
       for (const ns of all) {
-        map.set(ns.contactId, ns);
+        const normalized = normalizeLegacyOffsets(ns.offsets);
+        const next = normalized.migrated ? { ...ns, offsets: normalized.offsets } : ns;
+        map.set(next.contactId, next);
+        if (normalized.migrated) {
+          await db.saveNotificationSetting(next);
+        }
       }
       set({ notificationSettings: map });
     } catch (error) {

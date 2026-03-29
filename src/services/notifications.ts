@@ -1,6 +1,8 @@
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { ContactBirthday, NotificationSetting, AppSettings } from '../types';
 import { getAllNotificationSettings, getSettings } from './database';
+import { calculateNotificationDate } from '../utils/birthday';
+import i18n from '../i18n';
 
 const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 
@@ -56,6 +58,13 @@ function getNextBirthday(birthday: { day: number; month: number; year?: number }
 function calculateAge(birthday: { day: number; month: number; year?: number }, onDate: Date): number | undefined {
   if (!birthday.year) return undefined;
   return onDate.getFullYear() - birthday.year;
+}
+
+export function getNotificationLeadDays(nextBday: Date, notifDate: Date): number {
+  const birthdayDate = new Date(nextBday.getFullYear(), nextBday.getMonth(), nextBday.getDate());
+  const notificationDate = new Date(notifDate.getFullYear(), notifDate.getMonth(), notifDate.getDate());
+  const diffMs = birthdayDate.getTime() - notificationDate.getTime();
+  return Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
 }
 
 export async function scheduleAllNotifications(
@@ -118,27 +127,27 @@ export async function scheduleAllNotifications(
         return;
       }
 
-      const notifDate = new Date(nextBday);
-      notifDate.setDate(notifDate.getDate() - offset);
-      notifDate.setHours(hours, minutes, 0, 0);
+      const notifDate = calculateNotificationDate(nextBday, offset, hours, minutes);
 
       if (notifDate <= now) continue;
+
+      const daysUntil = getNotificationLeadDays(nextBday, notifDate);
 
       let body: string;
       if (offset === 0) {
         body = age
-          ? `${contact.name} wird heute ${age} Jahre alt!`
-          : `${contact.name} hat heute Geburtstag!`;
+          ? i18n.t('notification.bodyTodayAge', { name: contact.name, age })
+          : i18n.t('notification.bodyToday', { name: contact.name });
       } else {
         body = age
-          ? `${contact.name} wird in ${offset} Tagen ${age} Jahre alt!`
-          : `${contact.name} hat in ${offset} Tagen Geburtstag!`;
+          ? i18n.t('notification.bodyUpcomingAge', { name: contact.name, days: daysUntil, age })
+          : i18n.t('notification.bodyUpcoming', { name: contact.name, days: daysUntil });
       }
 
       try {
         await Notifications.scheduleNotificationAsync({
           content: {
-            title: '🎂 Geburtstag',
+            title: i18n.t('notification.title'),
             body,
             data: { contactId: contact.contactId },
           },

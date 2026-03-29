@@ -105,7 +105,7 @@ export async function saveBirthdayToContact(
     });
 
     const nativeMonth = birthday.month - 1; // expo-contacts month is 0-indexed
-    console.log(
+    if (__DEV__) console.log(
       'Saving birthday (UI month is 1-based, native month is 0-based):',
       JSON.stringify(
         {
@@ -130,7 +130,7 @@ export async function saveBirthdayToContact(
 
     // Fallback 1: Try again with minimal payload (birthday only, no dates)
     try {
-      console.log('Attempting fallback: saving birthday without explicit dates array');
+      if (__DEV__) console.log('Attempting fallback: saving birthday without explicit dates array');
       await Contacts.updateContactAsync({
         id: contactId,
         birthday: {
@@ -139,7 +139,7 @@ export async function saveBirthdayToContact(
           ...(birthday.year !== undefined ? { year: birthday.year } : {}),
         },
       } as ContactUpdatePayload);
-      console.log('Fallback attempt succeeded');
+      if (__DEV__) console.log('Fallback attempt succeeded');
       contactsNeedingNativeEditor.delete(contactId);
       return true;
     } catch (fallbackError) {
@@ -148,7 +148,7 @@ export async function saveBirthdayToContact(
       // Fallback 2: Some providers reject birthdays with year. Retry without year when present.
       if (birthday.year !== undefined) {
         try {
-          console.log('Attempting fallback: saving birthday without year');
+          if (__DEV__) console.log('Attempting fallback: saving birthday without year');
           await Contacts.updateContactAsync({
             id: contactId,
             birthday: {
@@ -156,7 +156,7 @@ export async function saveBirthdayToContact(
               month: birthday.month - 1,
             },
           } as ContactUpdatePayload);
-          console.log('Yearless fallback succeeded');
+          if (__DEV__) console.log('Yearless fallback succeeded');
           contactsNeedingNativeEditor.delete(contactId);
           return true;
         } catch (yearlessError) {
@@ -167,7 +167,7 @@ export async function saveBirthdayToContact(
       // Fallback 3 (compatibility): some provider stacks appear to expect month as-is.
       // We only try this as last resort to avoid hard failure on vendor-specific behavior.
       try {
-        console.log('Attempting compatibility fallback: saving birthday with non-converted month');
+        if (__DEV__) console.log('Attempting compatibility fallback: saving birthday with non-converted month');
         await Contacts.updateContactAsync({
           id: contactId,
           birthday: {
@@ -176,7 +176,7 @@ export async function saveBirthdayToContact(
             ...(birthday.year !== undefined ? { year: birthday.year } : {}),
           },
         } as ContactUpdatePayload);
-        console.log('Compatibility fallback succeeded');
+        if (__DEV__) console.log('Compatibility fallback succeeded');
         contactsNeedingNativeEditor.delete(contactId);
         return true;
       } catch (compatError) {

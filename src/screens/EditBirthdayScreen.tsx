@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Image, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+
 import {
   Button,
   Checkbox,
@@ -56,6 +57,9 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
   const [day, setDay] = useState('');
   const [month, setMonth] = useState('');
   const [year, setYear] = useState('');
+  const [origDay, setOrigDay] = useState('');
+  const [origMonth, setOrigMonth] = useState('');
+  const [origYear, setOrigYear] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [confirmDialogVisible, setConfirmDialogVisible] = useState(false);
@@ -71,6 +75,11 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
   const [notifOffsets, setNotifOffsets] = useState<number[]>([]);
   const [notifTime, setNotifTime] = useState('');
   const [useCustomNotif, setUseCustomNotif] = useState(false);
+  // Saved-to-DB snapshots for dirty-check
+  const [origNotifEnabled, setOrigNotifEnabled] = useState(true);
+  const [origNotifOffsets, setOrigNotifOffsets] = useState<number[]>([]);
+  const [origNotifTime, setOrigNotifTime] = useState('');
+  const [origUseCustomNotif, setOrigUseCustomNotif] = useState(false);
 
   useEffect(() => {
     loadContact();
@@ -82,33 +91,35 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
     setContact(c);
     setEditorOnlyMode(shouldUseNativeEditorForContact(contactId));
     if (c?.birthday) {
-      setDay(String(c.birthday.day));
-      setMonth(String(c.birthday.month));
-      setYear(c.birthday.year ? String(c.birthday.year) : '');
+      const d = String(c.birthday.day);
+      const mo = String(c.birthday.month);
+      const yr = c.birthday.year ? String(c.birthday.year) : '';
+      setDay(d); setOrigDay(d);
+      setMonth(mo); setOrigMonth(mo);
+      setYear(yr); setOrigYear(yr);
     } else if (prefillDay && prefillMonth) {
       setDay(String(prefillDay));
       setMonth(String(prefillMonth));
+      setOrigDay(String(prefillDay));
+      setOrigMonth(String(prefillMonth));
     }
     // Load notification settings
     if (contactNotif) {
-      setNotifEnabled(contactNotif.enabled);
-      setNotifOffsets(contactNotif.offsets);
-      setNotifTime(contactNotif.time);
+      setNotifEnabled(contactNotif.enabled); setOrigNotifEnabled(contactNotif.enabled);
+      setNotifOffsets(contactNotif.offsets); setOrigNotifOffsets(contactNotif.offsets);
+      setNotifTime(contactNotif.time); setOrigNotifTime(contactNotif.time);
       // If disabled but no custom offsets, it's just a disable — not custom
       setUseCustomNotif(contactNotif.enabled ? true : false);
       // Check if offsets/time differ from defaults to determine custom
       const isCustomOffsets = JSON.stringify(contactNotif.offsets) !== JSON.stringify(settings.defaultNotificationOffsets)
         || contactNotif.time !== settings.defaultNotificationTime;
-      if (contactNotif.enabled && isCustomOffsets) {
-        setUseCustomNotif(true);
-      } else if (contactNotif.enabled) {
-        setUseCustomNotif(false);
-      }
+      const custom = contactNotif.enabled && isCustomOffsets;
+      setUseCustomNotif(custom); setOrigUseCustomNotif(custom);
     } else {
-      setNotifEnabled(true);
-      setNotifOffsets(settings.defaultNotificationOffsets);
-      setNotifTime(settings.defaultNotificationTime);
-      setUseCustomNotif(false);
+      setNotifEnabled(true); setOrigNotifEnabled(true);
+      setNotifOffsets(settings.defaultNotificationOffsets); setOrigNotifOffsets(settings.defaultNotificationOffsets);
+      setNotifTime(settings.defaultNotificationTime); setOrigNotifTime(settings.defaultNotificationTime);
+      setUseCustomNotif(false); setOrigUseCustomNotif(false);
     }
     setLoading(false);
   };
@@ -183,6 +194,9 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
       } else {
         await deleteNotificationSetting(contactId);
       }
+      setOrigDay(String(d));
+      setOrigMonth(String(m));
+      setOrigYear(y ? String(y) : '');
       await refreshContact(contactId);
       await rescheduleNotifications();
       navigation.goBack();
@@ -217,6 +231,10 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
     }
 
     await rescheduleNotifications();
+    setOrigNotifEnabled(notifEnabled);
+    setOrigUseCustomNotif(useCustomNotif);
+    setOrigNotifOffsets(notifOffsets);
+    setOrigNotifTime(notifTime);
     Alert.alert(t('notification.saved'));
   };
 
@@ -235,7 +253,9 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
 
   const addOffset = (days: number) => {
     if (!notifOffsets.includes(days)) {
-      setNotifOffsets([...notifOffsets, days].sort((a, b) => a - b));
+      // Sort key: negative offsets are months (-1 = 1 month ≈ 30 days for ordering)
+      const sortKey = (o: number) => o < 0 ? -o * 30 : o;
+      setNotifOffsets([...notifOffsets, days].sort((a, b) => sortKey(a) - sortKey(b)));
     }
     setOffsetPickerVisible(false);
   };
@@ -243,6 +263,13 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
   const removeOffset = (offset: number) => {
     setNotifOffsets(notifOffsets.filter(o => o !== offset));
   };
+
+  const dateDirty = day !== origDay || month !== origMonth || year !== origYear;
+  const notifDirty =
+    notifEnabled !== origNotifEnabled ||
+    useCustomNotif !== origUseCustomNotif ||
+    JSON.stringify(notifOffsets) !== JSON.stringify(origNotifOffsets) ||
+    notifTime !== origNotifTime;
 
   if (loading || !contact) {
     return <View style={[styles.container, { backgroundColor: theme.colors.background }]} />;
@@ -255,7 +282,12 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
 
   return (
     <Surface style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoid}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={80}
+      >
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         {/* Contact Header */}
         <View style={styles.header}>
           <Pressable onPress={() => photoSource && setPhotoVisible(true)}>
@@ -332,6 +364,18 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
           </View>
         )}
 
+        {!editorOnlyMode && (
+          <Button
+            mode={dateDirty ? 'contained' : 'outlined'}
+            onPress={handleSave}
+            loading={saving}
+            disabled={saving || !validateDate()}
+            style={styles.saveButton}
+          >
+            {t('birthday.save')}
+          </Button>
+        )}
+
         <Divider style={styles.divider} />
 
         {/* Notification Settings */}
@@ -400,7 +444,7 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
         )}
 
         <Button
-          mode="outlined"
+          mode={notifDirty ? 'contained' : 'outlined'}
           onPress={handleSaveNotificationSettings}
           style={styles.saveNotificationButton}
         >
@@ -408,19 +452,6 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
         </Button>
 
         <Divider style={styles.divider} />
-
-        {/* Actions */}
-        {!editorOnlyMode && (
-          <Button
-            mode="contained"
-            onPress={handleSave}
-            loading={saving}
-            disabled={saving || !validateDate()}
-            style={styles.saveButton}
-          >
-            {t('birthday.save')}
-          </Button>
-        )}
 
         {hasBirthday && (
           <Button
@@ -433,6 +464,7 @@ export function EditBirthdayScreen({ route, navigation }: Props) {
           </Button>
         )}
       </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Confirm Write Dialog */}
       <Portal>
@@ -506,6 +538,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  keyboardAvoid: {
+    flex: 1,
+  },
   scroll: {
     padding: 16,
     paddingBottom: 32,
@@ -567,6 +602,7 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   saveButton: {
+    marginTop: 16,
     marginBottom: 12,
   },
   deleteButton: {

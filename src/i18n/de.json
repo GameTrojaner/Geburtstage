@@ -94,6 +94,8 @@
     "languageEn": "Englisch",
     "notifications": "Benachrichtigungen",
     "notificationsEnabled": "Benachrichtigungen aktiviert",
+    "exactAlarmWarning": "Präzise Benachrichtigungen benötigen die Berechtigung \"Alarme & Erinnerungen\". Ohne sie kann Android Benachrichtigungen um Minuten verzögern.",
+    "exactAlarmButton": "Berechtigung erteilen",
     "defaultTime": "Standard-Uhrzeit",
     "defaultOffsets": "Standard-Erinnerungen",
     "offsetSameDay": "Am gleichen Tag",

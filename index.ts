@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
+import { AppRegistry, Platform } from 'react-native';
 import { registerRootComponent } from 'expo';
-import { Platform } from 'react-native';
 import {
   registerWidgetConfigurationScreen,
   registerWidgetTaskHandler,
@@ -8,6 +8,7 @@ import {
 
 import App from './App';
 import { widgetTaskHandler } from './src/widget/widgetTaskHandler';
+import { bootTask } from './src/tasks/bootTask';
 
 // registerRootComponent calls AppRegistry.registerComponent('main', () => App);
 // It also ensures that whether you load the app in Expo Go or in a native build,
@@ -16,6 +17,9 @@ registerRootComponent(App);
 
 // Register Android widget tasks as early as possible so headless work can find them.
 if (Platform.OS === 'android') {
+  // Reschedule all birthday notifications after device reboot.
+  AppRegistry.registerHeadlessTask('RescheduleNotifications', () => bootTask);
+
   registerWidgetTaskHandler(widgetTaskHandler);
 
   // No real configuration needed — confirm immediately so the widget is added.
