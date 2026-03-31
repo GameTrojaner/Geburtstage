@@ -1,7 +1,7 @@
 name: Release
 
 # Manually triggered to create a new beta or stable release.
-# Bumps the version, builds a signed APK, commits+tags, and creates a GitHub Release.
+# Bumps the version, builds a signed APK + AAB, commits+tags, and creates a GitHub Release.
 #
 # Required GitHub Secrets:
 #   KEYSTORE_BASE64     – base64-encoded release keystore  (base64 -w0 release.keystore)
@@ -121,8 +121,8 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
-      - name: Build release APK
-        run: cd android && ./gradlew assembleRelease --no-daemon
+      - name: Build release APK & AAB
+        run: cd android && ./gradlew assembleRelease bundleRelease --no-daemon
         env:
           KEYSTORE_PATH:     ${{ env.KEYSTORE_PATH }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -154,11 +154,13 @@ jobs:
       # ------------------------------------------------------------------
       # GitHub Release
       # ------------------------------------------------------------------
-      - name: Rename APK
+      - name: Rename APK & AAB
         run: |
           VERSION="${{ steps.tag.outputs.version }}"
           cp android/app/build/outputs/apk/release/app-release.apk \
              "Geburtstage-${VERSION}.apk"
+          cp android/app/build/outputs/bundle/release/app-release.aab \
+             "Geburtstage-${VERSION}.aab"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -168,6 +170,8 @@ jobs:
           draft: false
           prerelease: ${{ contains(steps.tag.outputs.version, '-') }}
           generate_release_notes: true
-          files: Geburtstage-${{ steps.tag.outputs.version }}.apk
+          files: |
+            Geburtstage-${{ steps.tag.outputs.version }}.apk
+            Geburtstage-${{ steps.tag.outputs.version }}.aab
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

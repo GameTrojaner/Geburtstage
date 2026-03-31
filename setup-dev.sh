@@ -115,7 +115,40 @@ else
   echo -e "${GREEN}[OK] Git installiert${NC}"
 fi
 
-# --- 3. Android Studio (optional) ---
+# --- 3b. JDK 17 pruefen (erforderlich fuer Gradle / Android Builds) ---
+JAVA_MAJOR=0
+if command -v java &>/dev/null; then
+  JAVA_MAJOR=$(java -version 2>&1 | head -1 | grep -oP '"(\d+)' | tr -d '"')
+fi
+
+if [ "$JAVA_MAJOR" -ge 17 ] 2>/dev/null; then
+  echo -e "${GREEN}[OK] JDK bereits installiert (>= 17): $(java -version 2>&1 | head -1)${NC}"
+else
+  if [ "$JAVA_MAJOR" -gt 0 ]; then
+    echo -e "${YELLOW}[WARNUNG] Java $JAVA_MAJOR gefunden, aber JDK 17+ wird benoetigt.${NC}"
+  else
+    echo -e "${YELLOW}[INFO] Kein Java gefunden.${NC}"
+  fi
+
+  echo -e "${YELLOW}[INSTALL] OpenJDK 17 wird installiert...${NC}"
+  case $PKG_MANAGER in
+    apt)     sudo apt-get install -y openjdk-17-jdk ;;
+    dnf)     sudo dnf install -y java-17-openjdk-devel ;;
+    pacman)  sudo pacman -S --noconfirm jdk17-openjdk ;;
+    brew)    brew install openjdk@17 ;;
+    *)
+      echo -e "${RED}[FEHLER] Bitte JDK 17 manuell installieren: https://adoptium.net/${NC}"
+      ;;
+  esac
+
+  if command -v java &>/dev/null; then
+    echo -e "${GREEN}[OK] JDK installiert: $(java -version 2>&1 | head -1)${NC}"
+  else
+    echo -e "${YELLOW}[WARNUNG] JDK installiert, aber Terminal muss ggf. neu gestartet werden.${NC}"
+  fi
+fi
+
+# --- 4. Android Studio (optional) ---
 if [ "$SKIP_ANDROID" = false ]; then
   if command -v adb &>/dev/null; then
     echo -e "${GREEN}[OK] Android SDK bereits vorhanden (adb gefunden)${NC}"
