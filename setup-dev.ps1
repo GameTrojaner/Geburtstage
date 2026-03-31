@@ -64,40 +64,40 @@ if ($gitVersion) {
     Write-Host "[OK] Git installiert" -ForegroundColor Green
 }
 
-# --- 3b. JDK 17 pruefen (erforderlich fuer Gradle / Android Builds) ---
+# --- 3b. JDK 21 pruefen (erforderlich fuer Gradle / Android Builds) ---
 $javaVersion = $null
 try { $javaVersion = (java -version 2>&1 | Select-Object -First 1) } catch {}
 
-$needsJdk17 = $true
+$needsJdk21 = $true
 if ($javaVersion -match '"(\d+)') {
     $majorVersion = [int]$Matches[1]
-    if ($majorVersion -ge 17) {
-        Write-Host "[OK] JDK bereits installiert (>= 17): $javaVersion" -ForegroundColor Green
-        $needsJdk17 = $false
+    if ($majorVersion -ge 21) {
+        Write-Host "[OK] JDK bereits installiert (>= 21): $javaVersion" -ForegroundColor Green
+        $needsJdk21 = $false
     } else {
-        Write-Host "[WARNUNG] Java $majorVersion gefunden, aber JDK 17+ wird benoetigt." -ForegroundColor Yellow
+        Write-Host "[WARNUNG] Java $majorVersion gefunden, aber JDK 21 wird benoetigt." -ForegroundColor Yellow
     }
 } else {
     Write-Host "[INFO] Kein Java gefunden." -ForegroundColor Yellow
 }
 
-if ($needsJdk17) {
-    Write-Host "[INSTALL] Microsoft OpenJDK 17 wird installiert..." -ForegroundColor Yellow
-    winget install Microsoft.OpenJDK.17 --accept-package-agreements --accept-source-agreements
+if ($needsJdk21) {
+    Write-Host "[INSTALL] Microsoft OpenJDK 21 wird installiert..." -ForegroundColor Yellow
+    winget install Microsoft.OpenJDK.21 --accept-package-agreements --accept-source-agreements
 
     # PATH und JAVA_HOME aktualisieren
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
-    $jdk17Home = "C:\Program Files\Microsoft\jdk-17*"
-    $jdk17Resolved = (Get-Item $jdk17Home -ErrorAction SilentlyContinue | Select-Object -First 1)
-    if ($jdk17Resolved) {
-        [System.Environment]::SetEnvironmentVariable("JAVA_HOME", $jdk17Resolved.FullName, "User")
-        $env:JAVA_HOME = $jdk17Resolved.FullName
-        Write-Host "[OK] JAVA_HOME = $($jdk17Resolved.FullName)" -ForegroundColor Green
+    $jdk21Home = "C:\Program Files\Microsoft\jdk-21*"
+    $jdk21Resolved = (Get-Item $jdk21Home -ErrorAction SilentlyContinue | Select-Object -First 1)
+    if ($jdk21Resolved) {
+        [System.Environment]::SetEnvironmentVariable("JAVA_HOME", $jdk21Resolved.FullName, "User")
+        $env:JAVA_HOME = $jdk21Resolved.FullName
+        Write-Host "[OK] JAVA_HOME = $($jdk21Resolved.FullName)" -ForegroundColor Green
     }
 
     try {
         $javaVersion = (java -version 2>&1 | Select-Object -First 1)
-        Write-Host "[OK] JDK 17 installiert: $javaVersion" -ForegroundColor Green
+        Write-Host "[OK] JDK 21 installiert: $javaVersion" -ForegroundColor Green
     } catch {
         Write-Host "[WARNUNG] JDK installiert, aber Terminal muss neu gestartet werden." -ForegroundColor Yellow
     }

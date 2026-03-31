@@ -181,6 +181,7 @@ Der `auto-version.yml` Workflow nutzt `.github/scripts/bump-version.cjs`, das:
 - Checkliste: `FDROID_CHECKLIST.md`
 - Metadaten-Entwurf: `fdroid/metadata/io.github.gametrojaner.geburtstage.yml`
 - CI Workflow: `.github/workflows/fdroid-readiness.yml`
+- F-Droid Build-JDK: `openjdk-21-jdk` (an fdroiddata-CI ausgerichtet)
 - F-Droid Config-Checks ausfuehren:
    ```bash
    npm run fdroid:check

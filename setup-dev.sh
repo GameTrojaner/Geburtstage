@@ -115,29 +115,29 @@ else
   echo -e "${GREEN}[OK] Git installiert${NC}"
 fi
 
-# --- 3b. JDK 17 pruefen (erforderlich fuer Gradle / Android Builds) ---
+# --- 3b. JDK 21 pruefen (erforderlich fuer Gradle / Android Builds) ---
 JAVA_MAJOR=0
 if command -v java &>/dev/null; then
   JAVA_MAJOR=$(java -version 2>&1 | head -1 | grep -oP '"(\d+)' | tr -d '"')
 fi
 
-if [ "$JAVA_MAJOR" -ge 17 ] 2>/dev/null; then
-  echo -e "${GREEN}[OK] JDK bereits installiert (>= 17): $(java -version 2>&1 | head -1)${NC}"
+if [ "$JAVA_MAJOR" -ge 21 ] 2>/dev/null; then
+  echo -e "${GREEN}[OK] JDK bereits installiert (>= 21): $(java -version 2>&1 | head -1)${NC}"
 else
   if [ "$JAVA_MAJOR" -gt 0 ]; then
-    echo -e "${YELLOW}[WARNUNG] Java $JAVA_MAJOR gefunden, aber JDK 17+ wird benoetigt.${NC}"
+    echo -e "${YELLOW}[WARNUNG] Java $JAVA_MAJOR gefunden, aber JDK 21 wird benoetigt.${NC}"
   else
     echo -e "${YELLOW}[INFO] Kein Java gefunden.${NC}"
   fi
 
-  echo -e "${YELLOW}[INSTALL] OpenJDK 17 wird installiert...${NC}"
+  echo -e "${YELLOW}[INSTALL] OpenJDK 21 wird installiert...${NC}"
   case $PKG_MANAGER in
-    apt)     sudo apt-get install -y openjdk-17-jdk ;;
-    dnf)     sudo dnf install -y java-17-openjdk-devel ;;
-    pacman)  sudo pacman -S --noconfirm jdk17-openjdk ;;
-    brew)    brew install openjdk@17 ;;
+    apt)     sudo apt-get install -y openjdk-21-jdk ;;
+    dnf)     sudo dnf install -y java-21-openjdk-devel ;;
+    pacman)  sudo pacman -S --noconfirm jdk21-openjdk ;;
+    brew)    brew install openjdk@21 ;;
     *)
-      echo -e "${RED}[FEHLER] Bitte JDK 17 manuell installieren: https://adoptium.net/${NC}"
+      echo -e "${RED}[FEHLER] Bitte JDK 21 manuell installieren: https://adoptium.net/${NC}"
       ;;
   esac
 

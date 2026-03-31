@@ -130,7 +130,7 @@ const newEntry = [
   `    subdir: .`,
   `    sudo:`,
   `      - apt-get update`,
-  `      - apt-get install -y npm openjdk-17-jdk`,
+  `      - apt-get install -y npm openjdk-21-jdk`,
   `    init:`,
   `      - npm ci --legacy-peer-deps`,
   `    build:`,
