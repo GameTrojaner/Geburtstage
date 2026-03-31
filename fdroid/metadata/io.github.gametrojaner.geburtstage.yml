@@ -54,6 +54,19 @@ Builds:
 
   - versionName: 1.0.0-beta.4
     versionCode: 3
+    commit: v1.0.0-beta.4
+    subdir: .
+    sudo:
+      - apt-get update
+      - apt-get install -y npm openjdk-21-jdk
+    init:
+      - npm ci --legacy-peer-deps
+    build:
+      - npm run fdroid:check
+      - cd android && ./gradlew assembleRelease
+
+  - versionName: 1.0.0-beta.5
+    versionCode: 4
     commit: HEAD
     subdir: .
     sudo:
@@ -67,5 +80,5 @@ Builds:
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.0.0-beta.4
-CurrentVersionCode: 3
+CurrentVersion: 1.0.0-beta.5
+CurrentVersionCode: 4
