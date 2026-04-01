@@ -17,7 +17,10 @@ describe('getVisibleWidgetRows', () => {
       isFavorite: false,
     }));
 
+    // Without second argument, default of 5 applies
     expect(getVisibleWidgetRows(rows)).toEqual(rows.slice(0, 5));
+    // Explicitly passing the default gives the same result
+    expect(getVisibleWidgetRows(rows, 5)).toEqual(rows.slice(0, 5));
   });
 
   it('respects custom maxEntries parameter', () => {
