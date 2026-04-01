@@ -40,6 +40,7 @@ export function SettingsScreen() {
   const [langDialogVisible, setLangDialogVisible] = useState(false);
   const [offsetDialogVisible, setOffsetDialogVisible] = useState(false);
   const [timeDialogVisible, setTimeDialogVisible] = useState(false);
+  const [widgetEntriesDialogVisible, setWidgetEntriesDialogVisible] = useState(false);
   const [tempTime, setTempTime] = useState(settings.defaultNotificationTime);
   const [exactAlarmGranted, setExactAlarmGranted] = useState(true);
 
@@ -93,6 +94,11 @@ export function SettingsScreen() {
     await updateSetting('defaultNotificationTime', tempTime);
     setTimeDialogVisible(false);
     await rescheduleNotifications();
+  };
+
+  const handleWidgetMaxEntriesChange = async (value: number) => {
+    await updateSetting('widgetMaxEntries', value);
+    setWidgetEntriesDialogVisible(false);
   };
 
   const getThemeLabel = () => {
@@ -297,6 +303,20 @@ export function SettingsScreen() {
 
         <Divider />
 
+        {/* Widget */}
+        <List.Section>
+          <List.Subheader>{t('settings.widget')}</List.Subheader>
+
+          <List.Item
+            title={t('settings.widgetMaxEntries')}
+            description={t('settings.widgetMaxEntriesValue', { count: settings.widgetMaxEntries ?? 5 })}
+            left={props => <List.Icon {...props} icon="view-list" />}
+            onPress={() => setWidgetEntriesDialogVisible(true)}
+          />
+        </List.Section>
+
+        <Divider />
+
         {/* Data */}
         <List.Section>
           <List.Subheader>{t('settings.data')}</List.Subheader>
@@ -352,6 +372,23 @@ export function SettingsScreen() {
 
       {/* Theme Dialog */}
       <Portal>
+        <Dialog visible={widgetEntriesDialogVisible} onDismiss={() => setWidgetEntriesDialogVisible(false)}>
+          <Dialog.Title>{t('settings.widgetMaxEntries')}</Dialog.Title>
+          <Dialog.Content>
+            <RadioButton.Group
+              onValueChange={(v) => handleWidgetMaxEntriesChange(Number(v))}
+              value={String(settings.widgetMaxEntries ?? 5)}
+            >
+              {[3, 5, 7, 10].map(n => (
+                <RadioButton.Item key={n} label={t('settings.widgetMaxEntriesValue', { count: n })} value={String(n)} />
+              ))}
+            </RadioButton.Group>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setWidgetEntriesDialogVisible(false)}>{t('common.cancel')}</Button>
+          </Dialog.Actions>
+        </Dialog>
+
         <Dialog visible={themeDialogVisible} onDismiss={() => setThemeDialogVisible(false)}>
           <Dialog.Title>{t('settings.theme')}</Dialog.Title>
           <Dialog.Content>

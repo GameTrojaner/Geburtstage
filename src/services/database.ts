@@ -123,6 +123,9 @@ export async function getSettings(): Promise<AppSettings> {
     confirmBeforeWriting: settings.confirmBeforeWriting !== undefined
       ? settings.confirmBeforeWriting === 'true'
       : DEFAULT_SETTINGS.confirmBeforeWriting,
+    widgetMaxEntries: settings.widgetMaxEntries !== undefined
+      ? Number(settings.widgetMaxEntries)
+      : DEFAULT_SETTINGS.widgetMaxEntries,
   };
 }
 
@@ -143,6 +146,7 @@ export async function saveSettings(settings: AppSettings): Promise<void> {
     ['defaultNotificationOffsets', JSON.stringify(settings.defaultNotificationOffsets)],
     ['defaultNotificationTime', settings.defaultNotificationTime],
     ['confirmBeforeWriting', String(settings.confirmBeforeWriting)],
+    ['widgetMaxEntries', String(settings.widgetMaxEntries)],
   ];
   for (const [key, value] of entries) {
     await saveSetting(key, value);

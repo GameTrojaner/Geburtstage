@@ -1,4 +1,5 @@
 import React from 'react';
+import { Appearance } from 'react-native';
 import type { WidgetTaskHandlerProps } from 'react-native-android-widget';
 import { BirthdayWidget } from './BirthdayWidget';
 import * as Contacts from 'expo-contacts';
@@ -6,7 +7,7 @@ import { File } from 'expo-file-system';
 import * as LegacyFileSystem from 'expo-file-system/legacy';
 import { getDaysUntilBirthday, getUpcomingAge, formatBirthday } from '../utils/birthday';
 import { getCachedPhotoUri } from '../services/photoCache';
-import { getFavorites } from '../services/database';
+import { getFavorites, getSettings } from '../services/database';
 
 interface BirthdayItem {
   contactId: string;
@@ -49,7 +50,7 @@ function bytesToBase64(bytes: Uint8Array): string {
   return '';
 }
 
-async function loadWidgetData(): Promise<{ birthdays: BirthdayItem[]; favoriteBirthdays: BirthdayItem[] }> {
+async function loadWidgetData(maxEntries: number): Promise<{ birthdays: BirthdayItem[]; favoriteBirthdays: BirthdayItem[] }> {
   try {
     const { status } = await Contacts.getPermissionsAsync();
     if (status !== 'granted') {
@@ -106,10 +107,10 @@ async function loadWidgetData(): Promise<{ birthdays: BirthdayItem[]; favoriteBi
     // Sort by days until birthday
     items.sort((a, b) => a.daysUntil - b.daysUntil);
 
-    const birthdays = items.slice(0, 3);
+    const birthdays = items.slice(0, maxEntries);
     const favoriteBirthdays = items
       .filter(i => i.isFavorite)
-      .slice(0, 3);
+      .slice(0, maxEntries);
 
     let imageHitCount = 0;
     let uriCandidateCount = 0;
@@ -233,7 +234,25 @@ const nameToWidget = {
 
 export async function widgetTaskHandler(props: WidgetTaskHandlerProps) {
   const widgetInfo = props.widgetInfo;
-  const { birthdays, favoriteBirthdays } = await loadWidgetData();
+
+  // Load settings to determine dark mode and max entries
+  let isDark = false;
+  let maxEntries = 5;
+  try {
+    const settings = await getSettings();
+    maxEntries = settings.widgetMaxEntries ?? 5;
+    if (settings.theme === 'dark') {
+      isDark = true;
+    } else if (settings.theme === 'light') {
+      isDark = false;
+    } else {
+      isDark = Appearance.getColorScheme() === 'dark';
+    }
+  } catch {
+    isDark = Appearance.getColorScheme() === 'dark';
+  }
+
+  const { birthdays, favoriteBirthdays } = await loadWidgetData(maxEntries);
 
   const widgetType = nameToWidget[widgetInfo.widgetName as keyof typeof nameToWidget] || 'upcoming';
 
@@ -245,7 +264,7 @@ export async function widgetTaskHandler(props: WidgetTaskHandlerProps) {
     case 'WIDGET_UPDATE':
     case 'WIDGET_RESIZED':
       props.renderWidget(
-        <BirthdayWidget birthdays={items} title={title} />
+        <BirthdayWidget birthdays={items} title={title} isDark={isDark} maxEntries={maxEntries} />
       );
       break;
     case 'WIDGET_DELETED':
