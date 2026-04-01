@@ -48,6 +48,7 @@ describe('Developer workflow guards', () => {
     const packageJson = fs.readFileSync(packageJsonPath, 'utf8');
     expect(packageJson).toContain('fdroid:check');
     expect(packageJson).toContain('fdroid:android');
+    expect(packageJson).toContain('-Pfdroid.build=true');
     expect(packageJson).toContain('licenses:generate');
     expect(packageJson).toContain('licenses:check');
 
@@ -76,5 +77,16 @@ describe('Developer workflow guards', () => {
 
     const contributingPath = path.join(repoRoot, 'CONTRIBUTING.md');
     expect(fs.existsSync(contributingPath)).toBe(true);
+  });
+
+  it('app build.gradle excludes Firebase/GMS conditionally for F-Droid builds', () => {
+    const gradlePath = path.join(repoRoot, 'android', 'app', 'build.gradle');
+    const content = fs.readFileSync(gradlePath, 'utf8');
+
+    expect(content).toContain("exclude group: 'com.google.firebase'");
+    expect(content).toContain("exclude group: 'com.google.android.gms'");
+    expect(content).toContain("exclude group: 'com.android.installreferrer'");
+    // Must be conditional so regular dev builds are unaffected
+    expect(content).toContain("findProperty('fdroid.build')");
   });
 });

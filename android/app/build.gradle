@@ -173,10 +173,14 @@ android {
 // expo-notifications and expo-application declare these as `compileOnly` via patches,
 // so they are available at compile time but not shipped in the APK.
 // This belt-and-suspenders block catches any other transitive path that might re-introduce them.
-configurations.all {
-    exclude group: 'com.google.firebase'
-    exclude group: 'com.google.android.gms'
-    exclude group: 'com.android.installreferrer'
+// Activated by passing -Pfdroid.build=true to Gradle (see `npm run fdroid:android`).
+// Conditional so that regular dev/debug builds remain unaffected.
+if (findProperty('fdroid.build') == 'true') {
+    configurations.configureEach {
+        exclude group: 'com.google.firebase'
+        exclude group: 'com.google.android.gms'
+        exclude group: 'com.android.installreferrer'
+    }
 }
 
 dependencies {

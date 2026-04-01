@@ -96,7 +96,7 @@ if (/com\.google\.firebase/.test(manifestContent)) {
 }
 pass('AndroidManifest.xml contains no Firebase meta-data entries.');
 
-// 9. android/app/build.gradle must exclude Firebase/GMS groups
+// 9. android/app/build.gradle must exclude Firebase/GMS groups behind an fdroid.build guard
 const appBuildGradlePath = path.join(ROOT, 'android', 'app', 'build.gradle');
 const appBuildGradleContent = fs.readFileSync(appBuildGradlePath, 'utf8');
 if (
@@ -105,9 +105,14 @@ if (
   !appBuildGradleContent.includes("exclude group: 'com.android.installreferrer'")
 ) {
   fail(
-    "android/app/build.gradle must exclude 'com.google.firebase', 'com.google.android.gms', and 'com.android.installreferrer' via configurations.all."
+    "android/app/build.gradle must exclude 'com.google.firebase', 'com.google.android.gms', and 'com.android.installreferrer' for F-Droid builds."
   );
 }
-pass('android/app/build.gradle excludes Firebase, GMS, and installreferrer from all configurations.');
+if (!appBuildGradleContent.includes("findProperty('fdroid.build')")) {
+  fail(
+    "android/app/build.gradle Firebase/GMS exclusions must be guarded by findProperty('fdroid.build') == 'true' so regular dev builds are unaffected."
+  );
+}
+pass('android/app/build.gradle excludes Firebase, GMS, and installreferrer (conditional on fdroid.build=true).');
 
 console.log('[fdroid-check] All checks passed.');
