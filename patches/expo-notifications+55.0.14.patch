@@ -1,0 +1,14 @@
+diff --git a/node_modules/expo-notifications/android/build.gradle b/node_modules/expo-notifications/android/build.gradle
+index 0000000..1111111 100644
+--- a/node_modules/expo-notifications/android/build.gradle
++++ b/node_modules/expo-notifications/android/build.gradle
+@@ -38,7 +38,8 @@ dependencies {
+   implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
+ 
+   // release notes in https://firebase.google.com/support/release-notes/android - cmd + f "Cloud Messaging version"
+-  implementation 'com.google.firebase:firebase-messaging:25.0.1'
++  // F-Droid: compileOnly so Firebase classes are available at compile time but excluded from the APK.
++  compileOnly 'com.google.firebase:firebase-messaging:25.0.1'
+ 
+   implementation 'me.leolin:ShortcutBadger:1.1.22@aar'
+ 

@@ -169,6 +169,16 @@ android {
     }
 }
 
+// F-Droid compliance: exclude proprietary Google/Firebase libraries from the final APK.
+// expo-notifications and expo-application declare these as `compileOnly` via patches,
+// so they are available at compile time but not shipped in the APK.
+// This belt-and-suspenders block catches any other transitive path that might re-introduce them.
+configurations.all {
+    exclude group: 'com.google.firebase'
+    exclude group: 'com.google.android.gms'
+    exclude group: 'com.android.installreferrer'
+}
+
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")

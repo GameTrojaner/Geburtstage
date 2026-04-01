@@ -77,6 +77,10 @@ Builds:
     build:
       - npm run fdroid:check
       - cd android && ./gradlew assembleRelease
+    # Firebase/GMS/installreferrer are excluded from the APK:
+    # - patches/expo-notifications+55.0.14.patch changes firebase-messaging to compileOnly
+    # - patches/expo-application+55.0.10.patch changes installreferrer to compileOnly
+    # - android/app/build.gradle uses configurations.all { exclude } as belt-and-suspenders
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
