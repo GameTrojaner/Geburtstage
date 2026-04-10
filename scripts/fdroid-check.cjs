@@ -70,6 +70,10 @@ if (Array.isArray(packageJson.bundledDependencies)) {
   dependencySections.push(Object.fromEntries(packageJson.bundledDependencies.map((name) => [name, '*'])));
 }
 
+if (Array.isArray(packageJson.bundleDependencies)) {
+  dependencySections.push(Object.fromEntries(packageJson.bundleDependencies.map((name) => [name, '*'])));
+}
+
 const allDeps = Object.keys(Object.assign({}, ...dependencySections.filter(Boolean)));
 const forbiddenPkgs = allDeps.filter((dep) =>
   /firebase|@react-native-firebase|google-services|play-services/i.test(dep)

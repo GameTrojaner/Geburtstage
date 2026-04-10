@@ -96,6 +96,7 @@ describe('Developer workflow guards', () => {
     expect(content).toContain('optionalDependencies');
     expect(content).toContain('peerDependencies');
     expect(content).toContain('bundledDependencies');
+    expect(content).toContain('bundleDependencies');
   });
 
   it('app build.gradle excludes Firebase/GMS conditionally for F-Droid builds', () => {
