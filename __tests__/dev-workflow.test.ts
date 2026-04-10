@@ -89,6 +89,15 @@ describe('Developer workflow guards', () => {
     expect(output).toContain('[fdroid-check] All checks passed.');
   });
 
+  it('fdroid check scans all relevant dependency sections for forbidden packages', () => {
+    const fdroidCheckPath = path.join(repoRoot, 'scripts', 'fdroid-check.cjs');
+    const content = fs.readFileSync(fdroidCheckPath, 'utf8');
+
+    expect(content).toContain('optionalDependencies');
+    expect(content).toContain('peerDependencies');
+    expect(content).toContain('bundledDependencies');
+  });
+
   it('app build.gradle excludes Firebase/GMS conditionally for F-Droid builds', () => {
     const gradlePath = path.join(repoRoot, 'android', 'app', 'build.gradle');
     const content = fs.readFileSync(gradlePath, 'utf8');

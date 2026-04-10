@@ -59,10 +59,18 @@ pass('notifications mode is declared as local-only.');
 
 // 6. package.json must not contain firebase or GMS packages
 const packageJson = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
-const allDeps = Object.keys({
-  ...(packageJson.dependencies || {}),
-  ...(packageJson.devDependencies || {}),
-});
+const dependencySections = [
+  packageJson.dependencies,
+  packageJson.devDependencies,
+  packageJson.optionalDependencies,
+  packageJson.peerDependencies,
+];
+
+if (Array.isArray(packageJson.bundledDependencies)) {
+  dependencySections.push(Object.fromEntries(packageJson.bundledDependencies.map((name) => [name, '*'])));
+}
+
+const allDeps = Object.keys(Object.assign({}, ...dependencySections.filter(Boolean)));
 const forbiddenPkgs = allDeps.filter((dep) =>
   /firebase|@react-native-firebase|google-services|play-services/i.test(dep)
 );
