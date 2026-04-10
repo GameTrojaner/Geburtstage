@@ -35,16 +35,37 @@ jobs:
           node-version: 20
           cache: npm
 
+      - name: Detect heavy Android-impact changes
+        id: heavy-changes
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            android:
+              # Intentional scope difference vs `on.pull_request.paths`:
+              # - Trigger list includes all F-Droid-relevant files (even lightweight checks only).
+              # - This list includes only files that require Java/Android/Gradle heavy steps.
+              - 'android/**'
+              - 'app.config.js'
+              - 'app.json'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'patches/**'
+              - 'src/services/notifications.ts'
+
       - name: Setup Java
+        if: github.event_name != 'pull_request' || steps.heavy-changes.outputs.android == 'true'
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
 
       - name: Setup Android SDK
+        if: github.event_name != 'pull_request' || steps.heavy-changes.outputs.android == 'true'
         uses: android-actions/setup-android@v3
 
       - name: Cache Gradle
+        if: github.event_name != 'pull_request' || steps.heavy-changes.outputs.android == 'true'
         uses: actions/cache@v5
         with:
           path: |
@@ -61,21 +82,6 @@ jobs:
 
       - name: Third-party licenses up-to-date
         run: npm run licenses:check
-
-      - name: Detect heavy Android-impact changes
-        id: heavy-changes
-        if: github.event_name == 'pull_request'
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            android:
-              - 'android/**'
-              - 'app.config.js'
-              - 'app.json'
-              - 'package.json'
-              - 'package-lock.json'
-              - 'patches/**'
-              - 'src/services/notifications.ts'
 
       - name: Typecheck
         if: github.event_name != 'pull_request'
