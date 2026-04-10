@@ -34,7 +34,7 @@
               "label": "Nächste Geburtstage",
               "minWidth": "250dp",
               "minHeight": "120dp",
-              "description": "Zeigt die nächsten 3 Geburtstage",
+              "description": "Zeigt die nächsten Geburtstage (konfigurierbar)",
               "previewImage": "./assets/widget-preview.png",
               "resizeMode": "horizontal|vertical",
               "widgetFeatures": "reconfigurable",

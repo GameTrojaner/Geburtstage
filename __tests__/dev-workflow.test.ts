@@ -99,6 +99,27 @@ describe('Developer workflow guards', () => {
     expect(content).toContain('bundleDependencies');
   });
 
+  it('fdroid check validates installed module gradle output and update lockdown fields', () => {
+    const fdroidCheckPath = path.join(repoRoot, 'scripts', 'fdroid-check.cjs');
+    const content = fs.readFileSync(fdroidCheckPath, 'utf8');
+
+    expect(content).toContain('node_modules/expo-notifications/android/build.gradle');
+    expect(content).toContain('node_modules/expo-application/android/build.gradle');
+    expect(content).toContain('compileOnlyRegex');
+    expect(content).toContain('implementationRegex');
+    expect(content).toContain("checkAutomatically must be 'NEVER'");
+    expect(content).toContain('fallbackToCacheTimeout must be 0');
+  });
+
+  it('fdroid check rejects proprietary google services gradle plugins', () => {
+    const fdroidCheckPath = path.join(repoRoot, 'scripts', 'fdroid-check.cjs');
+    const content = fs.readFileSync(fdroidCheckPath, 'utf8');
+
+    expect(content).toContain('com\\.google\\.gms\\.google-services');
+    expect(content).toContain('com\\.google\\.firebase\\.crashlytics');
+    expect(content).toContain('com\\.google\\.firebase\\.perf');
+  });
+
   it('app build.gradle excludes Firebase/GMS conditionally for F-Droid builds', () => {
     const gradlePath = path.join(repoRoot, 'android', 'app', 'build.gradle');
     const content = fs.readFileSync(gradlePath, 'utf8');

@@ -128,7 +128,10 @@
     "noHiddenContacts": "Keine ausgeblendeten Kontakte",
     "showContact": "Einblenden",
     "about": "Über",
-    "version": "Version"
+    "version": "Version",
+    "widget": "Widget",
+    "widgetMaxEntries": "Angezeigte Einträge",
+    "widgetMaxEntriesValue": "{{count}} Einträge"
   },
   "notification": {
     "title": "🎂 Geburtstag",

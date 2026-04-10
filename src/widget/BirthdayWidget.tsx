@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlexWidget, TextWidget, ImageWidget } from 'react-native-android-widget';
+import { FlexWidget, ListWidget, TextWidget, ImageWidget } from 'react-native-android-widget';
 
 interface BirthdayItem {
   contactId: string;
@@ -14,14 +14,39 @@ interface BirthdayItem {
 interface BirthdayWidgetProps {
   birthdays: BirthdayItem[];
   title: string;
+  isDark?: boolean;
+  maxEntries?: number;
 }
 
-export function getVisibleWidgetRows(birthdays: BirthdayItem[]): BirthdayItem[] {
-  // Keep RemoteViews rendering simple to avoid collection adapter edge cases.
-  return birthdays.slice(0, 3);
+type WidgetColors = typeof LIGHT_COLORS | typeof DARK_COLORS;
+
+const LIGHT_COLORS = {
+  background: '#FFFFFF',
+  surface: '#F5FDFB',
+  primary: '#00897B',
+  onPrimary: '#FFFFFF',
+  text: '#1B1B1B',
+  textSecondary: '#757575',
+  avatarBg: '#E0F2F1',
+  empty: '#9E9E9E',
+} as const;
+
+const DARK_COLORS = {
+  background: '#191C1B',
+  surface: '#2C2F2E',
+  primary: '#4FDBB7',
+  onPrimary: '#003730',
+  text: '#E2E3DE',
+  textSecondary: '#8C9490',
+  avatarBg: '#1F3530',
+  empty: '#8C9490',
+} as const;
+
+export function getVisibleWidgetRows(birthdays: BirthdayItem[], maxEntries = 5): BirthdayItem[] {
+  return birthdays.slice(0, maxEntries);
 }
 
-function BirthdayRow({ item }: { item: BirthdayItem }) {
+function BirthdayRow({ item, colors }: { item: BirthdayItem; colors: WidgetColors }) {
   const daysText = item.daysUntil === 0
     ? '🎂 Heute!'
     : `in ${item.daysUntil} ${item.daysUntil === 1 ? 'Tag' : 'Tagen'}`;
@@ -52,7 +77,7 @@ function BirthdayRow({ item }: { item: BirthdayItem }) {
             width: 36,
             height: 36,
             borderRadius: 18,
-            backgroundColor: item.daysUntil === 0 ? '#00897B' : '#E0F2F1',
+            backgroundColor: item.daysUntil === 0 ? colors.primary : colors.avatarBg,
             justifyContent: 'center',
             alignItems: 'center',
           }}
@@ -61,7 +86,7 @@ function BirthdayRow({ item }: { item: BirthdayItem }) {
             text={item.name.charAt(0).toUpperCase()}
             style={{
               fontSize: 16,
-              color: item.daysUntil === 0 ? '#FFFFFF' : '#00897B',
+              color: item.daysUntil === 0 ? colors.onPrimary : colors.primary,
             }}
           />
         </FlexWidget>
@@ -69,12 +94,12 @@ function BirthdayRow({ item }: { item: BirthdayItem }) {
       <FlexWidget style={{ flex: 1, marginLeft: 10, flexDirection: 'column' }}>
         <TextWidget
           text={`${item.name}${item.isFavorite ? ' ♥' : ''}`}
-          style={{ fontSize: 14, color: '#1B1B1B' }}
+          style={{ fontSize: 14, color: colors.text }}
           maxLines={1}
         />
         <TextWidget
           text={`${item.date}${ageText}`}
-          style={{ fontSize: 12, color: '#757575' }}
+          style={{ fontSize: 12, color: colors.textSecondary }}
         />
       </FlexWidget>
       <FlexWidget style={{ alignItems: 'flex-end', marginLeft: 4 }}>
@@ -82,7 +107,7 @@ function BirthdayRow({ item }: { item: BirthdayItem }) {
           text={daysText}
           style={{
             fontSize: 12,
-            color: item.daysUntil === 0 ? '#00897B' : '#9E9E9E',
+            color: item.daysUntil === 0 ? colors.primary : colors.empty,
           }}
         />
       </FlexWidget>
@@ -90,15 +115,16 @@ function BirthdayRow({ item }: { item: BirthdayItem }) {
   );
 }
 
-export function BirthdayWidget({ birthdays, title }: BirthdayWidgetProps) {
-  const visibleRows = getVisibleWidgetRows(birthdays);
+export function BirthdayWidget({ birthdays, title, isDark = false, maxEntries = 5 }: BirthdayWidgetProps) {
+  const colors = isDark ? DARK_COLORS : LIGHT_COLORS;
+  const visibleRows = getVisibleWidgetRows(birthdays, maxEntries);
 
   return (
     <FlexWidget
       style={{
         width: 'match_parent',
         height: 'match_parent',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.background,
         borderRadius: 16,
         padding: 12,
         flexDirection: 'column',
@@ -120,7 +146,7 @@ export function BirthdayWidget({ birthdays, title }: BirthdayWidgetProps) {
         />
         <TextWidget
           text={`  ${title}`}
-          style={{ fontSize: 16, color: '#00897B' }}
+          style={{ fontSize: 16, color: colors.primary }}
         />
       </FlexWidget>
 
@@ -136,21 +162,20 @@ export function BirthdayWidget({ birthdays, title }: BirthdayWidgetProps) {
         >
           <TextWidget
             text="Keine anstehenden Geburtstage"
-            style={{ fontSize: 13, color: '#9E9E9E' }}
+            style={{ fontSize: 13, color: colors.empty }}
           />
         </FlexWidget>
       ) : (
-        <FlexWidget
+        <ListWidget
           style={{
             width: 'match_parent',
             height: 'match_parent',
-            flexDirection: 'column',
           }}
         >
           {visibleRows.map((item) => (
-            <BirthdayRow key={item.contactId} item={item} />
+            <BirthdayRow key={item.contactId} item={item} colors={colors} />
           ))}
-        </FlexWidget>
+        </ListWidget>
       )}
     </FlexWidget>
   );

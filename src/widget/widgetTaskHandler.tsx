@@ -7,6 +7,7 @@ import * as LegacyFileSystem from 'expo-file-system/legacy';
 import { getDaysUntilBirthday, getUpcomingAge, formatBirthday } from '../utils/birthday';
 import { getCachedPhotoUri } from '../services/photoCache';
 import { getFavorites } from '../services/database';
+import { resolveWidgetPreferences } from './preferences';
 
 interface BirthdayItem {
   contactId: string;
@@ -49,7 +50,7 @@ function bytesToBase64(bytes: Uint8Array): string {
   return '';
 }
 
-async function loadWidgetData(): Promise<{ birthdays: BirthdayItem[]; favoriteBirthdays: BirthdayItem[] }> {
+async function loadWidgetData(maxEntries: number): Promise<{ birthdays: BirthdayItem[]; favoriteBirthdays: BirthdayItem[] }> {
   try {
     const { status } = await Contacts.getPermissionsAsync();
     if (status !== 'granted') {
@@ -106,10 +107,10 @@ async function loadWidgetData(): Promise<{ birthdays: BirthdayItem[]; favoriteBi
     // Sort by days until birthday
     items.sort((a, b) => a.daysUntil - b.daysUntil);
 
-    const birthdays = items.slice(0, 3);
+    const birthdays = items.slice(0, maxEntries);
     const favoriteBirthdays = items
       .filter(i => i.isFavorite)
-      .slice(0, 3);
+      .slice(0, maxEntries);
 
     let imageHitCount = 0;
     let uriCandidateCount = 0;
@@ -231,22 +232,28 @@ const nameToWidget = {
   BirthdayFavorites: 'favorites',
 } as const;
 
-export async function widgetTaskHandler(props: WidgetTaskHandlerProps) {
-  const widgetInfo = props.widgetInfo;
-  const { birthdays, favoriteBirthdays } = await loadWidgetData();
+function resolveWidgetType(widgetName: string): 'upcoming' | 'favorites' {
+  return nameToWidget[widgetName as keyof typeof nameToWidget] || 'upcoming';
+}
 
-  const widgetType = nameToWidget[widgetInfo.widgetName as keyof typeof nameToWidget] || 'upcoming';
-
+export async function renderWidgetForName(widgetName: string) {
+  const { isDark, maxEntries } = await resolveWidgetPreferences();
+  const { birthdays, favoriteBirthdays } = await loadWidgetData(maxEntries);
+  const widgetType = resolveWidgetType(widgetName);
   const items = widgetType === 'favorites' ? favoriteBirthdays : birthdays;
   const title = widgetType === 'favorites' ? 'Favoriten' : 'Nächste Geburtstage';
+
+  return <BirthdayWidget birthdays={items} title={title} isDark={isDark} maxEntries={maxEntries} />;
+}
+
+export async function widgetTaskHandler(props: WidgetTaskHandlerProps) {
+  const widgetInfo = props.widgetInfo;
 
   switch (props.widgetAction) {
     case 'WIDGET_ADDED':
     case 'WIDGET_UPDATE':
     case 'WIDGET_RESIZED':
-      props.renderWidget(
-        <BirthdayWidget birthdays={items} title={title} />
-      );
+      props.renderWidget(await renderWidgetForName(widgetInfo.widgetName));
       break;
     case 'WIDGET_DELETED':
       break;

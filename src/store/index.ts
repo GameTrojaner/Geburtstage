@@ -9,6 +9,7 @@ import * as contactsService from '../services/contacts';
 import * as notificationsService from '../services/notifications';
 import { cacheContactPhotos } from '../services/photoCache';
 import { normalizeLegacyOffsets } from '../utils/notificationSettings';
+import { queueWidgetRefresh } from '../widget/requestUpdate';
 
 interface AppState {
   // Contacts
@@ -66,6 +67,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({ contacts, contactsLoading: false });
       // Fire-and-forget: cache photos for widget use (must run in main app process).
       cacheContactPhotos(contacts).catch(() => {});
+      queueWidgetRefresh();
     } catch (error) {
       console.error('Error loading contacts:', error);
       set({ contactsLoading: false });
@@ -81,6 +83,7 @@ export const useAppStore = create<AppState>((set, get) => ({
             c.contactId === contactId ? updated : c
           ),
         }));
+        queueWidgetRefresh();
       }
     } catch (error) {
       console.error('Error refreshing contact:', error);
@@ -100,6 +103,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       }
 
       set({ settings: nextSettings });
+      queueWidgetRefresh();
     } catch (error) {
       console.error('Error loading settings:', error);
     }
@@ -115,12 +119,17 @@ export const useAppStore = create<AppState>((set, get) => ({
     set(state => ({
       settings: { ...state.settings, [key]: value },
     }));
+
+    if (key === 'theme' || key === 'widgetMaxEntries') {
+      queueWidgetRefresh();
+    }
   },
 
   loadFavorites: async () => {
     try {
       const favs = await db.getFavorites();
       set({ favorites: new Set(favs) });
+      queueWidgetRefresh();
     } catch (error) {
       console.error('Error loading favorites:', error);
     }
@@ -134,11 +143,13 @@ export const useAppStore = create<AppState>((set, get) => ({
         const newFavs = new Set(favorites);
         newFavs.delete(contactId);
         set({ favorites: newFavs });
+        queueWidgetRefresh();
       } else {
         await db.addFavorite(contactId);
         const newFavs = new Set(favorites);
         newFavs.add(contactId);
         set({ favorites: newFavs });
+        queueWidgetRefresh();
       }
     } catch (error) {
       console.error('Error toggling favorite:', error);

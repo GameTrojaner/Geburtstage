@@ -29,6 +29,7 @@ export interface AppSettings {
   defaultNotificationOffsets: number[];
   defaultNotificationTime: string;
   confirmBeforeWriting: boolean;
+  widgetMaxEntries: number;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -38,6 +39,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   defaultNotificationOffsets: [0],
   defaultNotificationTime: '09:00',
   confirmBeforeWriting: true,
+  widgetMaxEntries: 5,
 };
 
 export interface FavoriteContact {

@@ -24,6 +24,7 @@ describe('Type structures', () => {
       defaultNotificationOffsets: [0, 1, 7],
       defaultNotificationTime: '08:00',
       confirmBeforeWriting: false,
+      widgetMaxEntries: 5,
     };
     expect(settings.theme).toBe('dark');
     expect(settings.defaultNotificationOffsets).toHaveLength(3);

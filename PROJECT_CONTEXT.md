@@ -167,6 +167,8 @@ Reagiert auf: WIDGET_ADDED, WIDGET_UPDATE, WIDGET_RESIZED.
 - **expo-contacts BaseModel _id conflict**: `BaseModel.getInsertOperation` includes the old row's `_id` in INSERT ops after flush-and-reinsert. On contacts with multiple raw account sources (Google + local), the flush deletes from the wrong raw contact — leaving the `_id` still in DB — so the re-INSERT conflicts. Fixed via `patches/expo-contacts+55.0.9.patch` (removes `_id` from INSERT, letting Android auto-generate IDs).
 - **Widget**: Nur Light-Theme implementiert (kein Dark-Widget)
 - **Widget-Handler**: Wird in index.ts nur auf Android registriert (statische Registrierung beim App-Start)
+- **Widget-Refresh (neu)**: Bei relevanten App-Änderungen wird ein koaleszierter JS-Refresh ausgelöst (`src/widget/requestUpdate.ts`, via `requestWidgetUpdate`). Zusätzlich sorgt ein nativer Mitternachts-Alarm (`WidgetRefreshScheduler` + `WidgetRefreshReceiver`) für ein tägliches Rollover-Update um 00:00.
+- **Mitternachts-Scheduling**: Wird bei Widget-Updates sowie bei `BOOT_COMPLETED`, `TIME_SET`, `TIMEZONE_CHANGED` und `DATE_CHANGED` neu gesetzt, damit Tageswechsel/Zeitzonenwechsel zuverlässig im Widget ankommen.
 - **jest.config.js**: Nutzt `babel-jest` direkt (nicht jest-expo preset) wegen Kompatibilität mit Expo SDK 55
 - **react-native-worklets**: Wird von reanimated 4.x babel plugin benötigt, muss installiert sein
 - **F-Droid Profil**: `FDROID_BUILD=1` aktiviert die dedizierte Expo-Konfiguration aus `app.config.js` (OTA disabled, Notifications-Modus `local-only`); validierbar via `npm run fdroid:check`

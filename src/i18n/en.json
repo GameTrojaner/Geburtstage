@@ -128,7 +128,10 @@
     "noHiddenContacts": "No hidden contacts",
     "showContact": "Show",
     "about": "About",
-    "version": "Version"
+    "version": "Version",
+    "widget": "Widget",
+    "widgetMaxEntries": "Entries to show",
+    "widgetMaxEntriesValue": "{{count}} entries"
   },
   "notification": {
     "title": "🎂 Birthday",
