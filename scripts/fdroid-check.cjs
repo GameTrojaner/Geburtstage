@@ -32,6 +32,14 @@ if (expo.updates?.enabled !== false) {
 }
 pass('OTA updates are disabled.');
 
+if (expo.updates?.checkAutomatically !== 'NEVER') {
+  fail("expo.updates.checkAutomatically must be 'NEVER'.");
+}
+if (expo.updates?.fallbackToCacheTimeout !== 0) {
+  fail('expo.updates.fallbackToCacheTimeout must be 0.');
+}
+pass('OTA update policy is locked down (NEVER + fallbackToCacheTimeout=0).');
+
 const plugins = expo.plugins || [];
 const hasNotificationsPlugin = plugins.some((plugin) => getPluginName(plugin) === 'expo-notifications');
 if (!hasNotificationsPlugin) {
@@ -122,6 +130,41 @@ for (const { file: patchFile, artifact } of requiredPatches) {
 }
 pass('Patches for expo-notifications and expo-application exclude proprietary deps (compileOnly).');
 
+// 7b. Installed node_modules must reflect patched compileOnly dependencies.
+const installedGradleChecks = [
+  {
+    file: 'node_modules/expo-notifications/android/build.gradle',
+    artifact: 'com.google.firebase:firebase-messaging',
+  },
+  {
+    file: 'node_modules/expo-application/android/build.gradle',
+    artifact: 'com.android.installreferrer:installreferrer',
+  },
+];
+
+for (const { file, artifact } of installedGradleChecks) {
+  const installedPath = path.join(ROOT, file);
+  if (!fs.existsSync(installedPath)) {
+    fail(
+      `Missing ${file}. Run 'npm ci --legacy-peer-deps' so dependencies and patch-package output are available before running fdroid:check.`
+    );
+  }
+
+  const content = fs.readFileSync(installedPath, 'utf8');
+  const escapedArtifact = artifact.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const compileOnlyRegex = new RegExp(`\\bcompileOnly\\s+['\"]${escapedArtifact}:[^'\"]+['\"]`);
+  const implementationRegex = new RegExp(`\\bimplementation\\s+['\"]${escapedArtifact}:[^'\"]+['\"]`);
+
+  if (!compileOnlyRegex.test(content)) {
+    fail(`${file} must declare ${artifact} as compileOnly.`);
+  }
+
+  if (implementationRegex.test(content)) {
+    fail(`${file} must not declare ${artifact} as implementation.`);
+  }
+}
+pass('Installed expo module Gradle files use compileOnly for proprietary artifacts.');
+
 // 8. AndroidManifest.xml must not reference Firebase meta-data keys
 const manifestPath = path.join(ROOT, 'android', 'app', 'src', 'main', 'AndroidManifest.xml');
 const manifestContent = fs.readFileSync(manifestPath, 'utf8');
@@ -141,5 +184,29 @@ if (!fdroidGuardRegex.test(appBuildGradleContent)) {
   );
 }
 pass('android/app/build.gradle excludes Firebase, GMS, and installreferrer (conditional on fdroid.build=true).');
+
+// 10. Android Gradle files must not apply Google services/Firebase proprietary Gradle plugins.
+const gradleFilesToScan = [
+  'android/build.gradle',
+  'android/app/build.gradle',
+];
+
+const forbiddenGradlePluginPatterns = [
+  /com\.google\.gms\.google-services/,
+  /com\.google\.firebase\.crashlytics/,
+  /com\.google\.firebase\.perf/,
+];
+
+for (const relPath of gradleFilesToScan) {
+  const filePath = path.join(ROOT, relPath);
+  const content = fs.readFileSync(filePath, 'utf8');
+
+  for (const pattern of forbiddenGradlePluginPatterns) {
+    if (pattern.test(content)) {
+      fail(`${relPath} references forbidden proprietary Gradle plugin '${pattern.source}'.`);
+    }
+  }
+}
+pass('Android Gradle files contain no Google services/Firebase proprietary plugin references.');
 
 console.log('[fdroid-check] All checks passed.');
