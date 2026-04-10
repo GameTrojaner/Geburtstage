@@ -7,6 +7,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 
 /**
  * Receives system boot and time-change events, then schedules notification reschedule via JobScheduler.
@@ -38,6 +39,7 @@ class BootReceiver : BroadcastReceiver() {
     private fun scheduleNotificationReschedule(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             // JobScheduler not available on API < 21
+            BootRescheduleState.markPending(context)
             return
         }
 
@@ -55,13 +57,15 @@ class BootReceiver : BroadcastReceiver() {
             setMinimumLatency(0)
             setOverrideDeadline(5000)  // Must run within 5 seconds at the latest
 
-            // Persist job across reboot (API 31+)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                setPersisted(true)
-            }
+            setPersisted(true)
         }.build()
 
-        jobScheduler.schedule(jobInfo)
+        val scheduleResult = jobScheduler.schedule(jobInfo)
+        if (scheduleResult != JobScheduler.RESULT_SUCCESS) {
+            // Fallback: keep behavior safe even if scheduler rejects the job.
+            Log.w(TAG, "JobScheduler rejected boot reschedule job, setting pending flag directly")
+            BootRescheduleState.markPending(context)
+        }
     }
 
     private fun handleWidgetRefresh(context: Context) {
@@ -71,5 +75,9 @@ class BootReceiver : BroadcastReceiver() {
         } else {
             WidgetRefreshScheduler.cancelMidnightRefresh(context)
         }
+    }
+
+    companion object {
+        private const val TAG = "BootReceiver"
     }
 }

@@ -25,7 +25,7 @@ Unterstützt Notifications, Kalenderansicht, Favoriten, Homescreen-Widgets, Expo
 - **i18next + react-i18next** (DE + EN, ~120 Keys pro Sprache)
 - **react-native-android-widget** (2 Widgets: Upcoming + Favorites)
 - **react-native-reanimated 4** + **react-native-worklets** (Animationen)
-- **Jest 29** + **@testing-library/react-native** (120 Tests, 12 Suites)
+- **Jest 29** + **@testing-library/react-native** (150 Tests, 18 Suites)
 
 ## Projektstruktur
 
@@ -169,6 +169,7 @@ Reagiert auf: WIDGET_ADDED, WIDGET_UPDATE, WIDGET_RESIZED.
 - **Widget-Handler**: Wird in index.ts nur auf Android registriert (statische Registrierung beim App-Start)
 - **Widget-Refresh (neu)**: Bei relevanten App-Änderungen wird ein koaleszierter JS-Refresh ausgelöst (`src/widget/requestUpdate.ts`, via `requestWidgetUpdate`). Zusätzlich sorgt ein nativer Mitternachts-Alarm (`WidgetRefreshScheduler` + `WidgetRefreshReceiver`) für ein tägliches Rollover-Update um 00:00.
 - **Mitternachts-Scheduling**: Wird bei Widget-Updates sowie bei `BOOT_COMPLETED`, `TIME_SET`, `TIMEZONE_CHANGED` und `DATE_CHANGED` neu gesetzt, damit Tageswechsel/Zeitzonenwechsel zuverlässig im Widget ankommen.
+- **Boot-Reschedule (FGS-frei)**: `BootReceiver` plant `RescheduleNotificationsJob` per `JobScheduler`. Der Job setzt nur ein natives Pending-Flag (`BootRescheduleState`). Beim naechsten App-Start liest JS das Flag (`BootRescheduleNativeModule`) und fuehrt dann `loadContacts + rescheduleNotifications` aus. Kein `BootTaskService`, kein `FOREGROUND_SERVICE_DATA_SYNC` mehr.
 - **jest.config.js**: Nutzt `babel-jest` direkt (nicht jest-expo preset) wegen Kompatibilität mit Expo SDK 55
 - **react-native-worklets**: Wird von reanimated 4.x babel plugin benötigt, muss installiert sein
 - **F-Droid Profil**: `FDROID_BUILD=1` aktiviert die dedizierte Expo-Konfiguration aus `app.config.js` (OTA disabled, Notifications-Modus `local-only`); validierbar via `npm run fdroid:check`
@@ -204,7 +205,7 @@ npm run licenses:check            # Third-Party-Lizenzdoku pruefen
 - **CI/CD**: 3 GitHub-Actions-Workflows: `ci.yml` (Typecheck + Tests + Debug-APK), `auto-version.yml` (Versionserhöhung bei Merge), `release.yml` (manueller Release mit signiertem APK). Shared Script: `.github/scripts/bump-version.cjs`.
 
 - TypeScript: 0 Fehler
-- **Tests**: 120/120 bestanden (12 Suites: birthday, contacts, types, store, i18n, export, home-filter, notification-settings, edit-birthday-photo, settings-reset, dev-workflow, widget-layout)
+- **Tests**: 150/150 bestanden (18 Suites)
 - Alle Screens implementiert
 - i18n komplett (DE + EN) + neue Reset-Übersetzungen
 - 2 Android Widgets konfiguriert
