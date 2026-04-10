@@ -11,6 +11,7 @@ import { AppNavigator } from './src/navigation/AppNavigator';
 import { useAppStore } from './src/store';
 import { setupNotificationChannel, requestNotificationPermission } from './src/services/notifications';
 import { warmupDb } from './src/services/database';
+import { runPendingBootReschedule } from './src/tasks/bootReschedule';
 import './src/i18n';
 import i18n from './src/i18n';
 
@@ -41,6 +42,10 @@ export default function App() {
         await loadNotificationSettings();
         await setupNotificationChannel();
         await requestNotificationPermission();
+        await runPendingBootReschedule({
+          loadContacts,
+          rescheduleNotifications,
+        });
       } catch (e) {
         console.warn('Init error (non-fatal):', e);
       }

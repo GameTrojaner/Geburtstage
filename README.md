@@ -154,7 +154,7 @@ npm run test:watch
 npm run test:coverage
 ```
 
-Aktuell: **120 Tests** in 12 Suites (birthday, contacts, types, store, i18n, export, home-filter, notification-settings, edit-birthday-photo, settings-reset, dev-workflow, widget-layout).
+Aktuell: **150 Tests** in 18 Suites.
 
 ## Notification-Offset-Kodierung
 
@@ -213,6 +213,7 @@ Optimierungen fuer schnellere PR-Feedback-Zeiten:
 - **Dark/Light Mode**: System oder manuell
 - **Android Widgets**: 2 Homescreen-Widgets (Upcoming + Favorites)
 - **Widget-Aktualisierung**: Widgets werden bei relevanten Datenaenderungen in der App sofort aktualisiert (z.B. Favoriten, Geburtstagsaenderung, Widget-Theme/Eintragslimit) und zusaetzlich taeglich um Mitternacht per nativer Alarm-Resynchronisierung.
+- **Boot-Reschedule ohne Foreground-Service**: Nach Reboot/Zeitaenderung markiert ein nativer Job (`JobScheduler`) ein ausstehendes Reschedule. Die eigentliche Notification-Neuplanung laeuft beim naechsten App-Start, wodurch kein `FOREGROUND_SERVICE_DATA_SYNC` mehr benoetigt wird.
 
 ## Projektstruktur
 
