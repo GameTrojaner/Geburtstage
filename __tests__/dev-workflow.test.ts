@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { execFileSync } from 'child_process';
 
 describe('Developer workflow guards', () => {
   const repoRoot = path.resolve(__dirname, '..');
@@ -79,14 +80,22 @@ describe('Developer workflow guards', () => {
     expect(fs.existsSync(contributingPath)).toBe(true);
   });
 
+  it('runs fdroid:check successfully in the current repository state', () => {
+    const output = execFileSync('node', ['scripts/fdroid-check.cjs'], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+    });
+
+    expect(output).toContain('[fdroid-check] All checks passed.');
+  });
+
   it('app build.gradle excludes Firebase/GMS conditionally for F-Droid builds', () => {
     const gradlePath = path.join(repoRoot, 'android', 'app', 'build.gradle');
     const content = fs.readFileSync(gradlePath, 'utf8');
 
-    expect(content).toContain("exclude group: 'com.google.firebase'");
-    expect(content).toContain("exclude group: 'com.google.android.gms'");
-    expect(content).toContain("exclude group: 'com.android.installreferrer'");
-    // Must be conditional so regular dev builds are unaffected
-    expect(content).toContain("findProperty('fdroid.build')");
+    const guardedExclusionBlockRegex =
+      /if\s*\(\s*findProperty\('fdroid\.build'\)\s*==\s*'true'\s*\)\s*\{[\s\S]*?configurations\.configureEach\s*\{[\s\S]*?exclude group: 'com\.google\.firebase'[\s\S]*?exclude group: 'com\.google\.android\.gms'[\s\S]*?exclude group: 'com\.android\.installreferrer'[\s\S]*?\}[\s\S]*?\}/m;
+
+    expect(content).toMatch(guardedExclusionBlockRegex);
   });
 });

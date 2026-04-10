@@ -29,8 +29,8 @@ Status: implemented in repository
   - `patches/expo-notifications+55.0.14.patch` downgrades Firebase from `implementation` → `compileOnly`
     so it is available at compile time but not packaged into the APK.
   - `patches/expo-application+55.0.10.patch` does the same for `installreferrer`.
-  - `android/app/build.gradle` adds `configurations.all { exclude }` for `com.google.firebase`,
-    `com.google.android.gms`, and `com.android.installreferrer` as belt-and-suspenders.
+  - `android/app/build.gradle` adds `if (findProperty('fdroid.build') == 'true') { configurations.configureEach { exclude ... } }`
+    for `com.google.firebase`, `com.google.android.gms`, and `com.android.installreferrer` as belt-and-suspenders.
   - `android/app/src/main/AndroidManifest.xml` has Firebase meta-data entries removed.
   - `fdroid:check` validates that patches exist, AndroidManifest is clean, and build.gradle
     contains the exclude rules.

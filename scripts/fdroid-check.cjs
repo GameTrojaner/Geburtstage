@@ -73,17 +73,39 @@ pass('No Firebase or GMS packages in package.json.');
 
 // 7. Patches must exist to exclude Firebase/GMS/installreferrer from the APK
 const requiredPatches = [
-  'patches/expo-notifications+55.0.14.patch',
-  'patches/expo-application+55.0.10.patch',
+  {
+    file: 'patches/expo-notifications+55.0.14.patch',
+    artifact: 'com.google.firebase:firebase-messaging',
+  },
+  {
+    file: 'patches/expo-application+55.0.10.patch',
+    artifact: 'com.android.installreferrer:installreferrer',
+  },
 ];
-for (const patchFile of requiredPatches) {
+for (const { file: patchFile, artifact } of requiredPatches) {
   const patchPath = path.join(ROOT, patchFile);
   if (!fs.existsSync(patchPath)) {
-    fail(`Missing required F-Droid patch: ${patchFile} — run npm install to apply patches.`);
+    fail(
+      `Missing required F-Droid patch: ${patchFile}. Restore this file from git (or ensure it is committed) and rerun 'npm ci' so postinstall can apply patches.`
+    );
   }
+
   const patchContent = fs.readFileSync(patchPath, 'utf8');
-  if (!patchContent.includes('compileOnly')) {
-    fail(`Patch ${patchFile} must downgrade proprietary dep from 'implementation' to 'compileOnly'.`);
+
+  const escapedArtifact = artifact.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const removedImplementationRegex = new RegExp(
+    `^-\\s*implementation\\s+'${escapedArtifact}:[^']+'`,
+    'm'
+  );
+  const addedCompileOnlyRegex = new RegExp(
+    `^\\+\\s*compileOnly\\s+'${escapedArtifact}:[^']+'`,
+    'm'
+  );
+
+  if (!removedImplementationRegex.test(patchContent) || !addedCompileOnlyRegex.test(patchContent)) {
+    fail(
+      `Patch ${patchFile} must replace 'implementation' with 'compileOnly' for ${artifact} so the proprietary artifact is not packaged.`
+    );
   }
 }
 pass('Patches for expo-notifications and expo-application exclude proprietary deps (compileOnly).');
@@ -99,18 +121,11 @@ pass('AndroidManifest.xml contains no Firebase meta-data entries.');
 // 9. android/app/build.gradle must exclude Firebase/GMS groups behind an fdroid.build guard
 const appBuildGradlePath = path.join(ROOT, 'android', 'app', 'build.gradle');
 const appBuildGradleContent = fs.readFileSync(appBuildGradlePath, 'utf8');
-if (
-  !appBuildGradleContent.includes("exclude group: 'com.google.firebase'") ||
-  !appBuildGradleContent.includes("exclude group: 'com.google.android.gms'") ||
-  !appBuildGradleContent.includes("exclude group: 'com.android.installreferrer'")
-) {
+const fdroidGuardRegex =
+  /if\s*\(\s*findProperty\('fdroid\.build'\)\s*==\s*'true'\s*\)\s*\{[\s\S]*?configurations\.(?:all|configureEach)\s*\{[\s\S]*?exclude group: 'com\.google\.firebase'[\s\S]*?exclude group: 'com\.google\.android\.gms'[\s\S]*?exclude group: 'com\.android\.installreferrer'[\s\S]*?\}[\s\S]*?\}/m;
+if (!fdroidGuardRegex.test(appBuildGradleContent)) {
   fail(
-    "android/app/build.gradle must exclude 'com.google.firebase', 'com.google.android.gms', and 'com.android.installreferrer' for F-Droid builds."
-  );
-}
-if (!appBuildGradleContent.includes("findProperty('fdroid.build')")) {
-  fail(
-    "android/app/build.gradle Firebase/GMS exclusions must be guarded by findProperty('fdroid.build') == 'true' so regular dev builds are unaffected."
+    "android/app/build.gradle Firebase/GMS exclusions must be inside if (findProperty('fdroid.build') == 'true') { ... } and include excludes for 'com.google.firebase', 'com.google.android.gms', and 'com.android.installreferrer'."
   );
 }
 pass('android/app/build.gradle excludes Firebase, GMS, and installreferrer (conditional on fdroid.build=true).');
