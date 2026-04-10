@@ -4,7 +4,22 @@ on:
   push:
     branches: [main, master]
   pull_request:
+    paths:
+      - 'android/**'
+      - 'app.config.js'
+      - 'app.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'patches/**'
+      - 'scripts/fdroid-check.cjs'
+      - 'src/services/notifications.ts'
+      - 'fdroid/**'
+      - '.github/workflows/fdroid-readiness.yml'
   workflow_dispatch:
+
+concurrency:
+  group: fdroid-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   readiness:
@@ -20,14 +35,52 @@ jobs:
           node-version: 20
           cache: npm
 
+      - name: Detect heavy Android-impact changes
+        id: heavy-changes
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            android:
+              # Intentional scope difference vs `on.pull_request.paths`:
+              # - Trigger list includes all F-Droid-relevant files (even lightweight checks only).
+              # - This list includes only files that require Java/Android/Gradle heavy steps.
+              - 'android/**'
+              - 'app.config.js'
+              - 'app.json'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'patches/**'
+              - 'src/services/notifications.ts'
+            ci_covered:
+              # Mirrors `ci.yml` pull_request paths-ignore behavior.
+              # Used together with `github.base_ref == 'main'` to decide if ci.yml
+              # will actually run Typecheck/Unit tests for this PR (ci.yml only
+              # triggers on PRs targeting main).
+              - '**'
+              - '!fdroid/**'
+              - '!**.md'
+
       - name: Setup Java
+        if: github.event_name != 'pull_request' || steps.heavy-changes.outputs.android == 'true'
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
 
       - name: Setup Android SDK
+        if: github.event_name != 'pull_request' || steps.heavy-changes.outputs.android == 'true'
         uses: android-actions/setup-android@v3
+
+      - name: Cache Gradle
+        if: github.event_name != 'pull_request' || steps.heavy-changes.outputs.android == 'true'
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('android/**/*.gradle*', 'android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-
 
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
@@ -39,16 +92,20 @@ jobs:
         run: npm run licenses:check
 
       - name: Typecheck
+        if: github.event_name != 'pull_request' || steps.heavy-changes.outputs.ci_covered != 'true' || github.base_ref != 'main'
         run: npm run test:typecheck
 
       - name: Unit tests
+        if: github.event_name != 'pull_request' || steps.heavy-changes.outputs.ci_covered != 'true' || github.base_ref != 'main'
         run: npm test -- --runInBand
 
       - name: Generate Android project (CI)
+        if: github.event_name != 'pull_request' || steps.heavy-changes.outputs.android == 'true'
         run: npx expo prebuild --platform android --non-interactive
 
       - name: Android compile smoke test
+        if: github.event_name != 'pull_request' || steps.heavy-changes.outputs.android == 'true'
         working-directory: android
         run: |
           chmod +x ./gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --no-daemon

@@ -168,13 +168,20 @@ Aktuell: **120 Tests** in 12 Suites (birthday, contacts, types, store, i18n, exp
 | Workflow | Auslöser | Zweck |
 |---|---|---|
 | `ci.yml` | Push + PR auf main | Typecheck, Tests, Debug-APK (nur bei PR) |
+| `fdroid-readiness.yml` | Push auf main/master, PR bei F-Droid-relevanten Dateiaenderungen, manuell | F-Droid Profil-Checks, Lizenz-Check, (bei Bedarf) Android Build-Smoke-Test |
 | `auto-version.yml` | PR auf main gemergt | Version automatisch erhöhen (fix oder `[minor]`) |
 | `release.yml` | Manuell | Signiertes Release-APK bauen + GitHub Release erstellen |
+| `tests.yml` | Manuell | Ad-hoc Typecheck + Unit-Tests (nur bei Bedarf) |
 
 Der `auto-version.yml` Workflow nutzt `.github/scripts/bump-version.cjs`, das:
 - `package.json`, `app.json`, `android/app/build.gradle` und die F-Droid YAML aktualisiert.
 - Den bisherigen `HEAD` Eintrag in der F-Droid YAML einfriert.
 - Einen neuen `commit: HEAD` Eintrag für die neue Version erstellt.
+
+Optimierungen fuer schnellere PR-Feedback-Zeiten:
+- `ci.yml` und `fdroid-readiness.yml` brechen veraltete Runs derselben Branch automatisch ab (`concurrency`).
+- `fdroid-readiness.yml` laeuft auf Pull Requests nur bei F-Droid-relevanten Dateiaenderungen.
+- In `fdroid-readiness.yml` werden auf Pull Requests Typecheck/Unit-Tests nur dann ausgefuehrt, wenn `ci.yml` sie nicht abdeckt (z.B. `fdroid/**`-only PRs); ansonsten werden Doppelruns vermieden.
 
 ## F-Droid Readiness
 
