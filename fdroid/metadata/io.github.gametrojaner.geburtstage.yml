@@ -67,7 +67,7 @@ Builds:
 
   - versionName: 1.0.0-beta.5
     versionCode: 4
-    commit: HEAD
+    commit: v1.0.0-beta.5
     subdir: .
     sudo:
       - apt-get update
@@ -82,7 +82,20 @@ Builds:
     # - patches/expo-application+55.0.10.patch changes installreferrer to compileOnly
     # - android/app/build.gradle uses configurations.configureEach { exclude } guarded by -Pfdroid.build=true
 
+  - versionName: 1.0.0-beta.6
+    versionCode: 5
+    commit: HEAD
+    subdir: .
+    sudo:
+      - apt-get update
+      - apt-get install -y npm openjdk-21-jdk
+    init:
+      - npm ci --legacy-peer-deps
+    build:
+      - npm run fdroid:check
+      - cd android && ./gradlew assembleRelease
+
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.0.0-beta.5
-CurrentVersionCode: 4
+CurrentVersion: 1.0.0-beta.6
+CurrentVersionCode: 5
