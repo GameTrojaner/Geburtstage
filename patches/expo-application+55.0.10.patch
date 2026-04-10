@@ -1,0 +1,14 @@
+diff --git a/node_modules/expo-application/android/build.gradle b/node_modules/expo-application/android/build.gradle
+index f69c5ba..ab67686 100644
+--- a/node_modules/expo-application/android/build.gradle
++++ b/node_modules/expo-application/android/build.gradle
+@@ -15,7 +15,8 @@ android {
+ }
+ 
+ dependencies {
+-  implementation 'com.android.installreferrer:installreferrer:2.2'
++  // F-Droid: compileOnly so installreferrer classes are available at compile time but excluded from the APK.
++  compileOnly 'com.android.installreferrer:installreferrer:2.2'
+ 
+   if (project.findProject(':expo-modules-test-core')) {
+     testImplementation project(':expo-modules-test-core')

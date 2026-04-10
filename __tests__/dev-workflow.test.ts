@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { execFileSync } from 'child_process';
 
 describe('Developer workflow guards', () => {
   const repoRoot = path.resolve(__dirname, '..');
@@ -48,6 +49,7 @@ describe('Developer workflow guards', () => {
     const packageJson = fs.readFileSync(packageJsonPath, 'utf8');
     expect(packageJson).toContain('fdroid:check');
     expect(packageJson).toContain('fdroid:android');
+    expect(packageJson).toContain('-Pfdroid.build=true');
     expect(packageJson).toContain('licenses:generate');
     expect(packageJson).toContain('licenses:check');
 
@@ -76,5 +78,34 @@ describe('Developer workflow guards', () => {
 
     const contributingPath = path.join(repoRoot, 'CONTRIBUTING.md');
     expect(fs.existsSync(contributingPath)).toBe(true);
+  });
+
+  it('runs fdroid:check successfully in the current repository state', () => {
+    const output = execFileSync('node', ['scripts/fdroid-check.cjs'], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+    });
+
+    expect(output).toContain('[fdroid-check] All checks passed.');
+  });
+
+  it('fdroid check scans all relevant dependency sections for forbidden packages', () => {
+    const fdroidCheckPath = path.join(repoRoot, 'scripts', 'fdroid-check.cjs');
+    const content = fs.readFileSync(fdroidCheckPath, 'utf8');
+
+    expect(content).toContain('optionalDependencies');
+    expect(content).toContain('peerDependencies');
+    expect(content).toContain('bundledDependencies');
+    expect(content).toContain('bundleDependencies');
+  });
+
+  it('app build.gradle excludes Firebase/GMS conditionally for F-Droid builds', () => {
+    const gradlePath = path.join(repoRoot, 'android', 'app', 'build.gradle');
+    const content = fs.readFileSync(gradlePath, 'utf8');
+
+    const guardedExclusionBlockRegex =
+      /if\s*\(\s*findProperty\('fdroid\.build'\)\s*==\s*'true'\s*\)\s*\{[\s\S]*?configurations\.configureEach\s*\{[\s\S]*?exclude group: 'com\.google\.firebase'[\s\S]*?exclude group: 'com\.google\.android\.gms'[\s\S]*?exclude group: 'com\.android\.installreferrer'[\s\S]*?\}[\s\S]*?\}/m;
+
+    expect(content).toMatch(guardedExclusionBlockRegex);
   });
 });
