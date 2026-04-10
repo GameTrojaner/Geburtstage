@@ -27,14 +27,22 @@ class BootReceiver : BroadcastReceiver() {
                     context.startService(serviceIntent)
                 }
 
-                WidgetRefreshScheduler.triggerWidgetUpdate(context)
-                WidgetRefreshScheduler.scheduleNextMidnightRefresh(context)
+                if (WidgetRefreshScheduler.hasAnyWidgetInstances(context)) {
+                    WidgetRefreshScheduler.triggerWidgetUpdate(context)
+                    WidgetRefreshScheduler.scheduleNextMidnightRefresh(context)
+                } else {
+                    WidgetRefreshScheduler.cancelMidnightRefresh(context)
+                }
             }
             Intent.ACTION_TIME_CHANGED,
             Intent.ACTION_TIMEZONE_CHANGED,
             Intent.ACTION_DATE_CHANGED -> {
-                WidgetRefreshScheduler.triggerWidgetUpdate(context)
-                WidgetRefreshScheduler.scheduleNextMidnightRefresh(context)
+                if (WidgetRefreshScheduler.hasAnyWidgetInstances(context)) {
+                    WidgetRefreshScheduler.triggerWidgetUpdate(context)
+                    WidgetRefreshScheduler.scheduleNextMidnightRefresh(context)
+                } else {
+                    WidgetRefreshScheduler.cancelMidnightRefresh(context)
+                }
             }
             else -> return
         }

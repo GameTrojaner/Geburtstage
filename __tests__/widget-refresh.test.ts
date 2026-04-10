@@ -48,4 +48,33 @@ describe('widget refresh orchestration', () => {
 
     expect(requestWidgetUpdate).toHaveBeenCalledTimes(2);
   });
+
+  it('replays one refresh when requested during in-flight update', async () => {
+    let releaseFirstCycle: (() => void) | undefined;
+    let firstCall = true;
+
+    (requestWidgetUpdate as jest.Mock).mockImplementation(() => {
+      if (firstCall) {
+        firstCall = false;
+        return new Promise<void>((resolve) => {
+          releaseFirstCycle = resolve;
+        });
+      }
+      return Promise.resolve();
+    });
+
+    const firstRun = refreshAllWidgetsNow();
+    await Promise.resolve();
+
+    await refreshAllWidgetsNow();
+    expect(requestWidgetUpdate).toHaveBeenCalledTimes(1);
+
+    if (releaseFirstCycle) {
+      releaseFirstCycle();
+    }
+    await firstRun;
+    await Promise.resolve();
+
+    expect(requestWidgetUpdate).toHaveBeenCalledTimes(4);
+  });
 });

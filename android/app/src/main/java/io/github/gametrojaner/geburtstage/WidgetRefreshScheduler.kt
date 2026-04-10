@@ -48,6 +48,21 @@ object WidgetRefreshScheduler {
         }
     }
 
+    fun cancelMidnightRefresh(context: Context) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val pendingIntent = midnightRefreshIntent(context)
+        alarmManager.cancel(pendingIntent)
+    }
+
+    fun hasAnyWidgetInstances(context: Context): Boolean {
+        val manager = AppWidgetManager.getInstance(context)
+        val upcomingIds = manager.getAppWidgetIds(ComponentName(context, BirthdayUpcoming::class.java))
+        if (upcomingIds.isNotEmpty()) return true
+
+        val favoritesIds = manager.getAppWidgetIds(ComponentName(context, BirthdayFavorites::class.java))
+        return favoritesIds.isNotEmpty()
+    }
+
     fun triggerWidgetUpdate(context: Context) {
         sendWidgetUpdate(context, BirthdayUpcoming::class.java)
         sendWidgetUpdate(context, BirthdayFavorites::class.java)

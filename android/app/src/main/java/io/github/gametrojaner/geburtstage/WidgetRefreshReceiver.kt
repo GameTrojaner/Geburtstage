@@ -10,6 +10,11 @@ import android.content.Intent
  */
 class WidgetRefreshReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
+        if (!WidgetRefreshScheduler.hasAnyWidgetInstances(context)) {
+            WidgetRefreshScheduler.cancelMidnightRefresh(context)
+            return
+        }
+
         WidgetRefreshScheduler.triggerWidgetUpdate(context)
         WidgetRefreshScheduler.scheduleNextMidnightRefresh(context)
     }

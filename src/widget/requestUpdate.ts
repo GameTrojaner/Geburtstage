@@ -4,13 +4,20 @@ const WIDGET_NAMES = ['BirthdayUpcoming', 'BirthdayFavorites'] as const;
 
 let queuedRefreshTimeout: ReturnType<typeof setTimeout> | null = null;
 let inFlightRefresh = false;
+let pendingRefresh = false;
 
 export async function refreshAllWidgetsNow(): Promise<void> {
-  if (Platform?.OS !== 'android' || inFlightRefresh) {
+  if (Platform?.OS !== 'android') {
+    return;
+  }
+
+  if (inFlightRefresh) {
+    pendingRefresh = true;
     return;
   }
 
   inFlightRefresh = true;
+  pendingRefresh = false;
   try {
     const { requestWidgetUpdate } = require('react-native-android-widget') as typeof import('react-native-android-widget');
     const { renderWidgetForName } = require('./widgetTaskHandler') as typeof import('./widgetTaskHandler');
@@ -25,6 +32,10 @@ export async function refreshAllWidgetsNow(): Promise<void> {
     console.error('Widget refresh error:', error);
   } finally {
     inFlightRefresh = false;
+    if (pendingRefresh) {
+      pendingRefresh = false;
+      void refreshAllWidgetsNow();
+    }
   }
 }
 

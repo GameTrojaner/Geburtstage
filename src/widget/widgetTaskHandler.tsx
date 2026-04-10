@@ -8,6 +8,7 @@ import * as LegacyFileSystem from 'expo-file-system/legacy';
 import { getDaysUntilBirthday, getUpcomingAge, formatBirthday } from '../utils/birthday';
 import { getCachedPhotoUri } from '../services/photoCache';
 import { getFavorites, getSettings } from '../services/database';
+import { normalizeWidgetMaxEntries } from './maxEntries';
 
 interface BirthdayItem {
   contactId: string;
@@ -242,7 +243,7 @@ async function resolveWidgetPreferences(): Promise<{ isDark: boolean; maxEntries
 
   try {
     const settings = await getSettings();
-    maxEntries = settings.widgetMaxEntries ?? 5;
+    maxEntries = normalizeWidgetMaxEntries(settings.widgetMaxEntries, 5);
     if (settings.theme === 'dark') {
       isDark = true;
     } else if (settings.theme === 'light') {

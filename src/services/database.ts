@@ -1,6 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 import { AppSettings, DEFAULT_SETTINGS, NotificationSetting } from '../types';
 import { sanitizeImportData } from '../utils/importSanitizer';
+import { normalizeWidgetMaxEntries } from '../widget/maxEntries';
 
 const DB_NAME = 'geburtstage.db';
 
@@ -123,9 +124,7 @@ export async function getSettings(): Promise<AppSettings> {
     confirmBeforeWriting: settings.confirmBeforeWriting !== undefined
       ? settings.confirmBeforeWriting === 'true'
       : DEFAULT_SETTINGS.confirmBeforeWriting,
-    widgetMaxEntries: settings.widgetMaxEntries !== undefined
-      ? Number(settings.widgetMaxEntries)
-      : DEFAULT_SETTINGS.widgetMaxEntries,
+    widgetMaxEntries: normalizeWidgetMaxEntries(settings.widgetMaxEntries, DEFAULT_SETTINGS.widgetMaxEntries),
   };
 }
 
