@@ -1,8 +1,8 @@
 diff --git a/node_modules/expo-notifications/android/build.gradle b/node_modules/expo-notifications/android/build.gradle
-index 0000000..1111111 100644
+index 38959e0..f91d8f9 100644
 --- a/node_modules/expo-notifications/android/build.gradle
 +++ b/node_modules/expo-notifications/android/build.gradle
-@@ -38,7 +38,8 @@ dependencies {
+@@ -39,7 +39,8 @@ dependencies {
    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
  
    // release notes in https://firebase.google.com/support/release-notes/android - cmd + f "Cloud Messaging version"
