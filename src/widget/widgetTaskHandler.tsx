@@ -1,5 +1,4 @@
 import React from 'react';
-import { Appearance } from 'react-native';
 import type { WidgetTaskHandlerProps } from 'react-native-android-widget';
 import { BirthdayWidget } from './BirthdayWidget';
 import * as Contacts from 'expo-contacts';
@@ -7,8 +6,8 @@ import { File } from 'expo-file-system';
 import * as LegacyFileSystem from 'expo-file-system/legacy';
 import { getDaysUntilBirthday, getUpcomingAge, formatBirthday } from '../utils/birthday';
 import { getCachedPhotoUri } from '../services/photoCache';
-import { getFavorites, getSettings } from '../services/database';
-import { normalizeWidgetMaxEntries } from './maxEntries';
+import { getFavorites } from '../services/database';
+import { resolveWidgetPreferences } from './preferences';
 
 interface BirthdayItem {
   contactId: string;
@@ -235,27 +234,6 @@ const nameToWidget = {
 
 function resolveWidgetType(widgetName: string): 'upcoming' | 'favorites' {
   return nameToWidget[widgetName as keyof typeof nameToWidget] || 'upcoming';
-}
-
-async function resolveWidgetPreferences(): Promise<{ isDark: boolean; maxEntries: number }> {
-  let isDark = false;
-  let maxEntries = 5;
-
-  try {
-    const settings = await getSettings();
-    maxEntries = normalizeWidgetMaxEntries(settings.widgetMaxEntries, 5);
-    if (settings.theme === 'dark') {
-      isDark = true;
-    } else if (settings.theme === 'light') {
-      isDark = false;
-    } else {
-      isDark = Appearance.getColorScheme() === 'dark';
-    }
-  } catch {
-    isDark = Appearance.getColorScheme() === 'dark';
-  }
-
-  return { isDark, maxEntries };
 }
 
 export async function renderWidgetForName(widgetName: string) {

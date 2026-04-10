@@ -11,4 +11,10 @@ public class BirthdayFavorites extends RNWidgetProvider {
 		super.onUpdate(context, appWidgetManager, appWidgetIds);
 		WidgetRefreshScheduler.INSTANCE.scheduleNextMidnightRefresh(context);
 	}
+
+	@Override
+	public void onDisabled(Context context) {
+		super.onDisabled(context);
+		WidgetRefreshScheduler.INSTANCE.cancelMidnightRefresh(context);
+	}
 }
