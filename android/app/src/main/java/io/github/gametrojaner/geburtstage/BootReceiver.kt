@@ -55,7 +55,7 @@ class BootReceiver : BroadcastReceiver() {
         ).apply {
             // Run ASAP, but system may delay if device is busy
             setMinimumLatency(0)
-            setOverrideDeadline(5000)  // Must run within 5 seconds at the latest
+            setOverrideDeadline(5000)  // Request execution within ~5 s; this is best-effort and system-managed
 
             setPersisted(true)
         }.build()

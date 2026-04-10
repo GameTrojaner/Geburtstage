@@ -7,11 +7,13 @@ type RescheduleActions = {
 };
 
 export async function runPendingBootReschedule(actions: RescheduleActions): Promise<boolean> {
-  const hasPendingReschedule = await consumePendingBootReschedule();
-  if (!hasPendingReschedule) return false;
-
+  // Check permission first so the pending flag is only consumed if we can actually act on it.
+  // If permission is missing, the flag stays set and the reschedule is retried on the next app start.
   const hasContactsPermission = await checkContactsPermission();
   if (!hasContactsPermission) return false;
+
+  const hasPendingReschedule = await consumePendingBootReschedule();
+  if (!hasPendingReschedule) return false;
 
   await actions.loadContacts();
   await actions.rescheduleNotifications();

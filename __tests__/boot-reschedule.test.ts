@@ -41,6 +41,7 @@ describe('runPendingBootReschedule', () => {
   });
 
   it('skips work when no pending flag exists', async () => {
+    mockCheckPerm.mockResolvedValue(true);
     mockConsumePending.mockResolvedValue(false);
 
     const didRun = await runPendingBootReschedule({
@@ -49,13 +50,12 @@ describe('runPendingBootReschedule', () => {
     });
 
     expect(didRun).toBe(false);
-    expect(mockCheckPerm).not.toHaveBeenCalled();
+    expect(mockCheckPerm).toHaveBeenCalledTimes(1);
     expect(loadContacts).not.toHaveBeenCalled();
     expect(rescheduleNotifications).not.toHaveBeenCalled();
   });
 
-  it('skips work when contacts permission is missing', async () => {
-    mockConsumePending.mockResolvedValue(true);
+  it('skips work when contacts permission is missing and preserves the pending flag', async () => {
     mockCheckPerm.mockResolvedValue(false);
 
     const didRun = await runPendingBootReschedule({
@@ -64,6 +64,8 @@ describe('runPendingBootReschedule', () => {
     });
 
     expect(didRun).toBe(false);
+    // Pending flag must NOT be consumed – it stays set for the next app start
+    expect(mockConsumePending).not.toHaveBeenCalled();
     expect(loadContacts).not.toHaveBeenCalled();
     expect(rescheduleNotifications).not.toHaveBeenCalled();
   });
