@@ -31,6 +31,7 @@ describe('ExportData format', () => {
         defaultNotificationOffsets: [0, 1, 7],
         defaultNotificationTime: '08:00',
         confirmBeforeWriting: false,
+        widgetMaxEntries: 5,
       },
       notificationSettings: [
         { contactId: 'c1', enabled: true, offsets: [0, 3], time: '09:00' },

@@ -18,6 +18,8 @@ interface BirthdayWidgetProps {
   maxEntries?: number;
 }
 
+type WidgetColors = typeof LIGHT_COLORS | typeof DARK_COLORS;
+
 const LIGHT_COLORS = {
   background: '#FFFFFF',
   surface: '#F5FDFB',
@@ -27,7 +29,7 @@ const LIGHT_COLORS = {
   textSecondary: '#757575',
   avatarBg: '#E0F2F1',
   empty: '#9E9E9E',
-};
+} as const;
 
 const DARK_COLORS = {
   background: '#191C1B',
@@ -38,13 +40,13 @@ const DARK_COLORS = {
   textSecondary: '#8C9490',
   avatarBg: '#1F3530',
   empty: '#8C9490',
-};
+} as const;
 
 export function getVisibleWidgetRows(birthdays: BirthdayItem[], maxEntries = 5): BirthdayItem[] {
   return birthdays.slice(0, maxEntries);
 }
 
-function BirthdayRow({ item, colors }: { item: BirthdayItem; colors: typeof LIGHT_COLORS }) {
+function BirthdayRow({ item, colors }: { item: BirthdayItem; colors: WidgetColors }) {
   const daysText = item.daysUntil === 0
     ? '🎂 Heute!'
     : `in ${item.daysUntil} ${item.daysUntil === 1 ? 'Tag' : 'Tagen'}`;

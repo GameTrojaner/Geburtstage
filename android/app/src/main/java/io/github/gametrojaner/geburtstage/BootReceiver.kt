@@ -13,19 +13,30 @@ import com.facebook.react.HeadlessJsTaskService
  */
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != Intent.ACTION_BOOT_COMPLETED &&
-            intent.action != "android.intent.action.QUICKBOOT_POWERON"
-        ) return
+        when (intent.action) {
+            Intent.ACTION_BOOT_COMPLETED,
+            "android.intent.action.QUICKBOOT_POWERON" -> {
+                // Acquire a wake lock immediately so the device stays awake long enough
+                // for the HeadlessJsTaskService to initialise.
+                HeadlessJsTaskService.acquireWakeLockNow(context)
 
-        // Acquire a wake lock immediately so the device stays awake long enough
-        // for the HeadlessJsTaskService to initialise.
-        HeadlessJsTaskService.acquireWakeLockNow(context)
+                val serviceIntent = Intent(context, BootTaskService::class.java)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(serviceIntent)
+                } else {
+                    context.startService(serviceIntent)
+                }
 
-        val serviceIntent = Intent(context, BootTaskService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(serviceIntent)
-        } else {
-            context.startService(serviceIntent)
+                WidgetRefreshScheduler.triggerWidgetUpdate(context)
+                WidgetRefreshScheduler.scheduleNextMidnightRefresh(context)
+            }
+            Intent.ACTION_TIME_CHANGED,
+            Intent.ACTION_TIMEZONE_CHANGED,
+            Intent.ACTION_DATE_CHANGED -> {
+                WidgetRefreshScheduler.triggerWidgetUpdate(context)
+                WidgetRefreshScheduler.scheduleNextMidnightRefresh(context)
+            }
+            else -> return
         }
     }
 }

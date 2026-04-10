@@ -205,6 +205,7 @@ Der `auto-version.yml` Workflow nutzt `.github/scripts/bump-version.cjs`, das:
 - **Mehrsprachig**: Deutsch/Englisch, System-Erkennung funktioniert korrekt
 - **Dark/Light Mode**: System oder manuell
 - **Android Widgets**: 2 Homescreen-Widgets (Upcoming + Favorites)
+- **Widget-Aktualisierung**: Widgets werden bei relevanten Datenaenderungen in der App sofort aktualisiert (z.B. Favoriten, Geburtstagsaenderung, Widget-Theme/Eintragslimit) und zusaetzlich taeglich um Mitternacht per nativer Alarm-Resynchronisierung.
 
 ## Projektstruktur
 

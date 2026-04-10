@@ -232,12 +232,14 @@ const nameToWidget = {
   BirthdayFavorites: 'favorites',
 } as const;
 
-export async function widgetTaskHandler(props: WidgetTaskHandlerProps) {
-  const widgetInfo = props.widgetInfo;
+function resolveWidgetType(widgetName: string): 'upcoming' | 'favorites' {
+  return nameToWidget[widgetName as keyof typeof nameToWidget] || 'upcoming';
+}
 
-  // Load settings to determine dark mode and max entries
+async function resolveWidgetPreferences(): Promise<{ isDark: boolean; maxEntries: number }> {
   let isDark = false;
   let maxEntries = 5;
+
   try {
     const settings = await getSettings();
     maxEntries = settings.widgetMaxEntries ?? 5;
@@ -252,20 +254,27 @@ export async function widgetTaskHandler(props: WidgetTaskHandlerProps) {
     isDark = Appearance.getColorScheme() === 'dark';
   }
 
+  return { isDark, maxEntries };
+}
+
+export async function renderWidgetForName(widgetName: string) {
+  const { isDark, maxEntries } = await resolveWidgetPreferences();
   const { birthdays, favoriteBirthdays } = await loadWidgetData(maxEntries);
-
-  const widgetType = nameToWidget[widgetInfo.widgetName as keyof typeof nameToWidget] || 'upcoming';
-
+  const widgetType = resolveWidgetType(widgetName);
   const items = widgetType === 'favorites' ? favoriteBirthdays : birthdays;
   const title = widgetType === 'favorites' ? 'Favoriten' : 'Nächste Geburtstage';
+
+  return <BirthdayWidget birthdays={items} title={title} isDark={isDark} maxEntries={maxEntries} />;
+}
+
+export async function widgetTaskHandler(props: WidgetTaskHandlerProps) {
+  const widgetInfo = props.widgetInfo;
 
   switch (props.widgetAction) {
     case 'WIDGET_ADDED':
     case 'WIDGET_UPDATE':
     case 'WIDGET_RESIZED':
-      props.renderWidget(
-        <BirthdayWidget birthdays={items} title={title} isDark={isDark} maxEntries={maxEntries} />
-      );
+      props.renderWidget(await renderWidgetForName(widgetInfo.widgetName));
       break;
     case 'WIDGET_DELETED':
       break;
