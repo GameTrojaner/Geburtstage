@@ -177,7 +177,7 @@ Reagiert auf: WIDGET_ADDED, WIDGET_UPDATE, WIDGET_RESIZED.
 - **Patentpolitik**: Contributor Non-Assertion via `PATENTS.md`; Beitragspfad in `CONTRIBUTING.md`
 - **Third-Party-Lizenzen**: `THIRD_PARTY_LICENSES.md` wird per `npm run licenses:generate` aus installierten Paketen erzeugt und via `npm run licenses:check` validiert
 - **F-Droid Metadaten**: Entwurf liegt unter `fdroid/metadata/io.github.gametrojaner.geburtstage.yml` (Quelle fuer spaetere fdroiddata-Submission)
-- **CI**: `.github/workflows/ci.yml` – Typecheck + Tests + Debug-APK bei PRs; `.github/workflows/auto-version.yml` – automatische Versionserhöhung bei Merge (fix oder `[minor]`); `.github/workflows/release.yml` – manueller Release mit signiertem APK; `.github/workflows/fdroid-readiness.yml` prueft F-Droid-Checks, Lizenzdoku-Aktualitaet, Typecheck, Tests und Android `assembleDebug`
+- **CI**: `.github/workflows/ci.yml` – Typecheck + Tests + Debug-APK bei PRs (mit `concurrency`, alte Runs werden abgebrochen); `.github/workflows/auto-version.yml` – automatische Versionserhöhung bei Merge (fix oder `[minor]`); `.github/workflows/release.yml` – manueller Release mit signiertem APK; `.github/workflows/fdroid-readiness.yml` prueft F-Droid-Checks und Lizenzdoku auf PRs nur bei F-Droid-relevanten Dateiaenderungen, waehrend Typecheck/Unit-Tests dort auf PRs nicht doppelt laufen (weiterhin in `ci.yml`), Heavy-Android-Schritte nur bei relevanten Aenderungen; `.github/workflows/tests.yml` ist fuer manuelle Ad-hoc-Testlaeufe vorgesehen
 
 ## Befehle
 

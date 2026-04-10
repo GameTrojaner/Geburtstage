@@ -4,7 +4,22 @@ on:
   push:
     branches: [main, master]
   pull_request:
+    paths:
+      - 'android/**'
+      - 'app.config.js'
+      - 'app.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'patches/**'
+      - 'scripts/fdroid-check.cjs'
+      - 'src/services/notifications.ts'
+      - 'fdroid/**'
+      - '.github/workflows/fdroid-readiness.yml'
   workflow_dispatch:
+
+concurrency:
+  group: fdroid-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   readiness:
@@ -29,6 +44,15 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Cache Gradle
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('android/**/*.gradle*', 'android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-
+
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
@@ -38,17 +62,36 @@ jobs:
       - name: Third-party licenses up-to-date
         run: npm run licenses:check
 
+      - name: Detect heavy Android-impact changes
+        id: heavy-changes
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            android:
+              - 'android/**'
+              - 'app.config.js'
+              - 'app.json'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'patches/**'
+              - 'src/services/notifications.ts'
+
       - name: Typecheck
+        if: github.event_name != 'pull_request'
         run: npm run test:typecheck
 
       - name: Unit tests
+        if: github.event_name != 'pull_request'
         run: npm test -- --runInBand
 
       - name: Generate Android project (CI)
+        if: github.event_name != 'pull_request' || steps.heavy-changes.outputs.android == 'true'
         run: npx expo prebuild --platform android --non-interactive
 
       - name: Android compile smoke test
+        if: github.event_name != 'pull_request' || steps.heavy-changes.outputs.android == 'true'
         working-directory: android
         run: |
           chmod +x ./gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --no-daemon
