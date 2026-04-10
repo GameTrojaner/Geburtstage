@@ -4,6 +4,8 @@
   <uses-permission android:name="android.permission.READ_CONTACTS"/>
   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" tools:replace="android:maxSdkVersion"/>
   <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
   <!-- Required for exact birthday notification alarms on Android 12+ (API 31+).
        USE_EXACT_ALARM is auto-granted on API 33+ for calendar/reminder apps.
        SCHEDULE_EXACT_ALARM requires user approval via Settings on API 31-32. -->
@@ -55,6 +57,11 @@
       android:enabled="true"
       android:exported="false"
       android:permission="android.permission.BIND_JOB_SERVICE"/>
+    <service
+      android:name=".BootTaskService"
+      android:enabled="true"
+      android:exported="false"
+      android:foregroundServiceType="dataSync"/>
     <receiver android:name=".widget.BirthdayUpcoming" android:exported="false" android:label="Nächste Geburtstage">
       <intent-filter>
         <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
