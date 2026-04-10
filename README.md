@@ -181,7 +181,7 @@ Der `auto-version.yml` Workflow nutzt `.github/scripts/bump-version.cjs`, das:
 Optimierungen fuer schnellere PR-Feedback-Zeiten:
 - `ci.yml` und `fdroid-readiness.yml` brechen veraltete Runs derselben Branch automatisch ab (`concurrency`).
 - `fdroid-readiness.yml` laeuft auf Pull Requests nur bei F-Droid-relevanten Dateiaenderungen.
-- In `fdroid-readiness.yml` werden auf Pull Requests Typecheck/Unit-Tests nicht doppelt ausgefuehrt (das uebernimmt `ci.yml`), waehrend F-Droid-spezifische Checks aktiv bleiben.
+- In `fdroid-readiness.yml` werden auf Pull Requests Typecheck/Unit-Tests nur dann ausgefuehrt, wenn `ci.yml` sie nicht abdeckt (z.B. `fdroid/**`-only PRs); ansonsten werden Doppelruns vermieden.
 
 ## F-Droid Readiness
 

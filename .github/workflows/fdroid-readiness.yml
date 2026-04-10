@@ -52,6 +52,12 @@ jobs:
               - 'package-lock.json'
               - 'patches/**'
               - 'src/services/notifications.ts'
+            ci_covered:
+              # Mirrors `ci.yml` pull_request paths-ignore behavior:
+              # if this is true, ci.yml will run Typecheck/Unit tests.
+              - '**'
+              - '!fdroid/**'
+              - '!**.md'
 
       - name: Setup Java
         if: github.event_name != 'pull_request' || steps.heavy-changes.outputs.android == 'true'
@@ -84,11 +90,11 @@ jobs:
         run: npm run licenses:check
 
       - name: Typecheck
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' || steps.heavy-changes.outputs.ci_covered != 'true'
         run: npm run test:typecheck
 
       - name: Unit tests
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' || steps.heavy-changes.outputs.ci_covered != 'true'
         run: npm test -- --runInBand
 
       - name: Generate Android project (CI)
