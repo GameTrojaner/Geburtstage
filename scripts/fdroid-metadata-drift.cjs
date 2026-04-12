@@ -40,10 +40,11 @@ function parseArgs(argv) {
 
 function loadUrl(url, redirectCount = 0) {
   return new Promise((resolve, reject) => {
-    const getter = url.startsWith('https://') ? https : http;
+    const parsedUrl = new URL(url);
+    const getter = parsedUrl.protocol === 'https:' ? https : http;
 
     getter
-      .get(url, (response) => {
+      .get(parsedUrl, (response) => {
         if (response.statusCode && response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
           if (redirectCount >= MAX_REDIRECTS) {
             response.resume();

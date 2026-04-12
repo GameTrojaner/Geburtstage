@@ -99,6 +99,14 @@ describe('Developer workflow guards', () => {
     expect(output).toContain('Invariants OK');
   });
 
+  it('fdroid metadata drift script uses URL parsing for protocol selection', () => {
+    const scriptPath = path.join(repoRoot, 'scripts', 'fdroid-metadata-drift.cjs');
+    const content = fs.readFileSync(scriptPath, 'utf8');
+
+    expect(content).toContain('const parsedUrl = new URL(url);');
+    expect(content).toContain("parsedUrl.protocol === 'https:'");
+  });
+
   it('fdroid check scans all relevant dependency sections for forbidden packages', () => {
     const fdroidCheckPath = path.join(repoRoot, 'scripts', 'fdroid-check.cjs');
     const content = fs.readFileSync(fdroidCheckPath, 'utf8');
@@ -151,5 +159,14 @@ describe('Developer workflow guards', () => {
 
     expect(content).not.toContain('commit: HEAD');
     expect(content).toMatch(/-\s+.*assembleRelease.*-Pfdroid\.build=true/m);
+  });
+
+  it('bump-version script writes tagged fdroid commits with fdroid.build flag', () => {
+    const scriptPath = path.join(repoRoot, '.github', 'scripts', 'bump-version.cjs');
+    const content = fs.readFileSync(scriptPath, 'utf8');
+
+    expect(content).toContain('commit: v${newVersion}');
+    expect(content).toContain('assembleRelease -Pfdroid.build=true');
+    expect(content).not.toContain('`    commit: HEAD`,');
   });
 });

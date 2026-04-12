@@ -204,7 +204,7 @@ npm run licenses:check            # Third-Party-Lizenzdoku pruefen
 
 - **Notification-Offset-Kodierung**: Positive Werte = exakte Tage; negative Werte = Kalendermonate (z.B. `-1` = 1 Monat, `-2` = 2 Monate). Kodierung: `OffsetPickerDialog.tsx → toOffset()`; Darstellung: `getOffsetLabel()` in `birthday.ts`; Berechnung: `calculateNotificationDate()` in `birthday.ts` (Schaltjahr-sicher via Tages-Klammern).
 - **Benachrichtigungs-Bug (behoben)**: 1 Monat vor Geburtstag wurde als exakt 30 Tage berechnet, was zu falschen Benachrichtigungs-Zeitpunkten führte. Behoben durch `setMonth()` mit Schaltjahr-Klammerung.
-- **CI/CD**: 3 GitHub-Actions-Workflows: `ci.yml` (Typecheck + Tests + Debug-APK), `auto-version.yml` (Versionserhöhung bei Merge), `release.yml` (manueller Release mit signiertem APK). Shared Script: `.github/scripts/bump-version.cjs`.
+- **CI/CD**: 3 GitHub-Actions-Workflows: `ci.yml` (Typecheck + Tests + Debug-APK), `auto-version.yml` (Versionserhöhung bei Merge), `release.yml` (manueller Release mit signiertem APK). Shared Script: `.github/scripts/bump-version.cjs` (erzeugt in F-Droid-Metadaten getaggte `commit: v<version>`-Eintraege und setzt `assembleRelease -Pfdroid.build=true`).
 
 - TypeScript: 0 Fehler
 - **Tests**: 150/150 bestanden (18 Suites)

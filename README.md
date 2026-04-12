@@ -176,8 +176,9 @@ Aktuell: **150 Tests** in 18 Suites.
 
 Der `auto-version.yml` Workflow nutzt `.github/scripts/bump-version.cjs`, das:
 - `package.json`, `app.json`, `android/app/build.gradle` und die F-Droid YAML aktualisiert.
-- Den bisherigen `HEAD` Eintrag in der F-Droid YAML einfriert.
-- Einen neuen `commit: HEAD` Eintrag für die neue Version erstellt.
+- Legacy-`commit: HEAD` Eintraege (falls vorhanden) auf den vorherigen Tag umstellt.
+- Einen neuen getaggten `commit: v<version>` Eintrag fuer die neue Version erstellt.
+- Sicherstellt, dass der F-Droid Build-Befehl `assembleRelease -Pfdroid.build=true` verwendet.
 
 Optimierungen fuer schnellere PR-Feedback-Zeiten:
 - `ci.yml` und `fdroid-readiness.yml` brechen veraltete Runs derselben Branch automatisch ab (`concurrency`).
