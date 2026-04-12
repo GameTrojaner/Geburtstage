@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const http = require('http');
 const https = require('https');
+const { URL } = require('url');
 
 const repoRoot = path.resolve(__dirname, '..');
 const defaultMetadataPath = path.join(
@@ -12,6 +13,7 @@ const defaultMetadataPath = path.join(
   'metadata',
   'io.github.gametrojaner.geburtstage.yml'
 );
+const MAX_REDIRECTS = 10;
 
 function parseArgs(argv) {
   const options = {
@@ -36,18 +38,27 @@ function parseArgs(argv) {
   return options;
 }
 
-function loadUrl(url) {
+function loadUrl(url, redirectCount = 0) {
   return new Promise((resolve, reject) => {
     const getter = url.startsWith('https://') ? https : http;
 
     getter
       .get(url, (response) => {
         if (response.statusCode && response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
-          resolve(loadUrl(response.headers.location));
+          if (redirectCount >= MAX_REDIRECTS) {
+            response.resume();
+            reject(new Error(`Failed to fetch ${url} (too many redirects)`));
+            return;
+          }
+
+          const redirectUrl = new URL(response.headers.location, url).toString();
+          response.resume();
+          resolve(loadUrl(redirectUrl, redirectCount + 1));
           return;
         }
 
         if (response.statusCode !== 200) {
+          response.resume();
           reject(new Error(`Failed to fetch ${url} (HTTP ${response.statusCode || 'unknown'})`));
           return;
         }
@@ -128,7 +139,7 @@ async function main() {
 
   const localRaw = fs.readFileSync(defaultMetadataPath, 'utf8');
   assertMetadataInvariants(localRaw);
-  console.log('[fdroid-metadata-drift] Invariants OK (tagged commits + fdroid.build flag).');
+  console.log('[fdroid-metadata-drift] Invariants OK (commit: HEAD disallowed + fdroid.build flag).');
 
   if (!options.against) {
     console.log('[fdroid-metadata-drift] No reference configured. Set FDROID_METADATA_REF or use --against <path|url> for drift comparison.');

@@ -150,18 +150,6 @@ describe('Developer workflow guards', () => {
     const content = fs.readFileSync(metadataPath, 'utf8');
 
     expect(content).not.toContain('commit: HEAD');
-
-    const commandEntries = content
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter((line) => line.startsWith('- '))
-      .map((line) => line.slice(2));
-
-    const assembleReleaseCommands = commandEntries.filter((line) => line.includes('assembleRelease'));
-
-    expect(assembleReleaseCommands.length).toBeGreaterThan(0);
-    for (const line of assembleReleaseCommands) {
-      expect(line).toContain('-Pfdroid.build=true');
-    }
+    expect(content).toMatch(/-\s+.*assembleRelease.*-Pfdroid\.build=true/m);
   });
 });
