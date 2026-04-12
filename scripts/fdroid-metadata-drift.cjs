@@ -42,9 +42,27 @@ function parseArgs(argv) {
 
 function loadUrl(url, redirectCount = 0) {
   return new Promise((resolve, reject) => {
+    let isSettled = false;
+    const resolveOnce = (value) => {
+      if (isSettled) {
+        return;
+      }
+
+      isSettled = true;
+      resolve(value);
+    };
+    const rejectOnce = (error) => {
+      if (isSettled) {
+        return;
+      }
+
+      isSettled = true;
+      reject(error);
+    };
+
     const parsedUrl = new URL(url);
     if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
-      reject(new Error(`Failed to fetch ${url} (unsupported protocol ${parsedUrl.protocol})`));
+      rejectOnce(new Error(`Failed to fetch ${url} (unsupported protocol ${parsedUrl.protocol})`));
       return;
     }
 
@@ -52,22 +70,24 @@ function loadUrl(url, redirectCount = 0) {
 
     const request = getter
       .get(parsedUrl, (response) => {
+        response.on('error', rejectOnce);
+
         if (response.statusCode && response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
           if (redirectCount >= MAX_REDIRECTS) {
             response.resume();
-            reject(new Error(`Failed to fetch ${url} (too many redirects)`));
+            rejectOnce(new Error(`Failed to fetch ${url} (too many redirects)`));
             return;
           }
 
           const redirectUrl = new URL(response.headers.location, url).toString();
           response.resume();
-          resolve(loadUrl(redirectUrl, redirectCount + 1));
+          resolveOnce(loadUrl(redirectUrl, redirectCount + 1));
           return;
         }
 
         if (response.statusCode !== 200) {
           response.resume();
-          reject(new Error(`Failed to fetch ${url} (HTTP ${response.statusCode || 'unknown'})`));
+          rejectOnce(new Error(`Failed to fetch ${url} (HTTP ${response.statusCode || 'unknown'})`));
           return;
         }
 
@@ -84,10 +104,10 @@ function loadUrl(url, redirectCount = 0) {
           body += chunk;
         });
         response.on('end', () => {
-          resolve(body);
+          resolveOnce(body);
         });
       })
-      .on('error', reject);
+      .on('error', rejectOnce);
 
     request.setTimeout(REQUEST_TIMEOUT_MS, () => {
       request.destroy(new Error(`Failed to fetch ${url} (timed out after ${REQUEST_TIMEOUT_MS}ms)`));

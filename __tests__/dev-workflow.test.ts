@@ -110,6 +110,16 @@ describe('Developer workflow guards', () => {
     expect(content).toContain('MAX_RESPONSE_BYTES = 1024 * 1024');
   });
 
+  it('fdroid metadata drift script handles response stream errors without double-settling', () => {
+    const scriptPath = path.join(repoRoot, 'scripts', 'fdroid-metadata-drift.cjs');
+    const content = fs.readFileSync(scriptPath, 'utf8');
+
+    expect(content).toContain("response.on('error', rejectOnce);");
+    expect(content).toContain('let isSettled = false;');
+    expect(content).toContain('const rejectOnce = (error) => {');
+    expect(content).toContain('const resolveOnce = (value) => {');
+  });
+
   it('fdroid metadata drift invariant only flags actual commit HEAD lines', () => {
     const scriptPath = path.join(repoRoot, 'scripts', 'fdroid-metadata-drift.cjs');
     const content = fs.readFileSync(scriptPath, 'utf8');
