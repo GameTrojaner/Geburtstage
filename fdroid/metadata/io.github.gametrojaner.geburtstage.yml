@@ -121,7 +121,20 @@ Builds:
       - npm run fdroid:check
       - cd android && ./gradlew assembleRelease -Pfdroid.build=true
 
+  - versionName: 1.0.0-beta.9
+    versionCode: 8
+    commit: v1.0.0-beta.9
+    subdir: .
+    sudo:
+      - apt-get update
+      - apt-get install -y npm openjdk-21-jdk
+    init:
+      - npm ci --legacy-peer-deps
+    build:
+      - npm run fdroid:check
+      - cd android && ./gradlew assembleRelease -Pfdroid.build=true
+
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.0.0-beta.8
-CurrentVersionCode: 7
+CurrentVersion: 1.0.0-beta.9
+CurrentVersionCode: 8

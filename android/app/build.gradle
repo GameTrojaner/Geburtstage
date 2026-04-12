@@ -92,8 +92,8 @@ android {
         applicationId 'io.github.gametrojaner.geburtstage'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 7
-        versionName "1.0.0-beta.8"
+        versionCode 8
+        versionName "1.0.0-beta.9"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }
