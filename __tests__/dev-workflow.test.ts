@@ -105,8 +105,15 @@ describe('Developer workflow guards', () => {
 
     expect(content).toContain('node_modules/expo-notifications/android/build.gradle');
     expect(content).toContain('node_modules/expo-application/android/build.gradle');
+    expect(content).toContain('expo.modules.notifications-55.0.14.pom');
+    expect(content).toContain('expo.modules.notifications-55.0.14.module');
+    expect(content).toContain('expo.modules.application-55.0.10.pom');
+    expect(content).toContain('expo.modules.application-55.0.10.module');
+    expect(content).toContain('com\\.google\\.android\\.gms');
+    expect(content).toContain('play-services-tasks');
     expect(content).toContain('compileOnlyRegex');
     expect(content).toContain('implementationRegex');
+    expect(content).toContain('local-Maven metadata is free of proprietary runtime dependencies');
     expect(content).toContain("checkAutomatically must be 'NEVER'");
     expect(content).toContain('fallbackToCacheTimeout must be 0');
   });
