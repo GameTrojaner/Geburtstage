@@ -13,23 +13,23 @@ index f69c5ba..ab67686 100644
    if (project.findProject(':expo-modules-test-core')) {
      testImplementation project(':expo-modules-test-core')
 diff --git a/node_modules/expo-application/local-maven-repo/host/exp/exponent/expo.modules.application/55.0.10/expo.modules.application-55.0.10.module b/node_modules/expo-application/local-maven-repo/host/exp/exponent/expo.modules.application/55.0.10/expo.modules.application-55.0.10.module
-index bf59fcd..8895a7f 100644
+index bf59fcd..7da4938 100644
 --- a/node_modules/expo-application/local-maven-repo/host/exp/exponent/expo.modules.application/55.0.10/expo.modules.application-55.0.10.module
 +++ b/node_modules/expo-application/local-maven-repo/host/exp/exponent/expo.modules.application/55.0.10/expo.modules.application-55.0.10.module
-@@ -50,13 +50,6 @@
+@@ -49,13 +49,6 @@
+           "version": {
              "requires": "2.1.20"
            }
-         },
+-        },
 -        {
 -          "group": "com.android.installreferrer",
 -          "module": "installreferrer",
 -          "version": {
 -            "requires": "2.2"
 -          }
--        }
+         }
        ],
        "files": [
-         {
 diff --git a/node_modules/expo-application/local-maven-repo/host/exp/exponent/expo.modules.application/55.0.10/expo.modules.application-55.0.10.pom b/node_modules/expo-application/local-maven-repo/host/exp/exponent/expo.modules.application/55.0.10/expo.modules.application-55.0.10.pom
 index 4046065..5a9e895 100644
 --- a/node_modules/expo-application/local-maven-repo/host/exp/exponent/expo.modules.application/55.0.10/expo.modules.application-55.0.10.pom

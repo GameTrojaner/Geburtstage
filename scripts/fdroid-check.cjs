@@ -169,11 +169,21 @@ pass('Installed expo module Gradle files use compileOnly for proprietary artifac
 const localMavenMetadataChecks = [
   {
     file: 'node_modules/expo-notifications/local-maven-repo/host/exp/exponent/expo.modules.notifications/55.0.14/expo.modules.notifications-55.0.14.pom',
-    forbidden: [/com\.google\.firebase/, /firebase-messaging/],
+    forbidden: [
+      /com\.google\.firebase/,
+      /firebase-messaging/,
+      /com\.google\.android\.gms/,
+      /play-services-tasks/,
+    ],
   },
   {
     file: 'node_modules/expo-notifications/local-maven-repo/host/exp/exponent/expo.modules.notifications/55.0.14/expo.modules.notifications-55.0.14.module',
-    forbidden: [/"group"\s*:\s*"com\.google\.firebase"/, /"module"\s*:\s*"firebase-messaging"/],
+    forbidden: [
+      /"group"\s*:\s*"com\.google\.firebase"/,
+      /"module"\s*:\s*"firebase-messaging"/,
+      /"group"\s*:\s*"com\.google\.android\.gms"/,
+      /"module"\s*:\s*"play-services-tasks"/,
+    ],
   },
   {
     file: 'node_modules/expo-application/local-maven-repo/host/exp/exponent/expo.modules.application/55.0.10/expo.modules.application-55.0.10.pom',

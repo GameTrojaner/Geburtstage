@@ -173,7 +173,7 @@ Reagiert auf: WIDGET_ADDED, WIDGET_UPDATE, WIDGET_RESIZED.
 - **jest.config.js**: Nutzt `babel-jest` direkt (nicht jest-expo preset) wegen Kompatibilität mit Expo SDK 55
 - **react-native-worklets**: Wird von reanimated 4.x babel plugin benötigt, muss installiert sein
 - **F-Droid Profil**: `FDROID_BUILD=1` aktiviert die dedizierte Expo-Konfiguration aus `app.config.js` (OTA disabled, Notifications-Modus `local-only`); validierbar via `npm run fdroid:check`
-- **F-Droid Dependency-Hardening**: `npm run fdroid:check` prueft nicht nur `compileOnly` in den gepatchten Expo-Gradle-Files, sondern auch die Expo `local-maven-repo` Metadaten (`.pom` / `.module`), damit Firebase/InstallReferrer nicht mehr transitiv als Runtime-Dependency aufgeloest werden.
+- **F-Droid Dependency-Hardening**: `npm run fdroid:check` prueft nicht nur `compileOnly` in den gepatchten Expo-Gradle-Files, sondern auch die Expo `local-maven-repo` Metadaten (`.pom` / `.module`), damit Firebase/Play-Services-Tasks/InstallReferrer nicht mehr transitiv als Runtime-Dependency aufgeloest werden.
 - **F-Droid JDK**: `fdroid/metadata/io.github.gametrojaner.geburtstage.yml` nutzt `openjdk-21-jdk` fuer Konsistenz mit fdroiddata-CI
 - **Lizenz**: Projekt ist `GPL-3.0-or-later` (`LICENSE`); Metadaten in `package.json` und `fdroid/metadata/io.github.gametrojaner.geburtstage.yml` synchron halten
 - **Patentpolitik**: Contributor Non-Assertion via `PATENTS.md`; Beitragspfad in `CONTRIBUTING.md`
