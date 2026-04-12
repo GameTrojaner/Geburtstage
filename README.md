@@ -200,6 +200,9 @@ Optimierungen fuer schnellere PR-Feedback-Zeiten:
    npm run fdroid:metadata:drift
    FDROID_METADATA_REF="https://gitlab.com/fdroid/fdroiddata/-/raw/master/metadata/io.github.gametrojaner.geburtstage.yml" npm run fdroid:metadata:drift
    ```
+  Der Check validiert dabei sowohl die gepatchten Gradle-Abhaengigkeiten (`compileOnly`) als auch die
+  Expo `local-maven-repo` Metadaten (`.pom`/`.module`), damit keine proprietaeren Runtime-Dependencies
+  (Firebase / Play-Services-Tasks / Install Referrer) wieder transitiv ins APK gelangen.
 - F-Droid Android-Build ausfuehren:
    ```bash
    npm run fdroid:android
