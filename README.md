@@ -57,6 +57,7 @@ Beide Scripts installieren Node.js, Git, optional Android Studio, setzen Umgebun
 | `npm run test:watch` | Tests im Watch-Modus |
 | `npm run test:coverage` | Tests mit Coverage-Report |
 | `npm run fdroid:check` | Prueft F-Droid Build-Constraints (`FDROID_BUILD=1`) |
+| `npm run fdroid:metadata:drift` | Prueft F-Droid Metadaten-Invarianten; optional mit Referenzvergleich via `FDROID_METADATA_REF` oder `-- --against <path|url>` |
 | `npm run fdroid:android` | Android Build mit F-Droid Profil (`FDROID_BUILD=1`) |
 | `npm run licenses:generate` | Generiert `THIRD_PARTY_LICENSES.md` aus installierten Paketen |
 | `npm run licenses:check` | Prueft, dass `THIRD_PARTY_LICENSES.md` aktuell ist |
@@ -175,8 +176,9 @@ Aktuell: **150 Tests** in 18 Suites.
 
 Der `auto-version.yml` Workflow nutzt `.github/scripts/bump-version.cjs`, das:
 - `package.json`, `app.json`, `android/app/build.gradle` und die F-Droid YAML aktualisiert.
-- Den bisherigen `HEAD` Eintrag in der F-Droid YAML einfriert.
-- Einen neuen `commit: HEAD` Eintrag für die neue Version erstellt.
+- Legacy-`commit: HEAD` Eintraege (falls vorhanden) auf den vorherigen Tag umstellt.
+- Einen neuen getaggten `commit: v<version>` Eintrag fuer die neue Version erstellt.
+- Sicherstellt, dass der F-Droid Build-Befehl `assembleRelease -Pfdroid.build=true` verwendet.
 
 Optimierungen fuer schnellere PR-Feedback-Zeiten:
 - `ci.yml` und `fdroid-readiness.yml` brechen veraltete Runs derselben Branch automatisch ab (`concurrency`).
@@ -192,6 +194,11 @@ Optimierungen fuer schnellere PR-Feedback-Zeiten:
 - F-Droid Config-Checks ausfuehren:
    ```bash
    npm run fdroid:check
+   ```
+- F-Droid Metadaten-Invarianten und optionalen Driftvergleich ausfuehren:
+   ```bash
+   npm run fdroid:metadata:drift
+   FDROID_METADATA_REF="https://gitlab.com/fdroid/fdroiddata/-/raw/master/metadata/io.github.gametrojaner.geburtstage.yml" npm run fdroid:metadata:drift
    ```
   Der Check validiert dabei sowohl die gepatchten Gradle-Abhaengigkeiten (`compileOnly`) als auch die
   Expo `local-maven-repo` Metadaten (`.pom`/`.module`), damit keine proprietaeren Runtime-Dependencies

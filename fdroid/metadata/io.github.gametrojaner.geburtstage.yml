@@ -37,7 +37,7 @@ Builds:
       - npm ci --legacy-peer-deps
     build:
       - npm run fdroid:check
-      - cd android && ./gradlew assembleRelease
+      - cd android && ./gradlew assembleRelease -Pfdroid.build=true
 
   - versionName: 1.0.0-beta.3
     versionCode: 2
@@ -50,7 +50,7 @@ Builds:
       - npm ci --legacy-peer-deps
     build:
       - npm run fdroid:check
-      - cd android && ./gradlew assembleRelease
+      - cd android && ./gradlew assembleRelease -Pfdroid.build=true
 
   - versionName: 1.0.0-beta.4
     versionCode: 3
@@ -63,7 +63,7 @@ Builds:
       - npm ci --legacy-peer-deps
     build:
       - npm run fdroid:check
-      - cd android && ./gradlew assembleRelease
+      - cd android && ./gradlew assembleRelease -Pfdroid.build=true
 
   - versionName: 1.0.0-beta.5
     versionCode: 4
@@ -93,7 +93,7 @@ Builds:
       - npm ci --legacy-peer-deps
     build:
       - npm run fdroid:check
-      - cd android && ./gradlew assembleRelease
+      - cd android && ./gradlew assembleRelease -Pfdroid.build=true
 
   - versionName: 1.0.0-beta.7
     versionCode: 6
@@ -106,11 +106,11 @@ Builds:
       - npm ci --legacy-peer-deps
     build:
       - npm run fdroid:check
-      - cd android && ./gradlew assembleRelease
+      - cd android && ./gradlew assembleRelease -Pfdroid.build=true
 
   - versionName: 1.0.0-beta.8
     versionCode: 7
-    commit: HEAD
+    commit: v1.0.0-beta.8
     subdir: .
     sudo:
       - apt-get update
@@ -119,7 +119,7 @@ Builds:
       - npm ci --legacy-peer-deps
     build:
       - npm run fdroid:check
-      - cd android && ./gradlew assembleRelease
+      - cd android && ./gradlew assembleRelease -Pfdroid.build=true
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags

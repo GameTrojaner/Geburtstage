@@ -48,6 +48,7 @@ describe('Developer workflow guards', () => {
     const packageJsonPath = path.join(repoRoot, 'package.json');
     const packageJson = fs.readFileSync(packageJsonPath, 'utf8');
     expect(packageJson).toContain('fdroid:check');
+    expect(packageJson).toContain('fdroid:metadata:drift');
     expect(packageJson).toContain('fdroid:android');
     expect(packageJson).toContain('-Pfdroid.build=true');
     expect(packageJson).toContain('licenses:generate');
@@ -87,6 +88,43 @@ describe('Developer workflow guards', () => {
     });
 
     expect(output).toContain('[fdroid-check] All checks passed.');
+  });
+
+  it('runs fdroid metadata drift invariant check successfully', () => {
+    const output = execFileSync('node', ['scripts/fdroid-metadata-drift.cjs'], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+    });
+
+    expect(output).toContain('Invariants OK');
+  });
+
+  it('fdroid metadata drift script uses URL parsing for protocol selection', () => {
+    const scriptPath = path.join(repoRoot, 'scripts', 'fdroid-metadata-drift.cjs');
+    const content = fs.readFileSync(scriptPath, 'utf8');
+
+    expect(content).toContain('const parsedUrl = new URL(url);');
+    expect(content).toContain("parsedUrl.protocol === 'https:'");
+    expect(content).toContain("parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:'");
+    expect(content).toContain('REQUEST_TIMEOUT_MS = 15000');
+    expect(content).toContain('MAX_RESPONSE_BYTES = 1024 * 1024');
+  });
+
+  it('fdroid metadata drift script handles response stream errors without double-settling', () => {
+    const scriptPath = path.join(repoRoot, 'scripts', 'fdroid-metadata-drift.cjs');
+    const content = fs.readFileSync(scriptPath, 'utf8');
+
+    expect(content).toContain("response.on('error', rejectOnce);");
+    expect(content).toContain('let isSettled = false;');
+    expect(content).toContain('const rejectOnce = (error) => {');
+    expect(content).toContain('const resolveOnce = (value) => {');
+  });
+
+  it('fdroid metadata drift invariant only flags actual commit HEAD lines', () => {
+    const scriptPath = path.join(repoRoot, 'scripts', 'fdroid-metadata-drift.cjs');
+    const content = fs.readFileSync(scriptPath, 'utf8');
+
+    expect(content).toContain('const disallowedCommitPattern = /^(?!\\s*#)\\s*commit:\\s*HEAD\\s*(?:#.*)?$/m;');
   });
 
   it('fdroid check scans all relevant dependency sections for forbidden packages', () => {
@@ -135,5 +173,27 @@ describe('Developer workflow guards', () => {
       /if\s*\(\s*findProperty\('fdroid\.build'\)\s*==\s*'true'\s*\)\s*\{[\s\S]*?configurations\.configureEach\s*\{[\s\S]*?exclude group: 'com\.google\.firebase'[\s\S]*?exclude group: 'com\.google\.android\.gms'[\s\S]*?exclude group: 'com\.android\.installreferrer'[\s\S]*?\}[\s\S]*?\}/m;
 
     expect(content).toMatch(guardedExclusionBlockRegex);
+  });
+
+  it('fdroid metadata uses tagged commits and fdroid.build flag for release builds', () => {
+    const metadataPath = path.join(
+      repoRoot,
+      'fdroid',
+      'metadata',
+      'io.github.gametrojaner.geburtstage.yml'
+    );
+    const content = fs.readFileSync(metadataPath, 'utf8');
+
+    expect(content).not.toContain('commit: HEAD');
+    expect(content).toMatch(/-\s+.*assembleRelease.*-Pfdroid\.build=true/m);
+  });
+
+  it('bump-version script writes tagged fdroid commits with fdroid.build flag', () => {
+    const scriptPath = path.join(repoRoot, '.github', 'scripts', 'bump-version.cjs');
+    const content = fs.readFileSync(scriptPath, 'utf8');
+
+    expect(content).toContain('commit: v${newVersion}');
+    expect(content).toContain('assembleRelease -Pfdroid.build=true');
+    expect(content).not.toContain('`    commit: HEAD`,');
   });
 });

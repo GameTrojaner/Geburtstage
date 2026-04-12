@@ -16,6 +16,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "fdroid:check": "node scripts/fdroid-check.cjs",
+    "fdroid:metadata:drift": "node scripts/fdroid-metadata-drift.cjs",
     "fdroid:android": "FDROID_BUILD=1 npx expo run:android -- -Pfdroid.build=true",
     "licenses:generate": "node scripts/generate-third-party-licenses.cjs",
     "licenses:check": "npm run licenses:generate && git diff --exit-code THIRD_PARTY_LICENSES.md",

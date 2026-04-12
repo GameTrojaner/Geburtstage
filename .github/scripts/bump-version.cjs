@@ -112,21 +112,16 @@ writeFile(gradlePath, gradle);
 const fdroidPath = 'fdroid/metadata/io.github.gametrojaner.geburtstage.yml';
 let fdroid = readFile(fdroidPath);
 
-// Freeze the current HEAD entry with the old version's release tag
+// Backward compatibility: convert any legacy HEAD pin to the previous release tag.
 const oldTagRef = `v${oldVersion}`;
-const lastHeadIdx = fdroid.lastIndexOf('\n    commit: HEAD');
-if (lastHeadIdx !== -1) {
-  fdroid = fdroid.slice(0, lastHeadIdx)
-    + `\n    commit: ${oldTagRef}`
-    + fdroid.slice(lastHeadIdx + '\n    commit: HEAD'.length);
-}
+fdroid = fdroid.replace(/\n\s+commit:\s+HEAD\b/g, `\n    commit: ${oldTagRef}`);
 
 // Append new entry
 const newEntry = [
   '',
   `  - versionName: ${newVersion}`,
   `    versionCode: ${newVersionCode}`,
-  `    commit: HEAD`,
+  `    commit: v${newVersion}`,
   `    subdir: .`,
   `    sudo:`,
   `      - apt-get update`,
@@ -135,7 +130,7 @@ const newEntry = [
   `      - npm ci --legacy-peer-deps`,
   `    build:`,
   `      - npm run fdroid:check`,
-  `      - cd android && ./gradlew assembleRelease`,
+  `      - cd android && ./gradlew assembleRelease -Pfdroid.build=true`,
   '',
 ].join('\n');
 
