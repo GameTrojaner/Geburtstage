@@ -48,6 +48,7 @@ describe('Developer workflow guards', () => {
     const packageJsonPath = path.join(repoRoot, 'package.json');
     const packageJson = fs.readFileSync(packageJsonPath, 'utf8');
     expect(packageJson).toContain('fdroid:check');
+    expect(packageJson).toContain('fdroid:metadata:drift');
     expect(packageJson).toContain('fdroid:android');
     expect(packageJson).toContain('-Pfdroid.build=true');
     expect(packageJson).toContain('licenses:generate');
@@ -89,6 +90,15 @@ describe('Developer workflow guards', () => {
     expect(output).toContain('[fdroid-check] All checks passed.');
   });
 
+  it('runs fdroid metadata drift invariant check successfully', () => {
+    const output = execFileSync('node', ['scripts/fdroid-metadata-drift.cjs'], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+    });
+
+    expect(output).toContain('Invariants OK');
+  });
+
   it('fdroid check scans all relevant dependency sections for forbidden packages', () => {
     const fdroidCheckPath = path.join(repoRoot, 'scripts', 'fdroid-check.cjs');
     const content = fs.readFileSync(fdroidCheckPath, 'utf8');
@@ -128,5 +138,30 @@ describe('Developer workflow guards', () => {
       /if\s*\(\s*findProperty\('fdroid\.build'\)\s*==\s*'true'\s*\)\s*\{[\s\S]*?configurations\.configureEach\s*\{[\s\S]*?exclude group: 'com\.google\.firebase'[\s\S]*?exclude group: 'com\.google\.android\.gms'[\s\S]*?exclude group: 'com\.android\.installreferrer'[\s\S]*?\}[\s\S]*?\}/m;
 
     expect(content).toMatch(guardedExclusionBlockRegex);
+  });
+
+  it('fdroid metadata uses tagged commits and fdroid.build flag for release builds', () => {
+    const metadataPath = path.join(
+      repoRoot,
+      'fdroid',
+      'metadata',
+      'io.github.gametrojaner.geburtstage.yml'
+    );
+    const content = fs.readFileSync(metadataPath, 'utf8');
+
+    expect(content).not.toContain('commit: HEAD');
+
+    const commandEntries = content
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line.startsWith('- '))
+      .map((line) => line.slice(2));
+
+    const assembleReleaseCommands = commandEntries.filter((line) => line.includes('assembleRelease'));
+
+    expect(assembleReleaseCommands.length).toBeGreaterThan(0);
+    for (const line of assembleReleaseCommands) {
+      expect(line).toContain('-Pfdroid.build=true');
+    }
   });
 });

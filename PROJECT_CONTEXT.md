@@ -178,6 +178,7 @@ Reagiert auf: WIDGET_ADDED, WIDGET_UPDATE, WIDGET_RESIZED.
 - **Patentpolitik**: Contributor Non-Assertion via `PATENTS.md`; Beitragspfad in `CONTRIBUTING.md`
 - **Third-Party-Lizenzen**: `THIRD_PARTY_LICENSES.md` wird per `npm run licenses:generate` aus installierten Paketen erzeugt und via `npm run licenses:check` validiert
 - **F-Droid Metadaten**: Entwurf liegt unter `fdroid/metadata/io.github.gametrojaner.geburtstage.yml` (Quelle fuer spaetere fdroiddata-Submission)
+- **F-Droid Metadaten Drift-Check**: `npm run fdroid:metadata:drift` prueft Invarianten lokal und kann optional gegen fdroiddata vergleichen (`FDROID_METADATA_REF=<path|url>`)
 - **CI**: `.github/workflows/ci.yml` – Typecheck + Tests + Debug-APK bei PRs (mit `concurrency`, alte Runs werden abgebrochen); `.github/workflows/auto-version.yml` – automatische Versionserhöhung bei Merge (fix oder `[minor]`); `.github/workflows/release.yml` – manueller Release mit signiertem APK; `.github/workflows/fdroid-readiness.yml` prueft F-Droid-Checks und Lizenzdoku auf PRs nur bei F-Droid-relevanten Dateiaenderungen, fuehrt Typecheck/Unit-Tests auf PRs nur dann aus, wenn `ci.yml` diese nicht abdeckt (z.B. `fdroid/**`-only PRs), und laesst Heavy-Android-Schritte nur bei relevanten Aenderungen laufen; `.github/workflows/tests.yml` ist fuer manuelle Ad-hoc-Testlaeufe vorgesehen
 
 ## Befehle
@@ -193,6 +194,7 @@ npm run test:all:ci               # Typecheck + CI-Tests (mit Coverage)
 npm run test:coverage             # Tests mit Coverage
 npx tsc --noEmit                  # TypeScript Check
 npm run fdroid:check              # F-Droid Profil-Checks
+npm run fdroid:metadata:drift     # F-Droid Metadaten-Invarianten + optionaler Driftvergleich
 npm run fdroid:android            # Android Build mit F-Droid Profil
 npm run licenses:generate         # Third-Party-Lizenzdoku generieren
 npm run licenses:check            # Third-Party-Lizenzdoku pruefen

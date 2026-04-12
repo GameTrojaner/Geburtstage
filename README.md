@@ -57,6 +57,7 @@ Beide Scripts installieren Node.js, Git, optional Android Studio, setzen Umgebun
 | `npm run test:watch` | Tests im Watch-Modus |
 | `npm run test:coverage` | Tests mit Coverage-Report |
 | `npm run fdroid:check` | Prueft F-Droid Build-Constraints (`FDROID_BUILD=1`) |
+| `npm run fdroid:metadata:drift` | Prueft F-Droid Metadaten-Invarianten; optional mit Referenzvergleich via `FDROID_METADATA_REF` oder `-- --against <path|url>` |
 | `npm run fdroid:android` | Android Build mit F-Droid Profil (`FDROID_BUILD=1`) |
 | `npm run licenses:generate` | Generiert `THIRD_PARTY_LICENSES.md` aus installierten Paketen |
 | `npm run licenses:check` | Prueft, dass `THIRD_PARTY_LICENSES.md` aktuell ist |
@@ -192,6 +193,11 @@ Optimierungen fuer schnellere PR-Feedback-Zeiten:
 - F-Droid Config-Checks ausfuehren:
    ```bash
    npm run fdroid:check
+   ```
+- F-Droid Metadaten-Invarianten und optionalen Driftvergleich ausfuehren:
+   ```bash
+   npm run fdroid:metadata:drift
+   FDROID_METADATA_REF="https://gitlab.com/fdroid/fdroiddata/-/raw/master/metadata/io.github.gametrojaner.geburtstage.yml" npm run fdroid:metadata:drift
    ```
 - F-Droid Android-Build ausfuehren:
    ```bash
