@@ -12,3 +12,38 @@ index 38959e0..f91d8f9 100644
  
    implementation 'me.leolin:ShortcutBadger:1.1.22@aar'
  
+diff --git a/node_modules/expo-notifications/local-maven-repo/host/exp/exponent/expo.modules.notifications/55.0.14/expo.modules.notifications-55.0.14.module b/node_modules/expo-notifications/local-maven-repo/host/exp/exponent/expo.modules.notifications/55.0.14/expo.modules.notifications-55.0.14.module
+index e0e524a..f8a1563 100644
+--- a/node_modules/expo-notifications/local-maven-repo/host/exp/exponent/expo.modules.notifications/55.0.14/expo.modules.notifications-55.0.14.module
++++ b/node_modules/expo-notifications/local-maven-repo/host/exp/exponent/expo.modules.notifications/55.0.14/expo.modules.notifications-55.0.14.module
+@@ -92,13 +92,6 @@
+             "requires": "1.10.2"
+           }
+         },
+-        {
+-          "group": "com.google.firebase",
+-          "module": "firebase-messaging",
+-          "version": {
+-            "requires": "25.0.1"
+-          }
+-        },
+         {
+           "group": "me.leolin",
+           "module": "ShortcutBadger",
+diff --git a/node_modules/expo-notifications/local-maven-repo/host/exp/exponent/expo.modules.notifications/55.0.14/expo.modules.notifications-55.0.14.pom b/node_modules/expo-notifications/local-maven-repo/host/exp/exponent/expo.modules.notifications/55.0.14/expo.modules.notifications-55.0.14.pom
+index 084a4d3..4fb28cd 100644
+--- a/node_modules/expo-notifications/local-maven-repo/host/exp/exponent/expo.modules.notifications/55.0.14/expo.modules.notifications-55.0.14.pom
++++ b/node_modules/expo-notifications/local-maven-repo/host/exp/exponent/expo.modules.notifications/55.0.14/expo.modules.notifications-55.0.14.pom
+@@ -79,12 +79,6 @@
+       <version>1.10.2</version>
+       <scope>runtime</scope>
+     </dependency>
+-    <dependency>
+-      <groupId>com.google.firebase</groupId>
+-      <artifactId>firebase-messaging</artifactId>
+-      <version>25.0.1</version>
+-      <scope>runtime</scope>
+-    </dependency>
+     <dependency>
+       <groupId>me.leolin</groupId>
+       <artifactId>ShortcutBadger</artifactId>

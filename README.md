@@ -193,6 +193,9 @@ Optimierungen fuer schnellere PR-Feedback-Zeiten:
    ```bash
    npm run fdroid:check
    ```
+  Der Check validiert dabei sowohl die gepatchten Gradle-Abhaengigkeiten (`compileOnly`) als auch die
+  Expo `local-maven-repo` Metadaten (`.pom`/`.module`), damit keine proprietaeren Runtime-Dependencies
+  (Firebase / Play-Services-Tasks / Install Referrer) wieder transitiv ins APK gelangen.
 - F-Droid Android-Build ausfuehren:
    ```bash
    npm run fdroid:android

@@ -165,6 +165,43 @@ for (const { file, artifact } of installedGradleChecks) {
 }
 pass('Installed expo module Gradle files use compileOnly for proprietary artifacts.');
 
+// 7c. Installed local Maven metadata must not reintroduce proprietary runtime deps.
+const localMavenMetadataChecks = [
+  {
+    file: 'node_modules/expo-notifications/local-maven-repo/host/exp/exponent/expo.modules.notifications/55.0.14/expo.modules.notifications-55.0.14.pom',
+    forbidden: [/com\.google\.firebase/, /firebase-messaging/],
+  },
+  {
+    file: 'node_modules/expo-notifications/local-maven-repo/host/exp/exponent/expo.modules.notifications/55.0.14/expo.modules.notifications-55.0.14.module',
+    forbidden: [/"group"\s*:\s*"com\.google\.firebase"/, /"module"\s*:\s*"firebase-messaging"/],
+  },
+  {
+    file: 'node_modules/expo-application/local-maven-repo/host/exp/exponent/expo.modules.application/55.0.10/expo.modules.application-55.0.10.pom',
+    forbidden: [/com\.android\.installreferrer/, /installreferrer/],
+  },
+  {
+    file: 'node_modules/expo-application/local-maven-repo/host/exp/exponent/expo.modules.application/55.0.10/expo.modules.application-55.0.10.module',
+    forbidden: [/"group"\s*:\s*"com\.android\.installreferrer"/, /"module"\s*:\s*"installreferrer"/],
+  },
+];
+
+for (const { file, forbidden } of localMavenMetadataChecks) {
+  const metadataPath = path.join(ROOT, file);
+  if (!fs.existsSync(metadataPath)) {
+    fail(
+      `Missing ${file}. Run 'npm ci --legacy-peer-deps' so local Maven metadata is present before running fdroid:check.`
+    );
+  }
+
+  const content = fs.readFileSync(metadataPath, 'utf8');
+  for (const pattern of forbidden) {
+    if (pattern.test(content)) {
+      fail(`${file} must not declare proprietary runtime dependency '${pattern.source}'.`);
+    }
+  }
+}
+pass('Installed expo module local-Maven metadata is free of proprietary runtime dependencies.');
+
 // 8. AndroidManifest.xml must not reference Firebase meta-data keys
 const manifestPath = path.join(ROOT, 'android', 'app', 'src', 'main', 'AndroidManifest.xml');
 const manifestContent = fs.readFileSync(manifestPath, 'utf8');
