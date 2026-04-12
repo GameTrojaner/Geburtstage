@@ -14,6 +14,8 @@ const defaultMetadataPath = path.join(
   'io.github.gametrojaner.geburtstage.yml'
 );
 const MAX_REDIRECTS = 10;
+const REQUEST_TIMEOUT_MS = 15000;
+const MAX_RESPONSE_BYTES = 1024 * 1024;
 
 function parseArgs(argv) {
   const options = {
@@ -41,9 +43,14 @@ function parseArgs(argv) {
 function loadUrl(url, redirectCount = 0) {
   return new Promise((resolve, reject) => {
     const parsedUrl = new URL(url);
+    if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+      reject(new Error(`Failed to fetch ${url} (unsupported protocol ${parsedUrl.protocol})`));
+      return;
+    }
+
     const getter = parsedUrl.protocol === 'https:' ? https : http;
 
-    getter
+    const request = getter
       .get(parsedUrl, (response) => {
         if (response.statusCode && response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
           if (redirectCount >= MAX_REDIRECTS) {
@@ -65,8 +72,15 @@ function loadUrl(url, redirectCount = 0) {
         }
 
         let body = '';
+        let bodySize = 0;
         response.setEncoding('utf8');
         response.on('data', (chunk) => {
+          bodySize += Buffer.byteLength(chunk);
+          if (bodySize > MAX_RESPONSE_BYTES) {
+            response.destroy(new Error(`Failed to fetch ${url} (response too large)`));
+            return;
+          }
+
           body += chunk;
         });
         response.on('end', () => {
@@ -74,6 +88,10 @@ function loadUrl(url, redirectCount = 0) {
         });
       })
       .on('error', reject);
+
+    request.setTimeout(REQUEST_TIMEOUT_MS, () => {
+      request.destroy(new Error(`Failed to fetch ${url} (timed out after ${REQUEST_TIMEOUT_MS}ms)`));
+    });
   });
 }
 
@@ -92,7 +110,8 @@ function normalize(text) {
 }
 
 function assertMetadataInvariants(content) {
-  if (content.includes('commit: HEAD')) {
+  const disallowedCommitPattern = /^(?!\s*#)\s*commit:\s*HEAD\s*(?:#.*)?$/m;
+  if (disallowedCommitPattern.test(content)) {
     throw new Error('Found disallowed commit pin: commit: HEAD');
   }
 

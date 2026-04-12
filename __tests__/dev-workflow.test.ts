@@ -105,6 +105,16 @@ describe('Developer workflow guards', () => {
 
     expect(content).toContain('const parsedUrl = new URL(url);');
     expect(content).toContain("parsedUrl.protocol === 'https:'");
+    expect(content).toContain("parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:'");
+    expect(content).toContain('REQUEST_TIMEOUT_MS = 15000');
+    expect(content).toContain('MAX_RESPONSE_BYTES = 1024 * 1024');
+  });
+
+  it('fdroid metadata drift invariant only flags actual commit HEAD lines', () => {
+    const scriptPath = path.join(repoRoot, 'scripts', 'fdroid-metadata-drift.cjs');
+    const content = fs.readFileSync(scriptPath, 'utf8');
+
+    expect(content).toContain('const disallowedCommitPattern = /^(?!\\s*#)\\s*commit:\\s*HEAD\\s*(?:#.*)?$/m;');
   });
 
   it('fdroid check scans all relevant dependency sections for forbidden packages', () => {
