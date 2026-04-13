@@ -44,7 +44,10 @@ describe('Android local notifications config', () => {
     const receiverContent = fs.readFileSync(receiverPath, 'utf8');
 
     expect(moduleContent).toContain('private const val KEY_IDS = "scheduled_ids"');
+    expect(moduleContent).toContain('private const val KEY_SCHEDULES_JSON = "scheduled_payloads_json"');
     expect(moduleContent).toContain('fun removeScheduledId(context: Context, requestCode: Int)');
+    expect(moduleContent).toContain('.remove(KEY_IDS)');
+    expect(moduleContent).toContain('.remove(KEY_SCHEDULES_JSON)');
     expect(receiverContent).toContain('LocalNotificationsNativeModule.removeScheduledId(context, notificationId)');
   });
 });

@@ -56,7 +56,11 @@ class LocalNotificationsNativeModule(reactContext: ReactApplicationContext) :
                 }
             }
 
-            prefs.edit().remove(KEY_IDS).apply()
+            prefs.edit()
+                .remove(KEY_IDS)
+                .remove(KEY_SCHEDULES_JSON)
+                .putInt(KEY_NEXT_ID, 1)
+                .apply()
             promise.resolve(null)
         } catch (e: Exception) {
             promise.reject("CANCEL_ALL_FAILED", e.message, e)
