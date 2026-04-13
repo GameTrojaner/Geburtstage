@@ -34,6 +34,7 @@ describe('Android boot reschedule config', () => {
     const receiver = fs.readFileSync(receiverPath, 'utf8');
 
     expect(receiver).toContain('setPersisted(true)');
+    expect(receiver).toContain('LocalNotificationsNativeModule.reschedulePersistedNotifications(context)');
     expect(receiver).toContain('val scheduleResult = jobScheduler.schedule(jobInfo)');
     expect(receiver).toContain('JobScheduler.RESULT_SUCCESS');
     expect(receiver).toContain('BootRescheduleState.markPending(context)');

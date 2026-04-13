@@ -17,7 +17,6 @@ Generated from installed package metadata.
 | expo-file-system | 55.0.12 | MIT | [link](https://docs.expo.dev/versions/latest/sdk/filesystem/) |
 | expo-haptics | 55.0.9 | MIT | [link](https://docs.expo.dev/versions/latest/sdk/haptics/) |
 | expo-localization | 55.0.9 | MIT | [link](https://docs.expo.dev/versions/latest/sdk/localization/) |
-| expo-notifications | 55.0.14 | MIT | [link](https://docs.expo.dev/versions/latest/sdk/notifications/) |
 | expo-sharing | 55.0.14 | MIT | [link](https://docs.expo.dev/versions/latest/sdk/sharing/) |
 | expo-sqlite | 55.0.11 | MIT | [link](https://docs.expo.dev/versions/latest/sdk/sqlite/) |
 | expo-status-bar | 55.0.4 | MIT | [link](https://docs.expo.dev/versions/latest/sdk/status-bar/) |

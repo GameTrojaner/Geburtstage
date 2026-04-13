@@ -37,6 +37,9 @@ class BootReceiver : BroadcastReceiver() {
     }
 
     private fun scheduleNotificationReschedule(context: Context) {
+        // Native alarms are cleared on reboot; replay persisted schedule payloads immediately.
+        LocalNotificationsNativeModule.reschedulePersistedNotifications(context)
+
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             // JobScheduler not available on API < 21
             BootRescheduleState.markPending(context)

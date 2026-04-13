@@ -170,8 +170,8 @@ android {
 }
 
 // F-Droid compliance: exclude proprietary Google/Firebase libraries from the final APK.
-// expo-notifications and expo-application declare these as `compileOnly` via patches,
-// so they are available at compile time but not shipped in the APK.
+// expo-application declares installreferrer as `compileOnly` via patch,
+// and notifications are implemented natively (without expo-notifications).
 // This belt-and-suspenders block catches any other transitive path that might re-introduce them.
 // Activated by passing -Pfdroid.build=true to Gradle (see `npm run fdroid:android`).
 // Conditional so that regular dev/debug builds remain unaffected.

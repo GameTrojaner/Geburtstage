@@ -10,6 +10,7 @@ class ExactAlarmPackage : ReactPackage {
         listOf(
             ExactAlarmNativeModule(reactContext),
             BootRescheduleNativeModule(reactContext),
+            LocalNotificationsNativeModule(reactContext),
         )
 
     override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> =
