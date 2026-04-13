@@ -75,5 +75,8 @@ When asked to review or address PR findings/comments:
 	- intentionally not applied (with rationale),
 	- needs more info (specific blocker/question).
 4. Do not leave processed findings without state updates and explicit comments.
+5. For each PR under review, explicitly check whether any required PR status checks are failing.
+6. If checks are failing, investigate and fix the root cause in the same task/branch, then re-run validation and push until required checks are green.
 
 Do not finish the task while known review findings remain unresolved.
+Do not finish the task while required PR checks are failing.
