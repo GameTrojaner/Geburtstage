@@ -173,7 +173,20 @@ Builds:
       - npm run fdroid:check
       - cd android && ./gradlew assembleRelease -Pfdroid.build=true
 
+  - versionName: 1.0.0-beta.13
+    versionCode: 12
+    commit: v1.0.0-beta.13
+    subdir: .
+    sudo:
+      - apt-get update
+      - apt-get install -y npm openjdk-21-jdk
+    init:
+      - npm ci --legacy-peer-deps
+    build:
+      - npm run fdroid:check
+      - cd android && ./gradlew assembleRelease -Pfdroid.build=true
+
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.0.0-beta.12
-CurrentVersionCode: 11
+CurrentVersion: 1.0.0-beta.13
+CurrentVersionCode: 12
