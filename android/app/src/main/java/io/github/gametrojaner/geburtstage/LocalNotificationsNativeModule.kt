@@ -180,6 +180,7 @@ class LocalNotificationsNativeModule(reactContext: ReactApplicationContext) :
             val existingPayloads = readSchedulesJsonArray(prefs)
             val now = System.currentTimeMillis()
             val remainingPayloads = JSONArray()
+            val remainingIds = mutableSetOf<String>()
 
             for (index in 0 until existingPayloads.length()) {
                 val item = existingPayloads.optJSONObject(index) ?: continue
@@ -210,10 +211,15 @@ class LocalNotificationsNativeModule(reactContext: ReactApplicationContext) :
                 if (pendingIntent != null) {
                     scheduleAlarm(alarmManager, triggerAt, pendingIntent)
                     remainingPayloads.put(item)
+                    remainingIds.add(id.toString())
                 }
             }
 
-            prefs.edit().putString(KEY_SCHEDULES_JSON, remainingPayloads.toString()).apply()
+            // Keep KEY_IDS and KEY_SCHEDULES_JSON in sync; remove stale IDs from dropped expired payloads
+            prefs.edit()
+                .putString(KEY_SCHEDULES_JSON, remainingPayloads.toString())
+                .putStringSet(KEY_IDS, remainingIds)
+                .apply()
         }
 
         private fun trackScheduledPayload(

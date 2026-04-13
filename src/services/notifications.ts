@@ -1,5 +1,5 @@
 import { NativeModules, PermissionsAndroid, Platform } from 'react-native';
-import { ContactBirthday, NotificationSetting, AppSettings } from '../types';
+import { ContactBirthday, NotificationSetting } from '../types';
 import { getAllNotificationSettings, getSettings } from './database';
 import { calculateNotificationDate } from '../utils/birthday';
 import i18n from '../i18n';
