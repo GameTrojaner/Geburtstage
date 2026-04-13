@@ -203,6 +203,9 @@ Optimierungen fuer schnellere PR-Feedback-Zeiten:
   Der Check validiert dabei sowohl die gepatchten Gradle-Abhaengigkeiten (`compileOnly`) als auch die
   Expo `local-maven-repo` Metadaten (`.pom`/`.module`), damit keine proprietaeren Runtime-Dependencies
   (Firebase / Play-Services-Tasks / Install Referrer) wieder transitiv ins APK gelangen.
+   Zusaetzlich entfernt `postinstall` per `scripts/strip-firebase-aar.cjs` Firebase-gekoppelte Klassen
+   und den FCM-Service aus dem `expo-notifications` AAR, damit keine Firebase-Typreferenzen im finalen
+   DEX verbleiben.
 - F-Droid Android-Build ausfuehren:
    ```bash
    npm run fdroid:android

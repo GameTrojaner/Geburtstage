@@ -91,6 +91,18 @@ if (forbiddenPkgs.length > 0) {
 }
 pass('No Firebase or GMS packages in package.json.');
 
+// 6b. postinstall must run patch-package and strip Firebase-linked classes from expo-notifications AAR.
+const postinstallScript = packageJson.scripts?.postinstall || '';
+if (!/patch-package/.test(postinstallScript)) {
+  fail("package.json scripts.postinstall must execute patch-package.");
+}
+if (!/strip-firebase-aar\.cjs/.test(postinstallScript)) {
+  fail(
+    "package.json scripts.postinstall must execute scripts/strip-firebase-aar.cjs so expo-notifications AAR is sanitized for F-Droid."
+  );
+}
+pass('postinstall runs patch-package and strips Firebase-linked expo-notifications AAR classes.');
+
 // 7. Patches must exist to exclude Firebase/GMS/installreferrer from the APK
 const requiredPatches = [
   {

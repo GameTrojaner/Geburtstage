@@ -20,7 +20,7 @@
     "fdroid:android": "FDROID_BUILD=1 npx expo run:android -- -Pfdroid.build=true",
     "licenses:generate": "node scripts/generate-third-party-licenses.cjs",
     "licenses:check": "npm run licenses:generate && git diff --exit-code THIRD_PARTY_LICENSES.md",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package && node scripts/strip-firebase-aar.cjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",

@@ -174,6 +174,7 @@ Reagiert auf: WIDGET_ADDED, WIDGET_UPDATE, WIDGET_RESIZED.
 - **react-native-worklets**: Wird von reanimated 4.x babel plugin benötigt, muss installiert sein
 - **F-Droid Profil**: `FDROID_BUILD=1` aktiviert die dedizierte Expo-Konfiguration aus `app.config.js` (OTA disabled, Notifications-Modus `local-only`); validierbar via `npm run fdroid:check`
 - **F-Droid Dependency-Hardening**: `npm run fdroid:check` prueft nicht nur `compileOnly` in den gepatchten Expo-Gradle-Files, sondern auch die Expo `local-maven-repo` Metadaten (`.pom` / `.module`), damit Firebase/Play-Services-Tasks/InstallReferrer nicht mehr transitiv als Runtime-Dependency aufgeloest werden.
+- **F-Droid AAR-Hardening**: `postinstall` fuehrt `scripts/strip-firebase-aar.cjs` aus und entfernt Firebase-gekoppelte Klassen sowie den FCM-Service aus `expo.modules.notifications-55.0.14.aar`, damit keine Firebase-Typreferenzen im finalen APK-DEX landen.
 - **F-Droid JDK**: `fdroid/metadata/io.github.gametrojaner.geburtstage.yml` nutzt `openjdk-21-jdk` fuer Konsistenz mit fdroiddata-CI
 - **Lizenz**: Projekt ist `GPL-3.0-or-later` (`LICENSE`); Metadaten in `package.json` und `fdroid/metadata/io.github.gametrojaner.geburtstage.yml` synchron halten
 - **Patentpolitik**: Contributor Non-Assertion via `PATENTS.md`; Beitragspfad in `CONTRIBUTING.md`
