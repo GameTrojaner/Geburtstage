@@ -22,7 +22,7 @@ function getNotificationsModule(): LocalNotificationsModule | null {
 }
 
 export async function requestNotificationPermission(): Promise<boolean> {
-  const Notifications = await getNotificationsModule();
+  const Notifications = getNotificationsModule();
   if (!Notifications) return false;
   try {
     const androidApiLevel = typeof Platform.Version === 'string' ? Number(Platform.Version) : Platform.Version;
@@ -33,7 +33,7 @@ export async function requestNotificationPermission(): Promise<boolean> {
       }
     }
 
-    return await Notifications.areNotificationsEnabled();
+    return Notifications.areNotificationsEnabled();
   } catch (e) {
     console.warn('Notifications not available:', e);
     return false;
@@ -41,7 +41,7 @@ export async function requestNotificationPermission(): Promise<boolean> {
 }
 
 export async function setupNotificationChannel(): Promise<void> {
-  const Notifications = await getNotificationsModule();
+  const Notifications = getNotificationsModule();
   if (!Notifications) return;
   try {
     await Notifications.setupBirthdayChannel();
@@ -77,7 +77,7 @@ export async function scheduleAllNotifications(
   contacts: ContactBirthday[],
   maxDaysAhead: number = 180,
 ): Promise<void> {
-  const Notifications = await getNotificationsModule();
+  const Notifications = getNotificationsModule();
   if (!Notifications) return;
   try {
     await Notifications.cancelAllScheduledNotifications();

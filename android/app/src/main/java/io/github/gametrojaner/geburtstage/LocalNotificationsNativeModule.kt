@@ -12,6 +12,8 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
+import org.json.JSONArray
+import org.json.JSONObject
 
 class LocalNotificationsNativeModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
@@ -96,12 +98,13 @@ class LocalNotificationsNativeModule(reactContext: ReactApplicationContext) :
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && alarmManager.canScheduleExactAlarms()) {
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
             } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
             } else {
                 alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
             }
 
             trackScheduledId(context, requestCode)
+            trackScheduledPayload(context, requestCode, triggerAt, title, body, contactId)
             promise.resolve(requestCode)
         } catch (e: Exception) {
             promise.reject("SCHEDULE_FAILED", e.message, e)
@@ -147,12 +150,144 @@ class LocalNotificationsNativeModule(reactContext: ReactApplicationContext) :
         private const val PREFS_NAME = "local_notifications"
         private const val KEY_IDS = "scheduled_ids"
         private const val KEY_NEXT_ID = "next_id"
+        private const val KEY_SCHEDULES_JSON = "scheduled_payloads_json"
 
         fun removeScheduledId(context: Context, requestCode: Int) {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             val ids = prefs.getStringSet(KEY_IDS, emptySet())?.toMutableSet() ?: mutableSetOf()
             if (ids.remove(requestCode.toString())) {
                 prefs.edit().putStringSet(KEY_IDS, ids).apply()
+            }
+
+            val existingPayloads = readSchedulesJsonArray(prefs)
+            val updatedPayloads = JSONArray()
+            for (index in 0 until existingPayloads.length()) {
+                val item = existingPayloads.optJSONObject(index) ?: continue
+                if (item.optInt("id", -1) != requestCode) {
+                    updatedPayloads.put(item)
+                }
+            }
+            prefs.edit().putString(KEY_SCHEDULES_JSON, updatedPayloads.toString()).apply()
+        }
+
+        fun reschedulePersistedNotifications(context: Context) {
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val existingPayloads = readSchedulesJsonArray(prefs)
+            val now = System.currentTimeMillis()
+            val remainingPayloads = JSONArray()
+
+            for (index in 0 until existingPayloads.length()) {
+                val item = existingPayloads.optJSONObject(index) ?: continue
+
+                val id = item.optInt("id", -1)
+                val triggerAt = item.optLong("triggerAt", -1L)
+                val title = item.optString("title", "")
+                val body = item.optString("body", "")
+                val contactId = if (item.has("contactId") && !item.isNull("contactId")) {
+                    item.optString("contactId").takeIf { it.isNotBlank() }
+                } else {
+                    null
+                }
+
+                if (id <= 0 || triggerAt <= now) {
+                    continue
+                }
+
+                val pendingIntent =
+                    buildPendingIntentStatic(
+                        context,
+                        id,
+                        title,
+                        body,
+                        contactId,
+                        PendingIntent.FLAG_UPDATE_CURRENT,
+                    )
+                if (pendingIntent != null) {
+                    scheduleAlarm(alarmManager, triggerAt, pendingIntent)
+                    remainingPayloads.put(item)
+                }
+            }
+
+            prefs.edit().putString(KEY_SCHEDULES_JSON, remainingPayloads.toString()).apply()
+        }
+
+        private fun trackScheduledPayload(
+            context: Context,
+            requestCode: Int,
+            triggerAt: Long,
+            title: String,
+            body: String,
+            contactId: String?,
+        ) {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val existingPayloads = readSchedulesJsonArray(prefs)
+            val updatedPayloads = JSONArray()
+
+            for (index in 0 until existingPayloads.length()) {
+                val item = existingPayloads.optJSONObject(index) ?: continue
+                if (item.optInt("id", -1) != requestCode) {
+                    updatedPayloads.put(item)
+                }
+            }
+
+            val payload = JSONObject().apply {
+                put("id", requestCode)
+                put("triggerAt", triggerAt)
+                put("title", title)
+                put("body", body)
+                if (contactId == null) {
+                    put("contactId", JSONObject.NULL)
+                } else {
+                    put("contactId", contactId)
+                }
+            }
+            updatedPayloads.put(payload)
+
+            prefs.edit().putString(KEY_SCHEDULES_JSON, updatedPayloads.toString()).apply()
+        }
+
+        private fun readSchedulesJsonArray(prefs: android.content.SharedPreferences): JSONArray {
+            val raw = prefs.getString(KEY_SCHEDULES_JSON, null)
+            if (raw.isNullOrBlank()) return JSONArray()
+            return try {
+                JSONArray(raw)
+            } catch (_: Exception) {
+                JSONArray()
+            }
+        }
+
+        private fun buildPendingIntentStatic(
+            context: Context,
+            requestCode: Int,
+            title: String?,
+            body: String?,
+            contactId: String?,
+            flags: Int,
+        ): PendingIntent? {
+            val intent =
+                Intent(context, BirthdayNotificationReceiver::class.java).apply {
+                    putExtra(BirthdayNotificationReceiver.EXTRA_NOTIFICATION_ID, requestCode)
+                    if (title != null) putExtra(BirthdayNotificationReceiver.EXTRA_TITLE, title)
+                    if (body != null) putExtra(BirthdayNotificationReceiver.EXTRA_BODY, body)
+                    if (contactId != null) putExtra(BirthdayNotificationReceiver.EXTRA_CONTACT_ID, contactId)
+                }
+
+            val pendingFlags = flags or PendingIntent.FLAG_IMMUTABLE
+            return PendingIntent.getBroadcast(context, requestCode, intent, pendingFlags)
+        }
+
+        private fun scheduleAlarm(alarmManager: AlarmManager, triggerAt: Long, pendingIntent: PendingIntent) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (alarmManager.canScheduleExactAlarms()) {
+                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
+                } else {
+                    alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
+            } else {
+                alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
             }
         }
 
