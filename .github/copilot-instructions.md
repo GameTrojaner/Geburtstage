@@ -63,4 +63,17 @@ At the end of every implementation task (before handoff/merge), perform this wor
 	- reviewer checklist,
 	- rollback plan.
 
+## PR findings workflow (mandatory)
+
+When asked to review or address PR findings/comments:
+
+1. Process findings one by one and keep a clear decision for each finding.
+2. For each finding, set the PR/discussion state appropriately (e.g., resolve when fixed, keep open when pending, mark as not planned when intentionally rejected).
+3. For each finding, add a short follow-up comment documenting what was done:
+	- fixed (with commit/reference),
+	- not reproducible (with evidence),
+	- intentionally not applied (with rationale),
+	- needs more info (specific blocker/question).
+4. Do not leave processed findings without state updates and explicit comments.
+
 Do not finish the task while known review findings remain unresolved.
