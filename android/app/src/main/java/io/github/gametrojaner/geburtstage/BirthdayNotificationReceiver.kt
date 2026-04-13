@@ -23,6 +23,7 @@ class BirthdayNotificationReceiver : BroadcastReceiver() {
         LocalNotificationsNativeModule.ensureBirthdayChannel(context)
 
         val notificationId = intent.getIntExtra(EXTRA_NOTIFICATION_ID, 0)
+        LocalNotificationsNativeModule.removeScheduledId(context, notificationId)
         val title = intent.getStringExtra(EXTRA_TITLE) ?: context.getString(R.string.app_name)
         val body = intent.getStringExtra(EXTRA_BODY) ?: ""
 

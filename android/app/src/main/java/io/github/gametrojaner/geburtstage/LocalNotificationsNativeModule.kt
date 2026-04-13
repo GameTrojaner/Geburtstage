@@ -148,6 +148,14 @@ class LocalNotificationsNativeModule(reactContext: ReactApplicationContext) :
         private const val KEY_IDS = "scheduled_ids"
         private const val KEY_NEXT_ID = "next_id"
 
+        fun removeScheduledId(context: Context, requestCode: Int) {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val ids = prefs.getStringSet(KEY_IDS, emptySet())?.toMutableSet() ?: mutableSetOf()
+            if (ids.remove(requestCode.toString())) {
+                prefs.edit().putStringSet(KEY_IDS, ids).apply()
+            }
+        }
+
         fun ensureBirthdayChannel(context: Context) {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
 
