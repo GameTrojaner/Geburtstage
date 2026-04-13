@@ -11,6 +11,7 @@ Generated from installed package metadata.
 | @react-navigation/native | 7.2.1 | MIT | [link](https://reactnavigation.org) |
 | @react-navigation/native-stack | 7.14.9 | MIT | [link](https://github.com/software-mansion/react-native-screens#readme) |
 | expo | 55.0.9 | MIT | [link](https://github.com/expo/expo/tree/main/packages/expo) |
+| expo-application | 55.0.10 | MIT | [link](https://docs.expo.dev/versions/latest/sdk/application/) |
 | expo-contacts | 55.0.9 | MIT | [link](https://docs.expo.dev/versions/latest/sdk/contacts/) |
 | expo-document-picker | 55.0.9 | MIT | [link](https://docs.expo.dev/versions/latest/sdk/document-picker/) |
 | expo-file-system | 55.0.12 | MIT | [link](https://docs.expo.dev/versions/latest/sdk/filesystem/) |
