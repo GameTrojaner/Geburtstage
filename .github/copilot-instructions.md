@@ -47,3 +47,20 @@ If any command fails:
 2. Apply a fix.
 3. Re-run typecheck and tests.
 4. Repeat until green.
+
+## End-of-implementation workflow (mandatory)
+
+At the end of every implementation task (before handoff/merge), perform this workflow:
+
+1. Run a self-review of the full diff and identify concrete risks/regressions.
+2. Fix all issues found during self-review in the same branch/task.
+3. Re-run validation commands (`npm run test:typecheck`, `npm test -- --runInBand`, and Android checks when relevant).
+4. Update docs/tests as needed for any additional fix from self-review.
+5. Post or prepare a concise PR review template including:
+	- scope summary,
+	- risk level,
+	- validation run,
+	- reviewer checklist,
+	- rollback plan.
+
+Do not finish the task while known review findings remain unresolved.
