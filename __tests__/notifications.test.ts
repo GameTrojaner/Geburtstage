@@ -129,4 +129,17 @@ describe('notifications service helpers', () => {
     expect(typeof body).toBe('string');
     expect(contactId).toBe('c1');
   });
+
+  it('returns false on iOS where native LocalNotifications module is not available', async () => {
+    const rn = require('react-native');
+    const originalOs = rn.Platform.OS;
+    rn.Platform.OS = 'ios';
+
+    try {
+      const granted = await requestNotificationPermission();
+      expect(granted).toBe(false);
+    } finally {
+      rn.Platform.OS = originalOs;
+    }
+  });
 });

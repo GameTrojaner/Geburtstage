@@ -17,6 +17,7 @@ type LocalNotificationsModule = {
 };
 
 function getNotificationsModule(): LocalNotificationsModule | null {
+  // Native LocalNotifications module exists only on Android in this architecture.
   if (Platform.OS !== 'android') return null;
   return (NativeModules.LocalNotifications as LocalNotificationsModule | undefined) ?? null;
 }

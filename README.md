@@ -305,3 +305,5 @@ Geburtstage/
 | Gesten | react-native-gesture-handler (Swipe-to-Hide, Kalender-Swipe) |
 | Animationen | react-native-reanimated 4 |
 | Tests | Jest 29 + Testing Library |
+
+Hinweis: Die native Reminder-Implementierung ist aktuell Android-spezifisch. Unter iOS sind lokale Erinnerungen in diesem Stand nicht aktiv.

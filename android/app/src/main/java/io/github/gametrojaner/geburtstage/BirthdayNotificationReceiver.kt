@@ -49,6 +49,7 @@ class BirthdayNotificationReceiver : BroadcastReceiver() {
         val notification =
             NotificationCompat.Builder(context, LocalNotificationsNativeModule.CHANNEL_ID)
                 .setSmallIcon(R.drawable.notification_icon)
+                .setColor(ContextCompat.getColor(context, R.color.notification_icon_color))
                 .setContentTitle(title)
                 .setContentText(body)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)

@@ -20,6 +20,7 @@ Unterstützt Notifications, Kalenderansicht, Favoriten, Homescreen-Widgets, Expo
 - **expo-sqlite** (lokale Datenbank für Settings, Favoriten, Pinned, Hidden, Notification-Settings)
 - **expo-contacts** (Lesen/Schreiben von Kontakten und Geburtstagen)
 - **Native Android Notifications** (AlarmManager + NotificationManager fuer lokale Geburtstags-Erinnerungen)
+- **iOS Notification-Status**: Lokale Erinnerungen sind in der nativen Migration derzeit Android-only; iOS-Reminder sind aktuell deaktiviert.
 - **react-native-gesture-handler** (Swipe-to-Hide, Kalender-Monatswechsel)
 - **react-native-calendars** (Monatsansicht mit Multi-Dot-Markierungen, enableSwipeMonths)
 - **i18next + react-i18next** (DE + EN, ~120 Keys pro Sprache)
