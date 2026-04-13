@@ -19,7 +19,7 @@ Unterstützt Notifications, Kalenderansicht, Favoriten, Homescreen-Widgets, Expo
 - **Zustand 5** (globaler State)
 - **expo-sqlite** (lokale Datenbank für Settings, Favoriten, Pinned, Hidden, Notification-Settings)
 - **expo-contacts** (Lesen/Schreiben von Kontakten und Geburtstagen)
-- **expo-notifications** (Geburtstags-Erinnerungen mit konfigurierbaren Offsets)
+- **Native Android Notifications** (AlarmManager + NotificationManager fuer lokale Geburtstags-Erinnerungen)
 - **react-native-gesture-handler** (Swipe-to-Hide, Kalender-Monatswechsel)
 - **react-native-calendars** (Monatsansicht mit Multi-Dot-Markierungen, enableSwipeMonths)
 - **i18next + react-i18next** (DE + EN, ~120 Keys pro Sprache)
@@ -33,7 +33,7 @@ Unterstützt Notifications, Kalenderansicht, Favoriten, Homescreen-Widgets, Expo
 E:\Dev\Geburtstage\
 ├── App.tsx                          # Root: GestureHandlerRootView, PaperProvider, NavigationContainer, i18n init, Theme
 ├── index.ts                         # registerRootComponent + registerWidgetTaskHandler
-├── app.json                         # Expo-Config mit Plugins (contacts, notifications, android-widget)
+├── app.json                         # Expo-Config mit Plugins (contacts, android-widget)
 ├── babel.config.js                  # babel-preset-expo + react-native-reanimated/plugin
 ├── jest.config.js                   # babel-jest (kein jest-expo preset), testEnvironment: node
 ├── tsconfig.json                    # extends expo/tsconfig.base, strict: true
@@ -57,7 +57,7 @@ E:\Dev\Geburtstage\
 │   │   ├── contacts.ts              # expo-contacts wrapper, 0-indexed month conversion, RawImage+Image fetch,
 │   │   │                            #   createContactWithBirthday()
 │   │   ├── contacts.web.ts          # Web-Stub: gibt leere Daten zurück
-│   │   ├── notifications.ts         # Lazy import via expo-constants (skips in Expo Go)
+│   │   ├── notifications.ts         # Native Android scheduling via LocalNotifications module
 │   │   │                            #   scheduleAllNotifications: cancels all, re-schedules per contact
 │   │   └── notifications.web.ts     # Web-Stub: No-op
 │   ├── store/index.ts               # Zustand store mit:
@@ -146,7 +146,7 @@ Reagiert auf: WIDGET_ADDED, WIDGET_UPDATE, WIDGET_RESIZED.
 - **npm install** muss mit `--legacy-peer-deps` ausgeführt werden (React 19 Peer-Dep-Konflikte)
 - **react-dom** muss exakt die gleiche Version wie `react` haben (beide 19.2.0), sonst weiße Seite im Browser
 - **Expo Go** kann nicht alles: Kontakte schreiben, Notifications, Widgets brauchen `npx expo run:android`
-- **Expo Go + Notifications**: Seit SDK 53 wurden Push-Notifications aus Expo Go entfernt. Die App erkennt Expo Go via `expo-constants` (ExecutionEnvironment.StoreClient) und überspringt den Import von expo-notifications komplett.
+- **Notifications (Android nativ)**: Lokale Erinnerungen laufen ohne `expo-notifications` ueber `AlarmManager` und den nativen `BirthdayNotificationReceiver`.
 - **GestureHandlerRootView**: Umschließt die gesamte App in App.tsx — nötig für Swipeable (Kontakte ausblenden) und Kalender-Swipe.
 - **Kontakte ausblenden**: Swipe nach links in ContactsScreen und HomeScreen → Snackbar mit Undo. Ausgeblendete werden überall gefiltert (Home, Kalender, Kontakte). Wiederherstellen über eigenen Bildschirm: Einstellungen → „Ausgeblendete Kontakte" (HiddenContactsScreen).
 - **Vergangen-Gruppe**: Geburtstage die in diesem Jahr schon vorbei sind, erscheinen am Ende der HomeScreen-Liste in der Gruppe „Vergangen".
@@ -173,8 +173,8 @@ Reagiert auf: WIDGET_ADDED, WIDGET_UPDATE, WIDGET_RESIZED.
 - **jest.config.js**: Nutzt `babel-jest` direkt (nicht jest-expo preset) wegen Kompatibilität mit Expo SDK 55
 - **react-native-worklets**: Wird von reanimated 4.x babel plugin benötigt, muss installiert sein
 - **F-Droid Profil**: `FDROID_BUILD=1` aktiviert die dedizierte Expo-Konfiguration aus `app.config.js` (OTA disabled, Notifications-Modus `local-only`); validierbar via `npm run fdroid:check`
-- **F-Droid Dependency-Hardening**: `npm run fdroid:check` prueft nicht nur `compileOnly` in den gepatchten Expo-Gradle-Files, sondern auch die Expo `local-maven-repo` Metadaten (`.pom` / `.module`), damit Firebase/Play-Services-Tasks/InstallReferrer nicht mehr transitiv als Runtime-Dependency aufgeloest werden.
-- **F-Droid AAR-Hardening**: `postinstall` fuehrt `scripts/strip-firebase-aar.cjs` aus und entfernt Firebase-gekoppelte Klassen sowie den FCM-Service aus `expo.modules.notifications-55.0.14.aar`, damit keine Firebase-Typreferenzen im finalen APK-DEX landen.
+- **F-Droid Dependency-Hardening**: `npm run fdroid:check` prueft `compileOnly` fuer `expo-application` sowie die zugehoerigen Expo `local-maven-repo` Metadaten (`.pom` / `.module`), damit `installreferrer` nicht transitiv als Runtime-Dependency aufgeloest wird.
+- **F-Droid Notifications-Hardening**: `expo-notifications` wurde entfernt; lokale Android-Benachrichtigungen laufen nativ ueber `LocalNotificationsNativeModule` + `BirthdayNotificationReceiver`.
 - **F-Droid JDK**: `fdroid/metadata/io.github.gametrojaner.geburtstage.yml` nutzt `openjdk-21-jdk` fuer Konsistenz mit fdroiddata-CI
 - **Lizenz**: Projekt ist `GPL-3.0-or-later` (`LICENSE`); Metadaten in `package.json` und `fdroid/metadata/io.github.gametrojaner.geburtstage.yml` synchron halten
 - **Patentpolitik**: Contributor Non-Assertion via `PATENTS.md`; Beitragspfad in `CONTRIBUTING.md`

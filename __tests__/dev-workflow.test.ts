@@ -42,7 +42,8 @@ describe('Developer workflow guards', () => {
     expect(appConfig).toContain("notificationsMode: 'local-only'");
     expect(appConfig).toContain('enabled: false');
 
-    expect(appJson).toContain('expo-notifications');
+    expect(appJson).not.toContain('expo-notifications');
+    expect(appJson).toContain('react-native-android-widget');
     expect(appJson).toContain('android.permission.POST_NOTIFICATIONS');
 
     const packageJsonPath = path.join(repoRoot, 'package.json');
@@ -141,37 +142,25 @@ describe('Developer workflow guards', () => {
     const fdroidCheckPath = path.join(repoRoot, 'scripts', 'fdroid-check.cjs');
     const content = fs.readFileSync(fdroidCheckPath, 'utf8');
 
-    expect(content).toContain('node_modules/expo-notifications/android/build.gradle');
     expect(content).toContain('node_modules/expo-application/android/build.gradle');
-    expect(content).toContain('expo.modules.notifications-55.0.14.pom');
-    expect(content).toContain('expo.modules.notifications-55.0.14.module');
     expect(content).toContain('expo.modules.application-55.0.10.pom');
     expect(content).toContain('expo.modules.application-55.0.10.module');
-    expect(content).toContain('com\\.google\\.android\\.gms');
-    expect(content).toContain('play-services-tasks');
-    expect(content).toContain('strip-firebase-aar.cjs');
-    expect(content).toContain('compileOnlyRegex');
-    expect(content).toContain('implementationRegex');
-    expect(content).toContain('local-Maven metadata is free of proprietary runtime dependencies');
+    expect(content).toContain('expo-notifications');
+    expect(content).toContain('postinstall runs patch-package.');
+    expect(content).toContain('compileOnly');
+    expect(content).toContain('implementation');
+    expect(content).toContain('BirthdayNotificationReceiver');
     expect(content).toContain("checkAutomatically must be 'NEVER'");
     expect(content).toContain('fallbackToCacheTimeout must be 0');
   });
 
-  it('postinstall and strip script enforce firebase class stripping in expo-notifications AAR', () => {
+  it('postinstall keeps patch-package only and package.json removes expo-notifications dependency', () => {
     const packageJsonPath = path.join(repoRoot, 'package.json');
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 
     expect(packageJson.scripts?.postinstall).toContain('patch-package');
-    expect(packageJson.scripts?.postinstall).toContain('strip-firebase-aar.cjs');
-
-    const stripScriptPath = path.join(repoRoot, 'scripts', 'strip-firebase-aar.cjs');
-    const stripScript = fs.readFileSync(stripScriptPath, 'utf8');
-
-    expect(stripScript).toContain('expo.modules.notifications-55.0.14.aar');
-    expect(stripScript).toContain('ExpoFirebaseMessagingService.class');
-    expect(stripScript).toContain('FirebaseMessagingDelegate.class');
-    expect(stripScript).toContain('FirebaseNotificationTrigger.class');
-    expect(stripScript).toContain('com\\.google\\.firebase\\.MESSAGING_EVENT');
+    expect(packageJson.scripts?.postinstall).not.toContain('strip-firebase-aar.cjs');
+    expect(packageJson.dependencies?.['expo-notifications']).toBeUndefined();
   });
 
   it('fdroid check rejects proprietary google services gradle plugins', () => {

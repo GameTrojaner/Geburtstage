@@ -11,10 +11,10 @@ Status: implemented in repository
 ## 2) Remove notification-specific Android permission/plugin for F-Droid build
 - Requirement: keep notifications F-Droid-compatible and local-only (no remote push backend).
 - Implemented:
-  - Keeps `expo-notifications` plugin enabled.
   - Keeps `android.permission.POST_NOTIFICATIONS` for Android 13+ local notifications.
   - Declares `expo.extra.notificationsMode='local-only'`.
-  - `fdroid:check` validates that notifications code does not use Expo push token APIs.
+  - `src/services/notifications.ts` uses native Android module `LocalNotifications` (no `expo-notifications`).
+  - `fdroid:check` validates that notifications code does not use Expo push token APIs or `expo-notifications` imports.
 
 ## 3) Runtime behavior must match F-Droid profile
 - Requirement: app should use local scheduled notifications only.
@@ -23,15 +23,13 @@ Status: implemented in repository
 
 ## 4) No proprietary Google/Firebase dependencies in the APK
 - Requirement: F-Droid prohibits proprietary libraries (Firebase, GMS, installreferrer).
-- Root cause: `expo-notifications` depends on `com.google.firebase:firebase-messaging` and
-  `expo-application` depends on `com.android.installreferrer` as Gradle `implementation` deps.
+- Root cause: `expo-application` depends on `com.android.installreferrer` as Gradle `implementation` dependency.
 - Implemented:
-  - `patches/expo-notifications+55.0.14.patch` downgrades Firebase from `implementation` → `compileOnly`
-    so it is available at compile time but not packaged into the APK.
   - `patches/expo-application+55.0.10.patch` does the same for `installreferrer`.
   - `android/app/build.gradle` adds `if (findProperty('fdroid.build') == 'true') { configurations.configureEach { exclude ... } }`
     for `com.google.firebase`, `com.google.android.gms`, and `com.android.installreferrer` as belt-and-suspenders.
-  - `android/app/src/main/AndroidManifest.xml` has Firebase meta-data entries removed.
+  - `expo-notifications` is removed entirely and replaced by native Android local notifications.
+  - `android/app/src/main/AndroidManifest.xml` has no Firebase references and registers `BirthdayNotificationReceiver`.
   - `fdroid:check` validates that patches exist, AndroidManifest is clean, and build.gradle
     contains the exclude rules.
 

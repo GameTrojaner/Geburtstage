@@ -201,11 +201,10 @@ Optimierungen fuer schnellere PR-Feedback-Zeiten:
    FDROID_METADATA_REF="https://gitlab.com/fdroid/fdroiddata/-/raw/master/metadata/io.github.gametrojaner.geburtstage.yml" npm run fdroid:metadata:drift
    ```
   Der Check validiert dabei sowohl die gepatchten Gradle-Abhaengigkeiten (`compileOnly`) als auch die
-  Expo `local-maven-repo` Metadaten (`.pom`/`.module`), damit keine proprietaeren Runtime-Dependencies
-  (Firebase / Play-Services-Tasks / Install Referrer) wieder transitiv ins APK gelangen.
-   Zusaetzlich entfernt `postinstall` per `scripts/strip-firebase-aar.cjs` Firebase-gekoppelte Klassen
-   und den FCM-Service aus dem `expo-notifications` AAR, damit keine Firebase-Typreferenzen im finalen
-   DEX verbleiben.
+   Expo `local-maven-repo` Metadaten (`.pom`/`.module`) fuer `expo-application`, damit keine
+   proprietaeren Runtime-Dependencies (Install Referrer) transitiv ins APK gelangen.
+   Benachrichtigungen laufen nativ auf Android ueber `AlarmManager` + `BirthdayNotificationReceiver`
+   (ohne `expo-notifications`).
 - F-Droid Android-Build ausfuehren:
    ```bash
    npm run fdroid:android
@@ -299,7 +298,7 @@ Geburtstage/
 | State | Zustand 5 |
 | Datenbank | expo-sqlite (lokal) |
 | Kontakte | expo-contacts |
-| Notifications | expo-notifications |
+| Notifications | Native Android (AlarmManager + NotificationManager) |
 | Kalender | react-native-calendars |
 | i18n | i18next + react-i18next (DE/EN) |
 | Widgets | react-native-android-widget |

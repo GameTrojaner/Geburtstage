@@ -19,13 +19,6 @@
         }
       ],
       [
-        "expo-notifications",
-        {
-          "icon": "./assets/notification-icon.png",
-          "color": "#00897B"
-        }
-      ],
-      [
         "react-native-android-widget",
         {
           "widgets": [

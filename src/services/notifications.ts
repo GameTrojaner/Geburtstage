@@ -1,29 +1,39 @@
-import Constants, { ExecutionEnvironment } from 'expo-constants';
+import { NativeModules, PermissionsAndroid, Platform } from 'react-native';
 import { ContactBirthday, NotificationSetting, AppSettings } from '../types';
 import { getAllNotificationSettings, getSettings } from './database';
 import { calculateNotificationDate } from '../utils/birthday';
 import i18n from '../i18n';
 
-const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+type LocalNotificationsModule = {
+  areNotificationsEnabled: () => Promise<boolean>;
+  setupBirthdayChannel: () => Promise<void>;
+  cancelAllScheduledNotifications: () => Promise<void>;
+  scheduleNotificationAt: (
+    timestampMs: number,
+    title: string,
+    body: string,
+    contactId: string | null,
+  ) => Promise<number>;
+};
 
-// Lazy import – completely skip in Expo Go (notifications removed since SDK 53)
-async function getNotificationsModule() {
-  if (isExpoGo) return null;
-  try {
-    const mod = await import('expo-notifications');
-    if (typeof mod.requestPermissionsAsync !== 'function') return null;
-    return mod;
-  } catch {
-    return null;
-  }
+function getNotificationsModule(): LocalNotificationsModule | null {
+  if (Platform.OS !== 'android') return null;
+  return (NativeModules.LocalNotifications as LocalNotificationsModule | undefined) ?? null;
 }
 
 export async function requestNotificationPermission(): Promise<boolean> {
   const Notifications = await getNotificationsModule();
   if (!Notifications) return false;
   try {
-    const { status } = await Notifications.requestPermissionsAsync();
-    return status === 'granted';
+    const androidApiLevel = typeof Platform.Version === 'string' ? Number(Platform.Version) : Platform.Version;
+    if (androidApiLevel >= 33) {
+      const result = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+      if (result !== PermissionsAndroid.RESULTS.GRANTED) {
+        return false;
+      }
+    }
+
+    return await Notifications.areNotificationsEnabled();
   } catch (e) {
     console.warn('Notifications not available:', e);
     return false;
@@ -34,11 +44,7 @@ export async function setupNotificationChannel(): Promise<void> {
   const Notifications = await getNotificationsModule();
   if (!Notifications) return;
   try {
-    await Notifications.setNotificationChannelAsync('birthdays', {
-      name: 'Birthdays',
-      importance: Notifications.AndroidImportance.HIGH,
-      vibrationPattern: [0, 250, 250, 250],
-    });
+    await Notifications.setupBirthdayChannel();
   } catch (e) {
     console.warn('Notification channel not available:', e);
   }
@@ -74,7 +80,7 @@ export async function scheduleAllNotifications(
   const Notifications = await getNotificationsModule();
   if (!Notifications) return;
   try {
-    await Notifications.cancelAllScheduledNotificationsAsync();
+    await Notifications.cancelAllScheduledNotifications();
   } catch (e) {
     console.warn('Notifications not available:', e);
     return;
@@ -145,18 +151,12 @@ export async function scheduleAllNotifications(
       }
 
       try {
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: i18n.t('notification.title'),
-            body,
-            data: { contactId: contact.contactId },
-          },
-          trigger: {
-            type: Notifications.SchedulableTriggerInputTypes.DATE,
-            date: notifDate,
-            channelId: 'birthdays',
-          },
-        });
+        await Notifications.scheduleNotificationAt(
+          notifDate.getTime(),
+          i18n.t('notification.title'),
+          body,
+          contact.contactId,
+        );
         scheduledCount++;
       } catch (e) {
         console.error(`Failed to schedule notification for ${contact.name}:`, e);

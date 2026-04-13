@@ -20,7 +20,7 @@
     "fdroid:android": "FDROID_BUILD=1 npx expo run:android -- -Pfdroid.build=true",
     "licenses:generate": "node scripts/generate-third-party-licenses.cjs",
     "licenses:check": "npm run licenses:generate && git diff --exit-code THIRD_PARTY_LICENSES.md",
-    "postinstall": "patch-package && node scripts/strip-firebase-aar.cjs"
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
@@ -34,7 +34,6 @@
     "expo-file-system": "~55.0.12",
     "expo-haptics": "~55.0.9",
     "expo-localization": "~55.0.9",
-    "expo-notifications": "~55.0.14",
     "expo-sharing": "~55.0.14",
     "expo-sqlite": "~55.0.11",
     "expo-status-bar": "~55.0.4",
