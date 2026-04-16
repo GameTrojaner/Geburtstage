@@ -1,4 +1,5 @@
 import * as Contacts from 'expo-contacts';
+import { PermissionsAndroid, Platform } from 'react-native';
 import { ContactBirthday } from '../types';
 
 const contactsNeedingNativeEditor = new Set<string>();
@@ -9,13 +10,23 @@ export function shouldUseNativeEditorForContact(contactId: string): boolean {
 }
 
 export async function requestContactsPermission(): Promise<boolean> {
-  const { status } = await Contacts.requestPermissionsAsync();
-  return status === 'granted';
+  if (Platform.OS === 'android') {
+    const result = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_CONTACTS);
+    return result === PermissionsAndroid.RESULTS.GRANTED;
+  } else {
+    const { status } = await Contacts.requestPermissionsAsync();
+    return status === 'granted';
+  }
 }
 
 export async function checkContactsPermission(): Promise<boolean> {
-  const { status } = await Contacts.getPermissionsAsync();
-  return status === 'granted';
+  if (Platform.OS === 'android') {
+    const result = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_CONTACTS);
+    return result;
+  } else {
+    const { status } = await Contacts.getPermissionsAsync();
+    return status === 'granted';
+  }
 }
 
 export async function getAllContacts(): Promise<ContactBirthday[]> {

@@ -27,7 +27,7 @@ export async function requestNotificationPermission(): Promise<boolean> {
   if (!Notifications) return false;
   try {
     const androidApiLevel = typeof Platform.Version === 'string' ? Number(Platform.Version) : Platform.Version;
-    if (androidApiLevel >= 33) {
+    if (Platform.OS === 'android') {
       const result = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
       if (result !== PermissionsAndroid.RESULTS.GRANTED) {
         return false;

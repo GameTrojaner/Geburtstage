@@ -129,7 +129,11 @@ android {
         release {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.release
+            if (findProperty('fdroid.build') == 'true') {
+                signingConfig null
+            } else {
+                signingConfig signingConfigs.release
+            }
             def enableShrinkResources = findProperty('android.enableShrinkResourcesInReleaseBuilds') ?: 'false'
             shrinkResources enableShrinkResources.toBoolean()
             minifyEnabled enableMinifyInReleaseBuilds
@@ -146,6 +150,16 @@ android {
     }
     androidResources {
         ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
+    }
+}
+
+if (findProperty('fdroid.build') == 'true') {
+    android.applicationVariants.all { variant ->
+        if (variant.buildType.name == 'release') {
+            variant.outputs.all {
+                outputFileName = 'app-release-unsigned.apk'
+            }
+        }
     }
 }
 

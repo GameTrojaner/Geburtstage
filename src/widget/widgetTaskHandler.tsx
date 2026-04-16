@@ -52,12 +52,7 @@ function bytesToBase64(bytes: Uint8Array): string {
 
 async function loadWidgetData(maxEntries: number): Promise<{ birthdays: BirthdayItem[]; favoriteBirthdays: BirthdayItem[] }> {
   try {
-    const { status } = await Contacts.getPermissionsAsync();
-    if (status !== 'granted') {
-      return { birthdays: [], favoriteBirthdays: [] };
-    }
-
-    // Load contacts
+    // Try to load contacts, if permission denied, it will throw
     const { data } = await Contacts.getContactsAsync({
       fields: [
         Contacts.Fields.Name,
