@@ -6,6 +6,7 @@ import { File } from 'expo-file-system';
 import * as LegacyFileSystem from 'expo-file-system/legacy';
 import { getDaysUntilBirthday, getUpcomingAge, formatBirthday } from '../utils/birthday';
 import { getCachedPhotoUri } from '../services/photoCache';
+import { checkContactsPermission } from '../services/contacts';
 import { getFavorites } from '../services/database';
 import { resolveWidgetPreferences } from './preferences';
 
@@ -52,12 +53,9 @@ function bytesToBase64(bytes: Uint8Array): string {
 
 async function loadWidgetData(maxEntries: number): Promise<{ birthdays: BirthdayItem[]; favoriteBirthdays: BirthdayItem[] }> {
   try {
-    const { status } = await Contacts.getPermissionsAsync();
-    if (status !== 'granted') {
+    if (!(await checkContactsPermission())) {
       return { birthdays: [], favoriteBirthdays: [] };
     }
-
-    // Load contacts
     const { data } = await Contacts.getContactsAsync({
       fields: [
         Contacts.Fields.Name,

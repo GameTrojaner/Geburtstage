@@ -7,6 +7,8 @@ import {
   openNativeContactEditor,
   openNativeEditorAndReloadContact,
   shouldUseNativeEditorForContact,
+  requestContactsPermission,
+  checkContactsPermission,
 } from '../src/services/contacts';
 
 // Mock expo-contacts
@@ -551,6 +553,44 @@ describe('Contact Services', () => {
 
       expect(result).toBeNull();
       expect(Contacts.getContactByIdAsync).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('requestContactsPermission', () => {
+    it('returns true when Expo Contacts grants permission', async () => {
+      (Contacts.requestPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'granted' });
+
+      const result = await requestContactsPermission();
+
+      expect(result).toBe(true);
+      expect(Contacts.requestPermissionsAsync).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns false when Expo Contacts denies permission', async () => {
+      (Contacts.requestPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'denied' });
+
+      const result = await requestContactsPermission();
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('checkContactsPermission', () => {
+    it('returns true when permission is already granted', async () => {
+      (Contacts.getPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'granted' });
+
+      const result = await checkContactsPermission();
+
+      expect(result).toBe(true);
+      expect(Contacts.getPermissionsAsync).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns false when permission is not yet determined', async () => {
+      (Contacts.getPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'undetermined' });
+
+      const result = await checkContactsPermission();
+
+      expect(result).toBe(false);
     });
   });
 });

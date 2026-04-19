@@ -5,7 +5,7 @@
  * Called by GitHub Actions workflows to bump the version across all tracked files:
  *   - package.json            (version)
  *   - app.json                (expo.version)
- *   - android/app/build.gradle (versionCode [sequential +1], versionName)
+ *   - android/app/build.gradle (versionCode [derived], versionName)
  *   - fdroid/metadata/io.github.gametrojaner.geburtstage.yml
  *
  * Usage:
@@ -55,6 +55,29 @@ function bumpVersion(version, type) {
   throw new Error(`Cannot parse version string: ${version}`);
 }
 
+function computeVersionCode(version) {
+  const preMatch = version.match(/^(\d+)\.(\d+)\.(\d+)-beta\.(\d+)$/);
+  if (preMatch) {
+    const major = parseInt(preMatch[1], 10);
+    const minor = parseInt(preMatch[2], 10);
+    const patch = parseInt(preMatch[3], 10);
+    const beta = parseInt(preMatch[4], 10);
+
+    return major * 1000000 + minor * 1000 + patch * 100 + beta;
+  }
+
+  const stableMatch = version.match(/^(\d+)\.(\d+)\.(\d+)$/);
+  if (stableMatch) {
+    const major = parseInt(stableMatch[1], 10);
+    const minor = parseInt(stableMatch[2], 10);
+    const patch = parseInt(stableMatch[3], 10);
+
+    return major * 1000000 + minor * 1000 + patch * 100 + 99;
+  }
+
+  throw new Error(`Cannot compute versionCode from version string: ${version}`);
+}
+
 // ---------------------------------------------------------------------------
 // Read current state
 // ---------------------------------------------------------------------------
@@ -72,12 +95,20 @@ if (newVersion === oldVersion) {
   process.exit(1);
 }
 
-// Sequential versionCode: read current from build.gradle, increment by 1
+// Deterministic versionCode from version string
 const gradlePath = 'android/app/build.gradle';
 let gradle = readFile(gradlePath);
 const vcMatch = gradle.match(/versionCode\s+(\d+)/);
 if (!vcMatch) { console.error('Cannot find versionCode in build.gradle'); process.exit(1); }
-const newVersionCode = parseInt(vcMatch[1], 10) + 1;
+const newVersionCode = computeVersionCode(newVersion);
+
+if (newVersionCode <= parseInt(vcMatch[1], 10)) {
+  console.error(
+    `Computed versionCode ${newVersionCode} must be greater than current ${vcMatch[1]}. ` +
+    'Refusing to continue to avoid non-upgradable releases.'
+  );
+  process.exit(1);
+}
 
 console.log(`\nBumping:  ${oldVersion}  →  ${newVersion}  (versionCode ${vcMatch[1]} → ${newVersionCode})\n`);
 
