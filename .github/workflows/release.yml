@@ -1,7 +1,10 @@
 name: Release
 
-# Manually triggered to create a new beta or stable release.
-# Bumps the version, builds a signed APK + AAB, commits+tags, and creates a GitHub Release.
+# Fires automatically on every PR merge into main (fix bump by default).
+# Add [minor] or [major] anywhere in the PR body to bump those levels instead.
+#
+# Can also be triggered manually (workflow_dispatch) to choose the bump type
+# explicitly — use this for intentional minor/major milestone releases.
 #
 # Required GitHub Secrets:
 #   KEYSTORE_BASE64     – base64-encoded release keystore  (base64 -w0 release.keystore)
@@ -11,6 +14,9 @@ name: Release
 #   ACTIONS_PAT         – Personal Access Token with `contents: write` (for protected main)
 
 on:
+  pull_request:
+    types: [closed]
+    branches: [main]
   workflow_dispatch:
     inputs:
       bump:
@@ -27,9 +33,16 @@ on:
         required: false
         default: ''
 
+# Serialize releases so two rapid merges never race on the version bump.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
   release:
     name: Build & Release
+    # On PR events: only run when the PR was actually merged, not just closed.
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -63,16 +76,37 @@ jobs:
         run: npm ci --legacy-peer-deps
 
       # ------------------------------------------------------------------
+      # Determine bump type
+      # ------------------------------------------------------------------
+      - name: Determine bump type
+        id: bump-type
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ -n "${{ inputs.custom_version }}" ]; then
+              echo "type=${{ inputs.custom_version }}" >> "$GITHUB_OUTPUT"
+            else
+              echo "type=${{ inputs.bump }}" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            BODY="${{ github.event.pull_request.body }}"
+            if echo "$BODY" | grep -qi '\[major\]'; then
+              echo "type=major" >> "$GITHUB_OUTPUT"
+            elif echo "$BODY" | grep -qi '\[minor\]'; then
+              echo "type=minor" >> "$GITHUB_OUTPUT"
+            else
+              echo "type=fix" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      # ------------------------------------------------------------------
       # Version bump
       # ------------------------------------------------------------------
       - name: Bump version
         id: version
-        run: |
-          BUMP="${{ inputs.custom_version != '' && inputs.custom_version || inputs.bump }}"
-          node .github/scripts/bump-version.cjs "$BUMP"
+        run: node .github/scripts/bump-version.cjs "${{ steps.bump-type.outputs.type }}"
 
       # ------------------------------------------------------------------
-      # Build signed release APK
+      # Build signed release APK & AAB
       # ------------------------------------------------------------------
       - name: Decode keystore
         env:
