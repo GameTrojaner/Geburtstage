@@ -25,7 +25,7 @@ npm run licenses:check
 
 Every PR merged into `main` automatically triggers a build and a new GitHub Release (fix/patch bump by default).
 
-To request a different bump level, add a keyword anywhere in the PR body:
+To request a different bump level, put the keyword on its own line in the PR body:
 
 | Keyword | Example result |
 |---------|----------------|

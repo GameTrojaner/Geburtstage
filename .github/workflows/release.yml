@@ -1,7 +1,7 @@
 name: Release
 
 # Fires automatically on every PR merge into main (fix bump by default).
-# Add [minor] or [major] anywhere in the PR body to bump those levels instead.
+# Put [minor] or [major] alone on its own line in the PR body to bump those levels instead.
 #
 # Can also be triggered manually (workflow_dispatch) to choose the bump type
 # explicitly — use this for intentional minor/major milestone releases.
@@ -82,7 +82,16 @@ jobs:
           key: gradle-${{ hashFiles('android/**/*.gradle*', 'android/gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: gradle-
 
+      - name: Cache node_modules
+        uses: actions/cache@v5
+        id: npm-cache
+        with:
+          path: node_modules
+          key: npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: npm-
+
       - name: Install dependencies
+        if: steps.npm-cache.outputs.cache-hit != 'true'
         run: npm ci --legacy-peer-deps
 
       # ------------------------------------------------------------------
@@ -100,9 +109,9 @@ jobs:
               echo "type=${{ inputs.bump }}" >> "$GITHUB_OUTPUT"
             fi
           else
-            if echo "$PR_BODY" | grep -qi '\[major\]'; then
+            if echo "$PR_BODY" | grep -qiE '^\s*\[major\]\s*$'; then
               echo "type=major" >> "$GITHUB_OUTPUT"
-            elif echo "$PR_BODY" | grep -qi '\[minor\]'; then
+            elif echo "$PR_BODY" | grep -qiE '^\s*\[minor\]\s*$'; then
               echo "type=minor" >> "$GITHUB_OUTPUT"
             else
               echo "type=fix" >> "$GITHUB_OUTPUT"
@@ -167,7 +176,7 @@ jobs:
         run: chmod +x android/gradlew
 
       - name: Build release APK & AAB
-        run: cd android && ./gradlew assembleRelease bundleRelease --no-daemon
+        run: cd android && ./gradlew assembleRelease bundleRelease --no-daemon -PreactNativeArchitectures=armeabi-v7a,arm64-v8a
         env:
           KEYSTORE_PATH:     ${{ env.KEYSTORE_PATH }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
