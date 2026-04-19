@@ -8,6 +8,7 @@ Use this workflow for every coding request in this repository.
 2. Every production code change must be covered by at least one test update or new test.
 3. If tests fail, fix the issue in the same task before finishing.
 4. Keep changes minimal and focused on the request.
+5. Never push to remote without explicit user confirmation first — regardless of operating mode (auto, normal, etc.). Exception: the user explicitly asked for a push in the current request.
 
 ## Command checklist to run on every prompt
 
