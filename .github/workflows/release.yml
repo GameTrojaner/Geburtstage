@@ -193,8 +193,8 @@ jobs:
       - name: Commit & tag
         id: tag
         run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name  "geburtstage-release-bot[bot]"
+          git config user.email "277535534+geburtstage-release-bot[bot]@users.noreply.github.com"
           NEW_VERSION=$(node -p "require('./package.json').version")
           git add package.json app.json android/app/build.gradle \
                   fdroid/metadata/io.github.gametrojaner.geburtstage.yml
