@@ -11,8 +11,11 @@ name: Release
 #   KEYSTORE_PASSWORD   – keystore password
 #   KEY_ALIAS           – key alias inside the keystore
 #   KEY_PASSWORD        – key password
-#   APP_ID              – GitHub App ID (for pushing to protected main)
+#   APP_ID              – GitHub App ID (geburtstage-release-bot)
 #   APP_PRIVATE_KEY     – GitHub App private key (PEM)
+#
+# The GitHub App must also be added to the main branch Ruleset bypass list:
+#   Repo → Settings → Rules → Rulesets → main → Bypass list → Add → GitHub Apps
 
 on:
   pull_request:
