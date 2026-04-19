@@ -130,6 +130,23 @@ describe('notifications service helpers', () => {
     expect(contactId).toBe('c1');
   });
 
+  it('skips POST_NOTIFICATIONS request on Android < 13 and returns areNotificationsEnabled result', async () => {
+    const rn = require('react-native');
+    const originalVersion = rn.Platform.Version;
+    rn.Platform.Version = 28;
+
+    const mocks = getNativeMocks();
+    mocks.areNotificationsEnabled.mockResolvedValue(true);
+
+    const granted = await requestNotificationPermission();
+
+    expect(granted).toBe(true);
+    expect(mocks.permissionsRequest).not.toHaveBeenCalled();
+    expect(mocks.areNotificationsEnabled).toHaveBeenCalledTimes(1);
+
+    rn.Platform.Version = originalVersion;
+  });
+
   it('returns false on iOS where native LocalNotifications module is not available', async () => {
     const rn = require('react-native');
     const originalOs = rn.Platform.OS;
