@@ -199,7 +199,20 @@ Builds:
       - npm run fdroid:check
       - cd android && ./gradlew assembleRelease -Pfdroid.build=true
 
+  - versionName: 2.0.0-beta.1
+    versionCode: 2000001
+    commit: v2.0.0-beta.1
+    subdir: .
+    sudo:
+      - apt-get update
+      - apt-get install -y npm openjdk-21-jdk
+    init:
+      - npm ci --legacy-peer-deps
+    build:
+      - npm run fdroid:check
+      - cd android && ./gradlew assembleRelease -Pfdroid.build=true
+
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.0.0-beta.14
-CurrentVersionCode: 1000014
+CurrentVersion: 2.0.0-beta.1
+CurrentVersionCode: 2000001
