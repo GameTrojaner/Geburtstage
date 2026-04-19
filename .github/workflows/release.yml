@@ -87,6 +87,8 @@ jobs:
       # ------------------------------------------------------------------
       - name: Determine bump type
         id: bump-type
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             if [ -n "${{ inputs.custom_version }}" ]; then
@@ -95,10 +97,9 @@ jobs:
               echo "type=${{ inputs.bump }}" >> "$GITHUB_OUTPUT"
             fi
           else
-            BODY="${{ github.event.pull_request.body }}"
-            if echo "$BODY" | grep -qi '\[major\]'; then
+            if echo "$PR_BODY" | grep -qi '\[major\]'; then
               echo "type=major" >> "$GITHUB_OUTPUT"
-            elif echo "$BODY" | grep -qi '\[minor\]'; then
+            elif echo "$PR_BODY" | grep -qi '\[minor\]'; then
               echo "type=minor" >> "$GITHUB_OUTPUT"
             else
               echo "type=fix" >> "$GITHUB_OUTPUT"

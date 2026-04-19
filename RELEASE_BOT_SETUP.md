@@ -11,8 +11,8 @@
 Der Release-Workflow pusht Commits und Tags direkt auf `main`:
 - `.github/workflows/release.yml` – Version-Bump + Tag bei jedem Merge und manuellen Releases
 
-Er verwendet bereits `secrets.ACTIONS_PAT` (mit Fallback auf `GITHUB_TOKEN`).
-Damit der Push durch den Branch-Schutz (Ruleset) darf, muss der pusher-Account
+Er generiert zur Laufzeit ein kurzlebiges Token über die GitHub App (`APP_ID` + `APP_PRIVATE_KEY`).
+Damit der Push durch den Branch-Schutz (Ruleset) darf, muss die App
 explizit in die **Bypass-Liste** des Rulesets eingetragen sein.
 
 ---
@@ -42,25 +42,9 @@ explizit in die **Bypass-Liste** des Rulesets eingetragen sein.
 
 - App-Seite → **Install App** → eigener Account → nur das `Geburtstage`-Repo
 
-### 5. Workflow anpassen
+### 5. Workflow — bereits erledigt
 
-In `.github/workflows/release.yml` den `actions/checkout`-Block ersetzen (Zeilen 51–54):
-
-```yaml
-# Neu: Token über GitHub App generieren
-- uses: actions/create-github-app-token@v1
-  id: app-token
-  with:
-    app-id: ${{ secrets.APP_ID }}
-    private-key: ${{ secrets.APP_PRIVATE_KEY }}
-
-- uses: actions/checkout@v6
-  with:
-    token: ${{ steps.app-token.outputs.token }}
-    fetch-depth: 0
-```
-
-Den alten `secrets.ACTIONS_PAT`-Fallback kannst du danach aus der Datei entfernen.
+`.github/workflows/release.yml` generiert das App-Token bereits über `actions/create-github-app-token@v1` und nutzt es für den Checkout und alle Pushes. Kein manueller Schritt nötig.
 
 ### 6. App in Bypass-Liste eintragen
 
@@ -95,6 +79,8 @@ Den alten `secrets.ACTIONS_PAT`-Fallback kannst du danach aus der Datei entferne
 
 ---
 
-## Betroffene Datei
+## Aktueller Stand
 
-- `.github/workflows/release.yml` – Zeilen 51–54 (checkout mit Token)
+- `APP_ID` und `APP_PRIVATE_KEY` als Repo Secrets hinterlegt ✅
+- `.github/workflows/release.yml` nutzt `actions/create-github-app-token@v1` ✅
+- App in Bypass-Liste des Main-Rulesets eintragen (ausstehend, sobald Branch-Schutz aktiviert wird)
