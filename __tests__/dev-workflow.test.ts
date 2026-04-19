@@ -5,8 +5,8 @@ import { execFileSync } from 'child_process';
 describe('Developer workflow guards', () => {
   const repoRoot = path.resolve(__dirname, '..');
 
-  it('contains workspace copilot instructions with mandatory command checklist', () => {
-    const filePath = path.join(repoRoot, '.github', 'copilot-instructions.md');
+  it('contains workspace working agreement with mandatory command checklist', () => {
+    const filePath = path.join(repoRoot, 'CLAUDE.md');
     const content = fs.readFileSync(filePath, 'utf8');
 
     expect(content).toContain('Command checklist to run on every prompt');
