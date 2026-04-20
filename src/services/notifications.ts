@@ -168,5 +168,5 @@ export async function scheduleAllNotifications(
     }
   }
 
-  console.log(`Successfully scheduled ${scheduledCount} notifications.`);
+  if (__DEV__) console.warn(`Successfully scheduled ${scheduledCount} notifications.`);
 }

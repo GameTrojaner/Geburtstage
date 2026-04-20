@@ -16,7 +16,12 @@ export interface ContactBirthday {
 export interface NotificationSetting {
   contactId: string;
   enabled: boolean;
-  /** Offsets in days before the birthday (0 = same day) */
+  /**
+   * Notification offsets relative to the birthday.
+   * Positive values = days before (0 = same day, 7 = one week before).
+   * Negative values = calendar months before (-1 = one month before).
+   * See calculateNotificationDate() for the encoding details.
+   */
   offsets: number[];
   /** Time of day for notifications (HH:mm format) */
   time: string;

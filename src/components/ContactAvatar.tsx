@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import { Image, StyleSheet } from 'react-native';
 import { Avatar, useTheme } from 'react-native-paper';
 import { getInitials } from '../utils/birthday';
 
