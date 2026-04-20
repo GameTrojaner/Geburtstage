@@ -54,7 +54,15 @@ jest.mock('../src/services/database', () => ({
 import { DEFAULT_SETTINGS } from '../src/types';
 import { renderWidgetForName } from '../src/widget/widgetTaskHandler';
 
-type WidgetElement = React.ReactElement<{ title: string }>;
+interface WidgetLabels {
+  today: string;
+  daysSingular: string;
+  daysPlural: string;
+  turns: string;
+  empty: string;
+}
+
+type WidgetElement = React.ReactElement<{ title: string; labels: WidgetLabels }>;
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -92,6 +100,30 @@ describe('widget title i18n', () => {
     const el = (await renderWidgetForName('BirthdayFavorites')) as WidgetElement;
 
     expect(el.props.title).toBe('Favourites');
+  });
+
+  it('passes German body labels when language is "de"', async () => {
+    mockGetSettings.mockResolvedValue({ ...DEFAULT_SETTINGS, language: 'de' });
+
+    const el = (await renderWidgetForName('BirthdayUpcoming')) as WidgetElement;
+
+    expect(el.props.labels.today).toBe('🎂 Heute!');
+    expect(el.props.labels.daysSingular).toBe('Tag');
+    expect(el.props.labels.daysPlural).toBe('Tagen');
+    expect(el.props.labels.turns).toBe('wird');
+    expect(el.props.labels.empty).toBe('Keine anstehenden Geburtstage');
+  });
+
+  it('passes English body labels when language is "en"', async () => {
+    mockGetSettings.mockResolvedValue({ ...DEFAULT_SETTINGS, language: 'en' });
+
+    const el = (await renderWidgetForName('BirthdayUpcoming')) as WidgetElement;
+
+    expect(el.props.labels.today).toBe('🎂 Today!');
+    expect(el.props.labels.daysSingular).toBe('day');
+    expect(el.props.labels.daysPlural).toBe('days');
+    expect(el.props.labels.turns).toBe('turns');
+    expect(el.props.labels.empty).toBe('No upcoming birthdays');
   });
 
   it('falls back gracefully when getSettings rejects', async () => {

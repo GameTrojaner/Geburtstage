@@ -11,9 +11,25 @@ import { getFavorites, getSettings } from '../services/database';
 import { DEFAULT_SETTINGS } from '../types';
 import { resolveWidgetPreferences } from './preferences';
 
-const WIDGET_TITLES = {
-  de: { upcoming: 'Nächste Geburtstage', favorites: 'Favoriten' },
-  en: { upcoming: 'Upcoming Birthdays', favorites: 'Favourites' },
+const WIDGET_STRINGS = {
+  de: {
+    upcoming: 'Nächste Geburtstage',
+    favorites: 'Favoriten',
+    today: '🎂 Heute!',
+    daysSingular: 'Tag',
+    daysPlural: 'Tagen',
+    turns: 'wird',
+    empty: 'Keine anstehenden Geburtstage',
+  },
+  en: {
+    upcoming: 'Upcoming Birthdays',
+    favorites: 'Favourites',
+    today: '🎂 Today!',
+    daysSingular: 'day',
+    daysPlural: 'days',
+    turns: 'turns',
+    empty: 'No upcoming birthdays',
+  },
 } as const;
 
 function resolveWidgetLanguage(language: string): 'de' | 'en' {
@@ -261,14 +277,14 @@ export async function renderWidgetForName(widgetName: string) {
   ]);
 
   const lang = resolveWidgetLanguage(settings.language);
-  const titles = WIDGET_TITLES[lang];
+  const strings = WIDGET_STRINGS[lang];
 
   const { birthdays, favoriteBirthdays } = await loadWidgetData(maxEntries);
   const widgetType = resolveWidgetType(widgetName);
   const items = widgetType === 'favorites' ? favoriteBirthdays : birthdays;
-  const title = widgetType === 'favorites' ? titles.favorites : titles.upcoming;
+  const title = widgetType === 'favorites' ? strings.favorites : strings.upcoming;
 
-  return <BirthdayWidget birthdays={items} title={title} isDark={isDark} maxEntries={maxEntries} />;
+  return <BirthdayWidget birthdays={items} title={title} isDark={isDark} maxEntries={maxEntries} labels={strings} />;
 }
 
 export async function widgetTaskHandler(props: WidgetTaskHandlerProps) {
