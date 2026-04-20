@@ -88,6 +88,9 @@ jobs:
       - name: F-Droid profile checks
         run: npm run fdroid:check
 
+      - name: F-Droid metadata invariants
+        run: npm run fdroid:metadata:drift
+
       - name: Third-party licenses up-to-date
         run: npm run licenses:check
 
