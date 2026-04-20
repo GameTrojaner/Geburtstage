@@ -564,14 +564,29 @@ describe('Contact Services', () => {
 
       expect(result).toBe(true);
       expect(Contacts.requestPermissionsAsync).toHaveBeenCalledTimes(1);
+      expect(Contacts.getPermissionsAsync).not.toHaveBeenCalled();
     });
 
     it('returns false when Expo Contacts denies permission', async () => {
       (Contacts.requestPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'denied' });
+      (Contacts.getPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'denied' });
 
       const result = await requestContactsPermission();
 
       expect(result).toBe(false);
+    });
+
+    it('returns true via fallback check when requestPermissionsAsync returns stale denied status', async () => {
+      // Android sometimes propagates the grant after the dialog resolves.
+      // requestPermissionsAsync returns 'denied' but getPermissionsAsync reflects reality.
+      (Contacts.requestPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'denied' });
+      (Contacts.getPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'granted' });
+
+      const result = await requestContactsPermission();
+
+      expect(result).toBe(true);
+      expect(Contacts.requestPermissionsAsync).toHaveBeenCalledTimes(1);
+      expect(Contacts.getPermissionsAsync).toHaveBeenCalledTimes(1);
     });
   });
 
