@@ -72,6 +72,15 @@ async function withDbRecovery<T>(operation: (database: SQLite.SQLiteDatabase) =>
   }
 }
 
+function parseJsonSafe<T>(json: string | undefined, fallback: T): T {
+  if (!json) return fallback;
+  try {
+    return JSON.parse(json) as T;
+  } catch {
+    return fallback;
+  }
+}
+
 async function initDb(database: SQLite.SQLiteDatabase): Promise<void> {
   // One statement per call — Android's execSQL does not support multi-statement SQL.
   await database.execAsync(
@@ -117,9 +126,10 @@ export async function getSettings(): Promise<AppSettings> {
     notificationsEnabled: settings.notificationsEnabled !== undefined
       ? settings.notificationsEnabled === 'true'
       : DEFAULT_SETTINGS.notificationsEnabled,
-    defaultNotificationOffsets: settings.defaultNotificationOffsets
-      ? JSON.parse(settings.defaultNotificationOffsets)
-      : DEFAULT_SETTINGS.defaultNotificationOffsets,
+    defaultNotificationOffsets: parseJsonSafe(
+      settings.defaultNotificationOffsets,
+      DEFAULT_SETTINGS.defaultNotificationOffsets,
+    ),
     defaultNotificationTime: settings.defaultNotificationTime ?? DEFAULT_SETTINGS.defaultNotificationTime,
     confirmBeforeWriting: settings.confirmBeforeWriting !== undefined
       ? settings.confirmBeforeWriting === 'true'
@@ -168,7 +178,7 @@ export async function getNotificationSetting(contactId: string): Promise<Notific
   return {
     contactId: row.contact_id,
     enabled: row.enabled === 1,
-    offsets: JSON.parse(row.offsets),
+    offsets: parseJsonSafe(row.offsets, [0]),
     time: row.time,
   };
 }
@@ -186,7 +196,7 @@ export async function getAllNotificationSettings(): Promise<NotificationSetting[
   return rows.map(row => ({
     contactId: row.contact_id,
     enabled: row.enabled === 1,
-    offsets: JSON.parse(row.offsets),
+    offsets: parseJsonSafe(row.offsets, [0]),
     time: row.time,
   }));
 }

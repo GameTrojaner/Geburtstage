@@ -53,10 +53,13 @@ export async function setupNotificationChannel(): Promise<void> {
 
 function getNextBirthday(birthday: { day: number; month: number; year?: number }): Date {
   const now = new Date();
+  // Use date-only comparison so a birthday today is never advanced to next year,
+  // regardless of the current time of day (mirrors getDaysUntilBirthday in birthday.ts).
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const thisYear = now.getFullYear();
 
   let next = new Date(thisYear, birthday.month - 1, birthday.day, 0, 0, 0);
-  if (next < now) {
+  if (next < today) {
     next = new Date(thisYear + 1, birthday.month - 1, birthday.day, 0, 0, 0);
   }
   return next;

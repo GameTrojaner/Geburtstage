@@ -159,4 +159,43 @@ describe('notifications service helpers', () => {
       rn.Platform.OS = originalOs;
     }
   });
+
+  it("schedules a same-day birthday for today, not next year, regardless of current time", async () => {
+    // Regression for: getNextBirthday used `next < now` (datetime) instead of `next < today`
+    // (date-only), causing today's birthday to be advanced to next year any time after midnight.
+    const mocks = getNativeMocks();
+    (getSettings as jest.Mock).mockResolvedValue({
+      notificationsEnabled: true,
+      defaultNotificationOffsets: [0],
+      defaultNotificationTime: '23:59',
+    });
+    (getAllNotificationSettings as jest.Mock).mockResolvedValue([]);
+
+    const now = new Date();
+
+    await scheduleAllNotifications([
+      {
+        contactId: 'today-bd',
+        name: 'Birthday Person',
+        birthday: {
+          day: now.getDate(),
+          month: now.getMonth() + 1,
+          year: 1990,
+        },
+      },
+    ]);
+
+    // scheduleNotificationAt must have been called — the notification must be for THIS year,
+    // not skipped (which would happen if getNextBirthday incorrectly advanced to next year and
+    // the next-year date fell outside the maxDaysAhead window).
+    expect(mocks.scheduleNotificationAt).toHaveBeenCalledTimes(1);
+
+    const [timestamp] = mocks.scheduleNotificationAt.mock.calls[0];
+    const scheduledDate = new Date(timestamp);
+    // The notification must land in the current calendar year (not next year).
+    expect(scheduledDate.getFullYear()).toBe(now.getFullYear());
+    // And it must be on today's date.
+    expect(scheduledDate.getMonth()).toBe(now.getMonth());
+    expect(scheduledDate.getDate()).toBe(now.getDate());
+  });
 });
