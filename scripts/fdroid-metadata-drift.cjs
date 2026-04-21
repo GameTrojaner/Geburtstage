@@ -262,7 +262,11 @@ async function main() {
   console.log(`[fdroid-metadata-drift] No drift detected against ${options.against}.`);
 }
 
-main().catch((error) => {
-  console.error(`[fdroid-metadata-drift] ERROR: ${error.message}`);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((error) => {
+    console.error(`[fdroid-metadata-drift] ERROR: ${error.message}`);
+    process.exit(1);
+  });
+}
+
+module.exports = { assertNpmCiInAllBuilds, assertMetadataInvariants };
