@@ -37,6 +37,8 @@ function resolveWidgetLanguage(language: string): 'de' | 'en' {
   if (language === 'en') return 'en';
   // 'system': read device locale at runtime (works in headless widget context).
   try {
+    // Dynamic require: avoids initializing expo-localization at module load time
+    // in the headless widget context where the JS module registry is not fully set up.
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { getLocales } = require('expo-localization') as { getLocales: () => Array<{ languageCode?: string }> };
     const code = getLocales()?.[0]?.languageCode;
