@@ -167,7 +167,7 @@ function assertNpmCiInAllBuilds(content) {
       continue;
     }
 
-    if (inBuilds && currentVersion !== null && /npm\s+ci\b/.test(line)) {
+    if (inBuilds && currentVersion !== null && /^\s+-\s+npm\s+ci\b/.test(line)) {
       currentBlockHasNpmCi = true;
     }
   }
