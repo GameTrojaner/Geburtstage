@@ -23,7 +23,7 @@ const WIDGET_STRINGS = {
   },
   en: {
     upcoming: 'Upcoming Birthdays',
-    favorites: 'Favourites',
+    favorites: 'Favorites',
     today: '🎂 Today!',
     daysSingular: 'day',
     daysPlural: 'days',

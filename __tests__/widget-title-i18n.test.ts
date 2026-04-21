@@ -99,7 +99,7 @@ describe('widget title i18n', () => {
 
     const el = (await renderWidgetForName('BirthdayFavorites')) as WidgetElement;
 
-    expect(el.props.title).toBe('Favourites');
+    expect(el.props.title).toBe('Favorites');
   });
 
   it('passes German body labels when language is "de"', async () => {
