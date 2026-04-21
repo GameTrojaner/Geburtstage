@@ -178,7 +178,7 @@ export async function getNotificationSetting(contactId: string): Promise<Notific
   return {
     contactId: row.contact_id,
     enabled: row.enabled === 1,
-    offsets: parseJsonSafe(row.offsets, [0]),
+    offsets: parseJsonSafe(row.offsets, [0]), // 0 = same-day, matches insert default
     time: row.time,
   };
 }
@@ -196,7 +196,7 @@ export async function getAllNotificationSettings(): Promise<NotificationSetting[
   return rows.map(row => ({
     contactId: row.contact_id,
     enabled: row.enabled === 1,
-    offsets: parseJsonSafe(row.offsets, [0]),
+    offsets: parseJsonSafe(row.offsets, [0]), // 0 = same-day, matches insert default
     time: row.time,
   }));
 }
