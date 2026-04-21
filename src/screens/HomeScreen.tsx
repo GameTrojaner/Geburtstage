@@ -46,6 +46,7 @@ export function HomeScreen() {
   const [snackVisible, setSnackVisible] = useState(false);
   const [lastHidden, setLastHidden] = useState<{ id: string; name: string } | null>(null);
   const [homeFilter, setHomeFilter] = useState<HomeFilter>('all');
+  const [permissionChecked, setPermissionChecked] = useState(false);
   const swipeableRefs = useRef<Map<string, Swipeable | null>>(new Map());
 
   const visibleContacts = useMemo(
@@ -62,6 +63,7 @@ export function HomeScreen() {
     (async () => {
       const granted = await requestContactsPermission();
       setHasContactsPermission(granted);
+      setPermissionChecked(true);
       if (granted) {
         await loadContacts();
         await refreshAllWidgetsNow();
@@ -95,6 +97,10 @@ export function HomeScreen() {
         sections.push({ type: 'contact', contact: c, key: `${group.key}-${c.contactId}` });
       }
     }
+  }
+
+  if (!permissionChecked) {
+    return null;
   }
 
   if (!hasContactsPermission) {
