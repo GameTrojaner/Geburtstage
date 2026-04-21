@@ -11,11 +11,28 @@ interface BirthdayItem {
   imageDataUri?: `data:image${string}`;
 }
 
+export interface WidgetLabels {
+  today: string;
+  daysSingular: string;
+  daysPlural: string;
+  turns: string;
+  empty: string;
+}
+
+const DEFAULT_LABELS: WidgetLabels = {
+  today: '🎂 Heute!',
+  daysSingular: 'Tag',
+  daysPlural: 'Tagen',
+  turns: 'wird',
+  empty: 'Keine anstehenden Geburtstage',
+};
+
 interface BirthdayWidgetProps {
   birthdays: BirthdayItem[];
   title: string;
   isDark?: boolean;
   maxEntries?: number;
+  labels?: WidgetLabels;
 }
 
 type WidgetColors = typeof LIGHT_COLORS | typeof DARK_COLORS;
@@ -46,12 +63,12 @@ export function getVisibleWidgetRows(birthdays: BirthdayItem[], maxEntries = 5):
   return birthdays.slice(0, maxEntries);
 }
 
-function BirthdayRow({ item, colors }: { item: BirthdayItem; colors: WidgetColors }) {
+function BirthdayRow({ item, colors, labels }: { item: BirthdayItem; colors: WidgetColors; labels: WidgetLabels }) {
   const daysText = item.daysUntil === 0
-    ? '🎂 Heute!'
-    : `in ${item.daysUntil} ${item.daysUntil === 1 ? 'Tag' : 'Tagen'}`;
+    ? labels.today
+    : `in ${item.daysUntil} ${item.daysUntil === 1 ? labels.daysSingular : labels.daysPlural}`;
 
-  const ageText = item.age ? ` · wird ${item.age}` : '';
+  const ageText = item.age ? ` · ${labels.turns} ${item.age}` : '';
 
   return (
     <FlexWidget
@@ -115,7 +132,7 @@ function BirthdayRow({ item, colors }: { item: BirthdayItem; colors: WidgetColor
   );
 }
 
-export function BirthdayWidget({ birthdays, title, isDark = false, maxEntries = 5 }: BirthdayWidgetProps) {
+export function BirthdayWidget({ birthdays, title, isDark = false, maxEntries = 5, labels = DEFAULT_LABELS }: BirthdayWidgetProps) {
   const colors = isDark ? DARK_COLORS : LIGHT_COLORS;
   const visibleRows = getVisibleWidgetRows(birthdays, maxEntries);
 
@@ -161,7 +178,7 @@ export function BirthdayWidget({ birthdays, title, isDark = false, maxEntries = 
           }}
         >
           <TextWidget
-            text="Keine anstehenden Geburtstage"
+            text={labels.empty}
             style={{ fontSize: 13, color: colors.empty }}
           />
         </FlexWidget>
@@ -173,7 +190,7 @@ export function BirthdayWidget({ birthdays, title, isDark = false, maxEntries = 
           }}
         >
           {visibleRows.map((item) => (
-            <BirthdayRow key={item.contactId} item={item} colors={colors} />
+            <BirthdayRow key={item.contactId} item={item} colors={colors} labels={labels} />
           ))}
         </ListWidget>
       )}

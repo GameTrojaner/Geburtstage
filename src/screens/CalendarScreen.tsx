@@ -1,12 +1,11 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { Alert, Animated, Dimensions, FlatList, Modal, ScrollView, StyleSheet, View } from 'react-native';
-import { Button, Chip, Dialog, Divider, FAB, Portal, Searchbar, Text, TextInput, useTheme, Surface, TouchableRipple } from 'react-native-paper';
+import { Animated, Dimensions, FlatList, Modal, ScrollView, StyleSheet, View } from 'react-native';
+import { Button, Chip, Divider, FAB, Searchbar, Text, useTheme, Surface, TouchableRipple } from 'react-native-paper';
 import { Calendar, DateData } from 'react-native-calendars';
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../store';
 import { ContactAvatar } from '../components/ContactAvatar';
 import { formatBirthdayISO, getUpcomingAge, formatBirthday } from '../utils/birthday';
-import { ContactBirthday } from '../types';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -22,7 +21,7 @@ export function CalendarScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { contacts, hidden, loadContacts } = useAppStore();
+  const { contacts, hidden } = useAppStore();
 
   const visibleContacts = useMemo(
     () => contacts.filter(c => !hidden.has(c.contactId)),
@@ -75,7 +74,7 @@ export function CalendarScreen() {
   // Get contacts for selected date
   const contactsForDate = useMemo(() => {
     if (!selectedDate) return [];
-    const [y, m, d] = selectedDate.split('-').map(Number);
+    const [, m, d] = selectedDate.split('-').map(Number);
     return contactsWithBirthday.filter(c =>
       c.birthday && c.birthday.month === m && c.birthday.day === d
     );

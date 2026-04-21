@@ -7,8 +7,44 @@ import * as LegacyFileSystem from 'expo-file-system/legacy';
 import { getDaysUntilBirthday, getUpcomingAge, formatBirthday } from '../utils/birthday';
 import { getCachedPhotoUri } from '../services/photoCache';
 import { checkContactsPermission } from '../services/contacts';
-import { getFavorites } from '../services/database';
+import { getFavorites, getSettings } from '../services/database';
+import { DEFAULT_SETTINGS } from '../types';
 import { resolveWidgetPreferences } from './preferences';
+
+const WIDGET_STRINGS = {
+  de: {
+    upcoming: 'Nächste Geburtstage',
+    favorites: 'Favoriten',
+    today: '🎂 Heute!',
+    daysSingular: 'Tag',
+    daysPlural: 'Tagen',
+    turns: 'wird',
+    empty: 'Keine anstehenden Geburtstage',
+  },
+  en: {
+    upcoming: 'Upcoming Birthdays',
+    favorites: 'Favorites',
+    today: '🎂 Today!',
+    daysSingular: 'day',
+    daysPlural: 'days',
+    turns: 'turns',
+    empty: 'No upcoming birthdays',
+  },
+} as const;
+
+function resolveWidgetLanguage(language: string): 'de' | 'en' {
+  if (language === 'de') return 'de';
+  if (language === 'en') return 'en';
+  // 'system': read device locale at runtime (works in headless widget context).
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { getLocales } = require('expo-localization') as { getLocales: () => Array<{ languageCode?: string }> };
+    const code = getLocales()?.[0]?.languageCode;
+    return code === 'de' ? 'de' : 'en';
+  } catch {
+    return 'en';
+  }
+}
 
 interface BirthdayItem {
   contactId: string;
@@ -214,7 +250,7 @@ async function loadWidgetData(maxEntries: number): Promise<{ birthdays: Birthday
 
     await Promise.all([enrichWithImages(birthdays), enrichWithImages(favoriteBirthdays)]);
 
-    console.log(
+    if (__DEV__) console.warn(
       `[widget] image enrichment: ${imageHitCount}/${birthdays.length + favoriteBirthdays.length} visible rows have photos (uriCandidates=${uriCandidateCount}, inlineBase64=${inlineBase64Count}, byIdBase64=${byIdBase64Count})`
     );
 
@@ -235,13 +271,20 @@ function resolveWidgetType(widgetName: string): 'upcoming' | 'favorites' {
 }
 
 export async function renderWidgetForName(widgetName: string) {
-  const { isDark, maxEntries } = await resolveWidgetPreferences();
+  const [{ isDark, maxEntries }, settings] = await Promise.all([
+    resolveWidgetPreferences(),
+    getSettings().catch(() => DEFAULT_SETTINGS),
+  ]);
+
+  const lang = resolveWidgetLanguage(settings.language);
+  const strings = WIDGET_STRINGS[lang];
+
   const { birthdays, favoriteBirthdays } = await loadWidgetData(maxEntries);
   const widgetType = resolveWidgetType(widgetName);
   const items = widgetType === 'favorites' ? favoriteBirthdays : birthdays;
-  const title = widgetType === 'favorites' ? 'Favoriten' : 'Nächste Geburtstage';
+  const title = widgetType === 'favorites' ? strings.favorites : strings.upcoming;
 
-  return <BirthdayWidget birthdays={items} title={title} isDark={isDark} maxEntries={maxEntries} />;
+  return <BirthdayWidget birthdays={items} title={title} isDark={isDark} maxEntries={maxEntries} labels={strings} />;
 }
 
 export async function widgetTaskHandler(props: WidgetTaskHandlerProps) {

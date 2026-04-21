@@ -72,6 +72,15 @@ async function withDbRecovery<T>(operation: (database: SQLite.SQLiteDatabase) =>
   }
 }
 
+function parseJsonSafe<T>(json: string | undefined, fallback: T): T {
+  if (!json) return fallback;
+  try {
+    return JSON.parse(json) as T;
+  } catch {
+    return fallback;
+  }
+}
+
 async function initDb(database: SQLite.SQLiteDatabase): Promise<void> {
   // One statement per call — Android's execSQL does not support multi-statement SQL.
   await database.execAsync(
@@ -117,9 +126,10 @@ export async function getSettings(): Promise<AppSettings> {
     notificationsEnabled: settings.notificationsEnabled !== undefined
       ? settings.notificationsEnabled === 'true'
       : DEFAULT_SETTINGS.notificationsEnabled,
-    defaultNotificationOffsets: settings.defaultNotificationOffsets
-      ? JSON.parse(settings.defaultNotificationOffsets)
-      : DEFAULT_SETTINGS.defaultNotificationOffsets,
+    defaultNotificationOffsets: parseJsonSafe(
+      settings.defaultNotificationOffsets,
+      DEFAULT_SETTINGS.defaultNotificationOffsets,
+    ),
     defaultNotificationTime: settings.defaultNotificationTime ?? DEFAULT_SETTINGS.defaultNotificationTime,
     confirmBeforeWriting: settings.confirmBeforeWriting !== undefined
       ? settings.confirmBeforeWriting === 'true'
@@ -168,7 +178,7 @@ export async function getNotificationSetting(contactId: string): Promise<Notific
   return {
     contactId: row.contact_id,
     enabled: row.enabled === 1,
-    offsets: JSON.parse(row.offsets),
+    offsets: parseJsonSafe(row.offsets, [0]),
     time: row.time,
   };
 }
@@ -186,7 +196,7 @@ export async function getAllNotificationSettings(): Promise<NotificationSetting[
   return rows.map(row => ({
     contactId: row.contact_id,
     enabled: row.enabled === 1,
-    offsets: JSON.parse(row.offsets),
+    offsets: parseJsonSafe(row.offsets, [0]),
     time: row.time,
   }));
 }
@@ -294,25 +304,46 @@ export async function importAllData(data: ExportData, existingContactIds?: Set<s
 
   const sanitized = sanitizeImportData(data, existingContactIds);
 
-  await saveSettings(sanitized.settings);
+  // Inline all SQL inside a single transaction so a mid-import failure leaves
+  // the database untouched (automatic rollback on throw).
+  // keep in sync with saveSettings()
+  const settingEntries: [string, string][] = [
+    ['theme', sanitized.settings.theme],
+    ['language', sanitized.settings.language],
+    ['notificationsEnabled', String(sanitized.settings.notificationsEnabled)],
+    ['defaultNotificationOffsets', JSON.stringify(sanitized.settings.defaultNotificationOffsets)],
+    ['defaultNotificationTime', sanitized.settings.defaultNotificationTime],
+    ['confirmBeforeWriting', String(sanitized.settings.confirmBeforeWriting)],
+    ['widgetMaxEntries', String(sanitized.settings.widgetMaxEntries)],
+  ];
 
-  await withDbRecovery(database => database.runAsync('DELETE FROM notification_settings'));
-  for (const ns of sanitized.notificationSettings) {
-    await saveNotificationSetting(ns);
-  }
-
-  await withDbRecovery(database => database.runAsync('DELETE FROM favorites'));
-  for (const fav of sanitized.favorites) {
-    await addFavorite(fav);
-  }
-
-  await withDbRecovery(database => database.runAsync('DELETE FROM pinned'));
-  for (const pin of sanitized.pinned) {
-    await addPinned(pin);
-  }
-
-  await withDbRecovery(database => database.runAsync('DELETE FROM hidden'));
-  for (const h of sanitized.hidden) {
-    await addHidden(h);
-  }
+  await withDbRecovery(database =>
+    database.withTransactionAsync(async () => {
+      for (const [key, value] of settingEntries) {
+        await database.runAsync(
+          'INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)',
+          [key, value]
+        );
+      }
+      await database.runAsync('DELETE FROM notification_settings');
+      for (const ns of sanitized.notificationSettings) {
+        await database.runAsync(
+          'INSERT OR REPLACE INTO notification_settings (contact_id, enabled, offsets, time) VALUES (?, ?, ?, ?)',
+          [ns.contactId, ns.enabled ? 1 : 0, JSON.stringify(ns.offsets), ns.time]
+        );
+      }
+      await database.runAsync('DELETE FROM favorites');
+      for (const fav of sanitized.favorites) {
+        await database.runAsync('INSERT OR IGNORE INTO favorites (contact_id) VALUES (?)', [fav]);
+      }
+      await database.runAsync('DELETE FROM pinned');
+      for (const pin of sanitized.pinned) {
+        await database.runAsync('INSERT OR IGNORE INTO pinned (contact_id) VALUES (?)', [pin]);
+      }
+      await database.runAsync('DELETE FROM hidden');
+      for (const h of sanitized.hidden) {
+        await database.runAsync('INSERT OR IGNORE INTO hidden (contact_id) VALUES (?)', [h]);
+      }
+    })
+  );
 }
