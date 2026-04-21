@@ -11,6 +11,10 @@ import {
   checkContactsPermission,
 } from '../src/services/contacts';
 
+jest.mock('react-native', () => ({
+  Platform: { OS: 'android' },
+}));
+
 // Mock expo-contacts
 jest.mock('expo-contacts', () => ({
   Fields: {
@@ -587,6 +591,22 @@ describe('Contact Services', () => {
       expect(result).toBe(true);
       expect(Contacts.requestPermissionsAsync).toHaveBeenCalledTimes(1);
       expect(Contacts.getPermissionsAsync).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns false on non-Android without calling getPermissionsAsync', async () => {
+      const rn = require('react-native');
+      const originalOs = rn.Platform.OS;
+      rn.Platform.OS = 'ios';
+      try {
+        (Contacts.requestPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'denied' });
+
+        const result = await requestContactsPermission();
+
+        expect(result).toBe(false);
+        expect(Contacts.getPermissionsAsync).not.toHaveBeenCalled();
+      } finally {
+        rn.Platform.OS = originalOs;
+      }
     });
   });
 
