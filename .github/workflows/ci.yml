@@ -37,7 +37,6 @@ jobs:
         with:
           path: node_modules
           key: npm-${{ hashFiles('package-lock.json') }}
-          restore-keys: npm-
 
       - name: Install dependencies
         if: steps.npm-cache.outputs.cache-hit != 'true'
