@@ -141,6 +141,7 @@ function assertNpmCiInAllBuilds(content) {
       continue;
     }
 
+    // end of Builds: section — any non-indented key (letter at column 0) signals exit
     if (inBuilds && /^[A-Za-z]/.test(line)) {
       if (currentVersion !== null && !currentBlockHasNpmCi) {
         throw new Error(
