@@ -69,13 +69,14 @@ At the end of every implementation task (before handoff/merge), perform this wor
 When asked to review or address PR findings/comments:
 
 1. Process findings one by one and keep a clear decision for each finding.
-2. For each finding, set the PR/discussion state appropriately (e.g., resolve when fixed, keep open when pending, mark as not planned when intentionally rejected).
-3. For each finding, add a short follow-up comment documenting what was done:
+2. Always post findings as **inline review comments** on the affected lines (via `pull_request_review_write`), not as general PR comments. Inline threads can be formally resolved after the fix.
+3. For each finding, set the PR/discussion state appropriately: resolve the inline thread when fixed, keep open when pending, mark as not planned when intentionally rejected.
+4. For each finding, add a short follow-up comment on the thread documenting what was done:
 	- fixed (with commit/reference),
 	- not reproducible (with evidence),
 	- intentionally not applied (with rationale),
 	- needs more info (specific blocker/question).
-4. Do not leave processed findings without state updates and explicit comments.
+5. Do not leave processed findings without state updates and explicit comments.
 5. For each PR under review, explicitly check whether any required PR status checks are failing.
 6. If checks are failing, investigate and fix the root cause in the same task/branch, then re-run validation and push until required checks are green.
 
