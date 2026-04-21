@@ -29,7 +29,6 @@ Builds:
   - versionName: 1.0.0-beta.2
     versionCode: 1
     commit: v1.0.0-beta.2
-    subdir: .
     sudo:
       - apt-get update
       - apt-get install -y npm openjdk-21-jdk
@@ -42,7 +41,6 @@ Builds:
   - versionName: 1.0.0-beta.3
     versionCode: 2
     commit: v1.0.0-beta.3
-    subdir: .
     sudo:
       - apt-get update
       - apt-get install -y npm openjdk-21-jdk
@@ -55,7 +53,6 @@ Builds:
   - versionName: 1.0.0-beta.4
     versionCode: 3
     commit: v1.0.0-beta.4
-    subdir: .
     sudo:
       - apt-get update
       - apt-get install -y npm openjdk-21-jdk
@@ -68,7 +65,6 @@ Builds:
   - versionName: 1.0.0-beta.5
     versionCode: 4
     commit: v1.0.0-beta.5
-    subdir: .
     sudo:
       - apt-get update
       - apt-get install -y npm openjdk-21-jdk
@@ -85,7 +81,6 @@ Builds:
   - versionName: 1.0.0-beta.6
     versionCode: 5
     commit: v1.0.0-beta.6
-    subdir: .
     sudo:
       - apt-get update
       - apt-get install -y npm openjdk-21-jdk
@@ -98,7 +93,6 @@ Builds:
   - versionName: 1.0.0-beta.7
     versionCode: 6
     commit: v1.0.0-beta.7
-    subdir: .
     sudo:
       - apt-get update
       - apt-get install -y npm openjdk-21-jdk
@@ -111,7 +105,6 @@ Builds:
   - versionName: 1.0.0-beta.8
     versionCode: 7
     commit: v1.0.0-beta.8
-    subdir: .
     sudo:
       - apt-get update
       - apt-get install -y npm openjdk-21-jdk
@@ -124,7 +117,6 @@ Builds:
   - versionName: 1.0.0-beta.9
     versionCode: 8
     commit: v1.0.0-beta.9
-    subdir: .
     sudo:
       - apt-get update
       - apt-get install -y npm openjdk-21-jdk
@@ -137,7 +129,6 @@ Builds:
   - versionName: 1.0.0-beta.10
     versionCode: 9
     commit: v1.0.0-beta.10
-    subdir: .
     sudo:
       - apt-get update
       - apt-get install -y npm openjdk-21-jdk
@@ -150,7 +141,6 @@ Builds:
   - versionName: 1.0.0-beta.11
     versionCode: 10
     commit: v1.0.0-beta.11
-    subdir: .
     sudo:
       - apt-get update
       - apt-get install -y npm openjdk-21-jdk
@@ -163,7 +153,6 @@ Builds:
   - versionName: 1.0.0-beta.12
     versionCode: 11
     commit: v1.0.0-beta.12
-    subdir: .
     sudo:
       - apt-get update
       - apt-get install -y npm openjdk-21-jdk
@@ -176,7 +165,6 @@ Builds:
   - versionName: 1.0.0-beta.13
     versionCode: 12
     commit: v1.0.0-beta.13
-    subdir: .
     sudo:
       - apt-get update
       - apt-get install -y npm openjdk-21-jdk
@@ -189,7 +177,6 @@ Builds:
   - versionName: 1.0.0-beta.14
     versionCode: 1000014
     commit: v1.0.0-beta.14
-    subdir: .
     sudo:
       - apt-get update
       - apt-get install -y npm openjdk-21-jdk
@@ -202,7 +189,6 @@ Builds:
   - versionName: 1.0.0-beta.15
     versionCode: 1000015
     commit: v1.0.0-beta.15
-    subdir: .
     sudo:
       - apt-get update
       - apt-get install -y npm openjdk-21-jdk
@@ -212,18 +198,25 @@ Builds:
       - npm run fdroid:check
       - cd android && ./gradlew assembleRelease -Pfdroid.build=true
 
+  # NOTE: From this entry onwards, use the fdroiddata submission format:
+  # subdir: android, gradle: yes, prebuild: (not init:), scanignore: node_modules.
+  # The prebuild field runs commands from the repo root before gradle, so npm ci works correctly.
+  # The scanignore prevents F-Droid's proprietary-code scanner from traversing node_modules.
   - versionName: 1.0.0-beta.16
     versionCode: 1000016
     commit: v1.0.0-beta.16
-    subdir: .
+    subdir: android
     sudo:
       - apt-get update
       - apt-get install -y npm openjdk-21-jdk
-    init:
+    gradle:
+      - yes
+    prebuild:
       - npm ci --legacy-peer-deps
-    build:
       - npm run fdroid:check
-      - cd android && ./gradlew assembleRelease -Pfdroid.build=true
+    scanignore:
+      - node_modules
+    build: ./gradlew assembleRelease -Pfdroid.build=true
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
