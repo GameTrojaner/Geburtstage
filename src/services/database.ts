@@ -306,6 +306,7 @@ export async function importAllData(data: ExportData, existingContactIds?: Set<s
 
   // Inline all SQL inside a single transaction so a mid-import failure leaves
   // the database untouched (automatic rollback on throw).
+  // keep in sync with saveSettings()
   const settingEntries: [string, string][] = [
     ['theme', sanitized.settings.theme],
     ['language', sanitized.settings.language],
