@@ -7,7 +7,7 @@ import * as LegacyFileSystem from 'expo-file-system/legacy';
 import { getDaysUntilBirthday, getUpcomingAge, formatBirthday } from '../utils/birthday';
 import { getCachedPhotoUri } from '../services/photoCache';
 import { checkContactsPermission } from '../services/contacts';
-import { getFavorites } from '../services/database';
+import { getFavorites, getHidden } from '../services/database';
 import { resolveWidgetPreferences } from './preferences';
 
 interface BirthdayItem {
@@ -66,19 +66,22 @@ async function loadWidgetData(maxEntries: number): Promise<{ birthdays: Birthday
       ],
     });
 
-    // Load favorites from database service (handles init + retry internally)
+    // Load favorites and hidden contacts from database (handles init + retry internally)
     let favoriteIds: Set<string> = new Set();
+    let hiddenIds: Set<string> = new Set();
     try {
-      const favs = await getFavorites();
+      const [favs, hiddenList] = await Promise.all([getFavorites(), getHidden()]);
       favoriteIds = new Set(favs);
+      hiddenIds = new Set(hiddenList);
     } catch {
-      // Non-fatal: show all contacts without favorite marker
+      // Non-fatal: show all contacts without favorite marker or hidden filter
     }
 
     const items: BirthdayItem[] = [];
 
     for (const contact of data) {
       if (!contact.birthday || !contact.id) continue;
+      if (hiddenIds.has(contact.id)) continue;
 
       const birthday = {
         day: contact.birthday.day!,

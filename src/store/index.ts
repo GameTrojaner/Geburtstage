@@ -261,8 +261,9 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   rescheduleNotifications: async () => {
     try {
-      const { contacts } = get();
-      await notificationsService.scheduleAllNotifications(contacts);
+      const { contacts, hidden } = get();
+      const visibleContacts = contacts.filter(c => !hidden.has(c.contactId));
+      await notificationsService.scheduleAllNotifications(visibleContacts);
     } catch (error) {
       console.error('Error rescheduling notifications:', error);
     }
