@@ -31,6 +31,7 @@ jest.mock('../src/services/contacts', () => ({
 
 jest.mock('../src/services/database', () => ({
   getFavorites: jest.fn().mockResolvedValue([]),
+  getHidden: jest.fn().mockResolvedValue([]),
 }));
 
 jest.mock('../src/services/photoCache', () => ({

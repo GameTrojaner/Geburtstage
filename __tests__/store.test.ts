@@ -201,6 +201,48 @@ describe('Store - updateSetting', () => {
   });
 });
 
+describe('Store - rescheduleNotifications', () => {
+  it('excludes hidden contacts when scheduling notifications', async () => {
+    const { scheduleAllNotifications } = jest.requireMock('../src/services/notifications') as {
+      scheduleAllNotifications: jest.Mock;
+    };
+
+    useAppStore.setState({
+      contacts: [
+        { contactId: 'c1', name: 'Alice', birthday: { day: 15, month: 4, year: 1990 } },
+        { contactId: 'c2', name: 'Bob (hidden)', birthday: { day: 25, month: 12 } },
+      ],
+      hidden: new Set(['c2']),
+    });
+
+    await useAppStore.getState().rescheduleNotifications();
+
+    expect(scheduleAllNotifications).toHaveBeenCalledTimes(1);
+    const passedContacts = scheduleAllNotifications.mock.calls[0][0] as { contactId: string }[];
+    expect(passedContacts.map(c => c.contactId)).toEqual(['c1']);
+    expect(passedContacts.map(c => c.contactId)).not.toContain('c2');
+  });
+
+  it('passes all contacts when no contacts are hidden', async () => {
+    const { scheduleAllNotifications } = jest.requireMock('../src/services/notifications') as {
+      scheduleAllNotifications: jest.Mock;
+    };
+
+    useAppStore.setState({
+      contacts: [
+        { contactId: 'c1', name: 'Alice', birthday: { day: 15, month: 4, year: 1990 } },
+        { contactId: 'c2', name: 'Bob', birthday: { day: 25, month: 12 } },
+      ],
+      hidden: new Set(),
+    });
+
+    await useAppStore.getState().rescheduleNotifications();
+
+    const passedContacts = scheduleAllNotifications.mock.calls[0][0] as { contactId: string }[];
+    expect(passedContacts).toHaveLength(2);
+  });
+});
+
 describe('Store - notification settings', () => {
   it('updates notification setting for a contact', async () => {
     await useAppStore.getState().updateNotificationSetting({
