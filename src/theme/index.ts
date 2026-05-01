@@ -1,20 +1,4 @@
-import { MD3DarkTheme, MD3LightTheme, configureFonts } from 'react-native-paper';
-
-const teal = {
-  0: '#000000',
-  10: '#002019',
-  20: '#00382B',
-  30: '#00513F',
-  40: '#006B54',
-  50: '#00866B',
-  60: '#00A284',
-  70: '#22BF9D',
-  80: '#4FDBB7',
-  90: '#7AF8D2',
-  95: '#B5FFE6',
-  99: '#F2FFF8',
-  100: '#FFFFFF',
-};
+import { MD3DarkTheme, MD3LightTheme } from 'react-native-paper';
 
 export const lightTheme = {
   ...MD3LightTheme,

@@ -22,7 +22,10 @@ export async function getCachedPhotoUri(contactId: string): Promise<string | nul
 }
 
 /**
- * Copies contact photos from content:// URIs to regular file:// paths.
+ * Copies contact photos from content:// URIs to regular file:// paths,
+ * then evicts cached photos for contacts that no longer have a photo or
+ * no longer exist.
+ *
  * Must be called from the main app process (not from a headless/widget task),
  * because content:// resolution requires the Android ContentResolver context.
  *
@@ -36,6 +39,13 @@ export async function cacheContactPhotos(
   } catch {
     // Directory likely already exists — not fatal.
   }
+
+  // Only contacts that currently have a photo URI should keep a cache entry.
+  const activeIds = new Set(
+    contacts
+      .filter(c => c.rawImageUri ?? c.imageUri)
+      .map(c => c.contactId)
+  );
 
   await Promise.all(
     contacts.map(async contact => {
@@ -51,4 +61,26 @@ export async function cacheContactPhotos(
       }
     })
   );
+
+  // Evict cache entries for contacts that no longer exist or have no photo.
+  try {
+    const cached = await LegacyFileSystem.readDirectoryAsync(PHOTO_CACHE_DIR);
+    await Promise.all(
+      cached.map(async filename => {
+        const contactId = filename.replace(/\.jpg$/, '');
+        if (!activeIds.has(contactId)) {
+          try {
+            await LegacyFileSystem.deleteAsync(
+              `${PHOTO_CACHE_DIR}${filename}`,
+              { idempotent: true }
+            );
+          } catch {
+            // Non-fatal — skip stale file on delete error.
+          }
+        }
+      })
+    );
+  } catch {
+    // Cache directory may be empty or not exist yet — not fatal.
+  }
 }

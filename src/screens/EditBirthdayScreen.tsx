@@ -23,7 +23,6 @@ import {
   getContactById,
   saveBirthdayToContact,
   removeBirthdayFromContact,
-  openNativeContactEditor,
   openNativeEditorAndReloadContact,
   shouldUseNativeEditorForContact,
 } from '../services/contacts';

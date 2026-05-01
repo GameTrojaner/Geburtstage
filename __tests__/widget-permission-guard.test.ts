@@ -31,6 +31,7 @@ jest.mock('../src/services/contacts', () => ({
 
 jest.mock('../src/services/database', () => ({
   getFavorites: jest.fn().mockResolvedValue([]),
+  getSettings: jest.fn().mockResolvedValue({ language: 'de', theme: 'light', widgetMaxEntries: 5 }),
 }));
 
 jest.mock('../src/services/photoCache', () => ({

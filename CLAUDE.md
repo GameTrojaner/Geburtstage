@@ -16,6 +16,7 @@ Run these commands in order unless the task is purely non-code:
 
 ```bash
 npm run test:typecheck
+npm run lint
 npm test -- --runInBand
 ```
 

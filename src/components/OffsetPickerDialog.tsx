@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Button, Chip, Dialog, Portal, Text, TextInput, useTheme } from 'react-native-paper';
+import { Button, Chip, Dialog, Portal, TextInput } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { isValidOffsetAmount, toNotificationOffset } from '../utils/notificationSettings';
 
@@ -15,7 +15,6 @@ interface OffsetPickerDialogProps {
 
 export function OffsetPickerDialog({ visible, onDismiss, onAdd, existingOffsets }: OffsetPickerDialogProps) {
   const { t } = useTranslation();
-  const theme = useTheme();
   const [amount, setAmount] = useState('1');
   const [unit, setUnit] = useState<Unit>('days');
 
