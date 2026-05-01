@@ -1,4 +1,5 @@
 import * as Contacts from 'expo-contacts';
+import { Platform } from 'react-native';
 import { ContactBirthday } from '../types';
 
 const contactsNeedingNativeEditor = new Set<string>();
@@ -10,7 +11,14 @@ export function shouldUseNativeEditorForContact(contactId: string): boolean {
 
 export async function requestContactsPermission(): Promise<boolean> {
   const { status } = await Contacts.requestPermissionsAsync();
-  return status === 'granted';
+  if (status === 'granted') return true;
+  // On Android the OS sometimes hasn't propagated the grant yet when the dialog
+  // promise resolves. A second read from getPermissionsAsync reflects reality.
+  if (Platform.OS === 'android') {
+    const { status: currentStatus } = await Contacts.getPermissionsAsync();
+    return currentStatus === 'granted';
+  }
+  return false;
 }
 
 export async function checkContactsPermission(): Promise<boolean> {
