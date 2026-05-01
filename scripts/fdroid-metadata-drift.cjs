@@ -129,6 +129,58 @@ function normalize(text) {
   return `${lines.join('\n').trimEnd()}\n`;
 }
 
+function assertNpmCiInAllBuilds(content) {
+  const lines = content.split('\n');
+  let inBuilds = false;
+  let currentVersion = null;
+  let currentBlockHasNpmCi = false;
+
+  for (const line of lines) {
+    if (line.trim() === 'Builds:') {
+      inBuilds = true;
+      continue;
+    }
+
+    // end of Builds: section — any non-indented key (letter at column 0) signals exit
+    if (inBuilds && /^[A-Za-z]/.test(line)) {
+      if (currentVersion !== null && !currentBlockHasNpmCi) {
+        throw new Error(
+          `Build entry for version ${currentVersion} is missing "npm ci". ` +
+          'Without npm install, node_modules will be empty and the gradle build will fail ' +
+          '(react-native-safe-area-context "No variants exist", expo local-maven-repo not found).'
+        );
+      }
+      inBuilds = false;
+      continue;
+    }
+
+    if (inBuilds && /^  - versionName:/.test(line)) {
+      if (currentVersion !== null && !currentBlockHasNpmCi) {
+        throw new Error(
+          `Build entry for version ${currentVersion} is missing "npm ci". ` +
+          'Without npm install, node_modules will be empty and the gradle build will fail ' +
+          '(react-native-safe-area-context "No variants exist", expo local-maven-repo not found).'
+        );
+      }
+      currentVersion = line.replace(/^  - versionName:\s*/, '').trim();
+      currentBlockHasNpmCi = false;
+      continue;
+    }
+
+    if (inBuilds && currentVersion !== null && /^\s+-\s+npm\s+ci\b/.test(line)) {
+      currentBlockHasNpmCi = true;
+    }
+  }
+
+  if (inBuilds && currentVersion !== null && !currentBlockHasNpmCi) {
+    throw new Error(
+      `Build entry for version ${currentVersion} is missing "npm ci". ` +
+      'Without npm install, node_modules will be empty and the gradle build will fail ' +
+      '(react-native-safe-area-context "No variants exist", expo local-maven-repo not found).'
+    );
+  }
+}
+
 function assertMetadataInvariants(content) {
   const disallowedCommitPattern = /^(?!\s*#)\s*commit:\s*HEAD\s*(?:#.*)?$/m;
   if (disallowedCommitPattern.test(content)) {
@@ -152,6 +204,8 @@ function assertMetadataInvariants(content) {
       throw new Error(`assembleRelease command missing -Pfdroid.build=true: ${command}`);
     }
   }
+
+  assertNpmCiInAllBuilds(content);
 }
 
 function reportFirstDiff(localContent, referenceContent) {
@@ -208,7 +262,11 @@ async function main() {
   console.log(`[fdroid-metadata-drift] No drift detected against ${options.against}.`);
 }
 
-main().catch((error) => {
-  console.error(`[fdroid-metadata-drift] ERROR: ${error.message}`);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((error) => {
+    console.error(`[fdroid-metadata-drift] ERROR: ${error.message}`);
+    process.exit(1);
+  });
+}
+
+module.exports = { assertNpmCiInAllBuilds, assertMetadataInvariants };
