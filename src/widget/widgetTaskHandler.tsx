@@ -7,7 +7,7 @@ import * as LegacyFileSystem from 'expo-file-system/legacy';
 import { getDaysUntilBirthday, getUpcomingAge, formatBirthday } from '../utils/birthday';
 import { getCachedPhotoUri } from '../services/photoCache';
 import { checkContactsPermission } from '../services/contacts';
-import { getFavorites, getSettings } from '../services/database';
+import { getFavorites, getHidden, getSettings } from '../services/database';
 import { DEFAULT_SETTINGS } from '../types';
 import { resolveWidgetPreferences } from './preferences';
 
@@ -103,19 +103,19 @@ async function loadWidgetData(maxEntries: number): Promise<{ birthdays: Birthday
       ],
     });
 
-    // Load favorites from database service (handles init + retry internally)
+    // Load favorites and hidden contacts from database (handles init + retry internally).
+    // allSettled keeps each result independent: a getHidden() failure won't discard favorites.
     let favoriteIds: Set<string> = new Set();
-    try {
-      const favs = await getFavorites();
-      favoriteIds = new Set(favs);
-    } catch {
-      // Non-fatal: show all contacts without favorite marker
-    }
+    let hiddenIds: Set<string> = new Set();
+    const [favsResult, hiddenResult] = await Promise.allSettled([getFavorites(), getHidden()]);
+    if (favsResult.status === 'fulfilled') favoriteIds = new Set(favsResult.value);
+    if (hiddenResult.status === 'fulfilled') hiddenIds = new Set(hiddenResult.value);
 
     const items: BirthdayItem[] = [];
 
     for (const contact of data) {
       if (!contact.birthday || !contact.id) continue;
+      if (hiddenIds.has(contact.id)) continue;
 
       const birthday = {
         day: contact.birthday.day!,
