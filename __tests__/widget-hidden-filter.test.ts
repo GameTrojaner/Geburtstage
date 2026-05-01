@@ -122,4 +122,15 @@ describe('widgetTaskHandler hidden contact filtering', () => {
     expect(ids).toContain('visible1');
     expect(ids).toContain('hidden1');
   });
+
+  it('still marks favorites when getHidden throws (independent failure)', async () => {
+    (getHidden as jest.Mock).mockRejectedValue(new Error('db error'));
+    (getFavorites as jest.Mock).mockResolvedValue(['visible1']);
+
+    const element = await renderWidgetForName('BirthdayUpcoming') as React.ReactElement;
+    const birthdays = (element.props as { birthdays: { contactId: string; isFavorite: boolean }[] }).birthdays;
+    const alice = birthdays.find(b => b.contactId === 'visible1');
+
+    expect(alice?.isFavorite).toBe(true);
+  });
 });

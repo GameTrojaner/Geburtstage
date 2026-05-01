@@ -103,16 +103,13 @@ async function loadWidgetData(maxEntries: number): Promise<{ birthdays: Birthday
       ],
     });
 
-    // Load favorites and hidden contacts from database (handles init + retry internally)
+    // Load favorites and hidden contacts from database (handles init + retry internally).
+    // allSettled keeps each result independent: a getHidden() failure won't discard favorites.
     let favoriteIds: Set<string> = new Set();
     let hiddenIds: Set<string> = new Set();
-    try {
-      const [favs, hiddenList] = await Promise.all([getFavorites(), getHidden()]);
-      favoriteIds = new Set(favs);
-      hiddenIds = new Set(hiddenList);
-    } catch {
-      // Non-fatal: show all contacts without favorite marker or hidden filter
-    }
+    const [favsResult, hiddenResult] = await Promise.allSettled([getFavorites(), getHidden()]);
+    if (favsResult.status === 'fulfilled') favoriteIds = new Set(favsResult.value);
+    if (hiddenResult.status === 'fulfilled') hiddenIds = new Set(hiddenResult.value);
 
     const items: BirthdayItem[] = [];
 
