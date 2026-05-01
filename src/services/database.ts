@@ -76,7 +76,8 @@ function parseJsonSafe<T>(json: string | undefined, fallback: T): T {
   if (!json) return fallback;
   try {
     return JSON.parse(json) as T;
-  } catch {
+  } catch (e) {
+    if (__DEV__) console.warn('parseJsonSafe: malformed JSON, falling back to default', e);
     return fallback;
   }
 }

@@ -19,7 +19,7 @@ export interface WidgetLabels {
   empty: string;
 }
 
-// German-language fallback; widgetTaskHandler always passes resolved strings at runtime.
+// German-only fallback; widgetTaskHandler always passes explicit labels
 const DEFAULT_LABELS: WidgetLabels = {
   today: '🎂 Heute!',
   daysSingular: 'Tag',
