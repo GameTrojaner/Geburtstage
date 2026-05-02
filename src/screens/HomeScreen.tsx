@@ -86,11 +86,16 @@ export function HomeScreen() {
 
   const handleUndo = useCallback(async () => {
     const toRestore = lastHiddenRef.current;
+    if (!toRestore) return;
     lastHiddenRef.current = null;
     setSnackVisible(false);
     setLastHidden(null);
-    if (toRestore) {
+    try {
       await unhideContact(toRestore.id);
+    } catch {
+      lastHiddenRef.current = toRestore;
+      setLastHidden(toRestore);
+      setSnackVisible(true);
     }
   }, [unhideContact]);
 
@@ -208,7 +213,11 @@ export function HomeScreen() {
       )}
       <Snackbar
         visible={snackVisible}
-        onDismiss={() => setSnackVisible(false)}
+        onDismiss={() => {
+          setSnackVisible(false);
+          setLastHidden(null);
+          lastHiddenRef.current = null;
+        }}
         duration={4000}
         action={{ label: t('contacts.undo'), onPress: handleUndo }}
       >
