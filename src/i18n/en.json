@@ -23,7 +23,7 @@
     "turnsYears": "turns {{age}}",
     "birthdayToday": "🎂 Birthday today!",
     "daysLeft": "in {{count}} day",
-    "daysLeft_plural": "in {{count}} days",
+    "daysLeft_other": "in {{count}} days",
     "noContactsPermission": "No access to contacts. Please allow access in Settings."
   },
   "contacts": {
@@ -100,7 +100,7 @@
     "defaultOffsets": "Default reminders",
     "offsetSameDay": "Same day",
     "offsetDaysBefore": "{{count}} day before",
-    "offsetDaysBefore_plural": "{{count}} days before",
+    "offsetDaysBefore_other": "{{count}} days before",
     "offsetWeekBefore": "1 week before",
     "offsetWeeksBefore": "{{count}} weeks before",
     "offsetMonthBefore": "1 month before",
@@ -124,7 +124,7 @@
     "confirmWrite": "Confirm before saving to contact",
     "hiddenContacts": "Hidden contacts",
     "hiddenCount": "{{count}} contact hidden",
-    "hiddenCount_plural": "{{count}} contacts hidden",
+    "hiddenCount_other": "{{count}} contacts hidden",
     "noHiddenContacts": "No hidden contacts",
     "showContact": "Show",
     "about": "About",
