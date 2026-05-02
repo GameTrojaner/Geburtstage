@@ -131,7 +131,10 @@
     "version": "Version",
     "widget": "Widget",
     "widgetMaxEntries": "Angezeigte Einträge",
-    "widgetMaxEntriesValue": "{{count}} Einträge"
+    "widgetMaxEntriesValue": "{{count}} Einträge",
+    "importing": "Wird importiert…",
+    "exporting": "Wird exportiert…",
+    "resetting": "Wird zurückgesetzt…"
   },
   "notification": {
     "title": "🎂 Geburtstag",

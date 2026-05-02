@@ -17,6 +17,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import { useAppStore } from '../store';
+import { LoadingOverlay } from '../components/LoadingOverlay';
 import { OffsetPickerDialog } from '../components/OffsetPickerDialog';
 import { getOffsetLabel } from '../utils/birthday';
 import { Paths, File } from 'expo-file-system';
@@ -41,6 +42,9 @@ export function SettingsScreen() {
   const [offsetDialogVisible, setOffsetDialogVisible] = useState(false);
   const [timeDialogVisible, setTimeDialogVisible] = useState(false);
   const [widgetEntriesDialogVisible, setWidgetEntriesDialogVisible] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const [tempTime, setTempTime] = useState(settings.defaultNotificationTime);
   const [exactAlarmGranted, setExactAlarmGranted] = useState(true);
 
@@ -118,17 +122,21 @@ export function SettingsScreen() {
   };
 
   const handleExport = async () => {
+    setIsExporting(true);
     try {
       const data = await exportAllData();
       const json = JSON.stringify(data, null, 2);
       const file = new File(Paths.document, 'geburtstage-config.json');
       await file.write(json);
+      setIsExporting(false);
       await Sharing.shareAsync(file.uri, {
         mimeType: 'application/json',
         dialogTitle: t('settings.exportConfig'),
       });
     } catch (error) {
       console.error('Export error:', error);
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -144,6 +152,7 @@ export function SettingsScreen() {
         return;
       }
 
+      setIsImporting(true);
       const pickedAsset = result.assets[0];
       const file = new File(pickedAsset.uri);
       const content = await file.text();
@@ -161,6 +170,8 @@ export function SettingsScreen() {
     } catch (error) {
       console.error('Import error:', error);
       Alert.alert(t('settings.importError'));
+    } finally {
+      setIsImporting(false);
     }
   };
 
@@ -174,8 +185,8 @@ export function SettingsScreen() {
           text: t('common.confirm'),
           style: 'destructive',
           onPress: async () => {
+            setIsResetting(true);
             try {
-              // Reset all settings to defaults and clear data
               await importAllData({
                 version: 1,
                 settings: DEFAULT_SETTINGS,
@@ -194,6 +205,8 @@ export function SettingsScreen() {
             } catch (error) {
               console.error('Reset error:', error);
               Alert.alert(t('settings.resetError'));
+            } finally {
+              setIsResetting(false);
             }
           },
         },
@@ -437,6 +450,10 @@ export function SettingsScreen() {
         onAdd={addDefaultOffset}
         existingOffsets={settings.defaultNotificationOffsets}
       />
+
+      <LoadingOverlay visible={isImporting} message={t('settings.importing')} />
+      <LoadingOverlay visible={isExporting} message={t('settings.exporting')} />
+      <LoadingOverlay visible={isResetting} message={t('settings.resetting')} />
     </Surface>
   );
 }
