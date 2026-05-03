@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useColorScheme } from 'react-native';
+import { ActivityIndicator, StyleSheet, useColorScheme, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { PaperProvider } from 'react-native-paper';
 import { NavigationContainer } from '@react-navigation/native';
@@ -12,7 +12,6 @@ import { useAppStore } from './src/store';
 import { setupNotificationChannel, requestNotificationPermission } from './src/services/notifications';
 import { requestContactsPermission } from './src/services/contacts';
 import { warmupDb } from './src/services/database';
-import { LoadingOverlay } from './src/components/LoadingOverlay';
 import { refreshAllWidgetsNow } from './src/widget/requestUpdate';
 import { runPendingBootReschedule } from './src/tasks/bootReschedule';
 import './src/i18n';
@@ -110,13 +109,26 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <PaperProvider theme={theme}>
-          <NavigationContainer theme={navigationTheme}>
-            <AppNavigator />
-            <StatusBar style={isDark ? 'light' : 'dark'} />
-          </NavigationContainer>
-          <LoadingOverlay visible={!initialized} />
+          {!initialized ? (
+            <View style={[styles.splash, { backgroundColor: theme.colors.background }]}>
+              <ActivityIndicator size="large" color={theme.colors.primary} />
+            </View>
+          ) : (
+            <NavigationContainer theme={navigationTheme}>
+              <AppNavigator />
+              <StatusBar style={isDark ? 'light' : 'dark'} />
+            </NavigationContainer>
+          )}
         </PaperProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  splash: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
