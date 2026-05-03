@@ -45,3 +45,6 @@ android/build/
 android/app/build/
 android/app/src/main/assets/
 android/**/*.orig.*
+
+# local test scripts
+test-scripts/

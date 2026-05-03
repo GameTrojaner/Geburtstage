@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useColorScheme } from 'react-native';
+import { ActivityIndicator, StyleSheet, useColorScheme, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { PaperProvider } from 'react-native-paper';
 import { NavigationContainer } from '@react-navigation/native';
@@ -10,7 +10,9 @@ import { lightTheme, darkTheme } from './src/theme';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { useAppStore } from './src/store';
 import { setupNotificationChannel, requestNotificationPermission } from './src/services/notifications';
+import { requestContactsPermission } from './src/services/contacts';
 import { warmupDb } from './src/services/database';
+import { refreshAllWidgetsNow } from './src/widget/requestUpdate';
 import { runPendingBootReschedule } from './src/tasks/bootReschedule';
 import './src/i18n';
 import i18n from './src/i18n';
@@ -27,6 +29,7 @@ export default function App() {
     loadNotificationSettings,
     rescheduleNotifications,
     hasContactsPermission,
+    setHasContactsPermission,
   } = useAppStore();
   const [initialized, setInitialized] = useState(false);
 
@@ -41,6 +44,12 @@ export default function App() {
         await loadHidden();
         await loadNotificationSettings();
         await setupNotificationChannel();
+        const contactsGranted = await requestContactsPermission();
+        setHasContactsPermission(contactsGranted);
+        if (contactsGranted) {
+          await loadContacts();
+          await refreshAllWidgetsNow();
+        }
         await requestNotificationPermission();
         await runPendingBootReschedule({
           loadContacts,
@@ -70,7 +79,7 @@ export default function App() {
     if (hasContactsPermission && initialized) {
       rescheduleNotifications();
     }
-  }, [hasContactsPermission, initialized]);
+  }, [hasContactsPermission, initialized, rescheduleNotifications]);
 
   const isDark = settings.theme === 'system'
     ? systemColorScheme === 'dark'
@@ -100,12 +109,26 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <PaperProvider theme={theme}>
-          <NavigationContainer theme={navigationTheme}>
-            <AppNavigator />
-            <StatusBar style={isDark ? 'light' : 'dark'} />
-          </NavigationContainer>
+          {!initialized ? (
+            <View style={[styles.splash, { backgroundColor: theme.colors.background }]}>
+              <ActivityIndicator size="large" color={theme.colors.primary} />
+            </View>
+          ) : (
+            <NavigationContainer theme={navigationTheme}>
+              <AppNavigator />
+              <StatusBar style={isDark ? 'light' : 'dark'} />
+            </NavigationContainer>
+          )}
         </PaperProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  splash: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
