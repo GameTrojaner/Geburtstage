@@ -10,7 +10,10 @@ import { lightTheme, darkTheme } from './src/theme';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { useAppStore } from './src/store';
 import { setupNotificationChannel, requestNotificationPermission } from './src/services/notifications';
+import { requestContactsPermission } from './src/services/contacts';
 import { warmupDb } from './src/services/database';
+import { LoadingOverlay } from './src/components/LoadingOverlay';
+import { refreshAllWidgetsNow } from './src/widget/requestUpdate';
 import { runPendingBootReschedule } from './src/tasks/bootReschedule';
 import './src/i18n';
 import i18n from './src/i18n';
@@ -27,6 +30,7 @@ export default function App() {
     loadNotificationSettings,
     rescheduleNotifications,
     hasContactsPermission,
+    setHasContactsPermission,
   } = useAppStore();
   const [initialized, setInitialized] = useState(false);
 
@@ -41,6 +45,12 @@ export default function App() {
         await loadHidden();
         await loadNotificationSettings();
         await setupNotificationChannel();
+        const contactsGranted = await requestContactsPermission();
+        setHasContactsPermission(contactsGranted);
+        if (contactsGranted) {
+          await loadContacts();
+          await refreshAllWidgetsNow();
+        }
         await requestNotificationPermission();
         await runPendingBootReschedule({
           loadContacts,
@@ -104,6 +114,7 @@ export default function App() {
             <AppNavigator />
             <StatusBar style={isDark ? 'light' : 'dark'} />
           </NavigationContainer>
+          <LoadingOverlay visible={!initialized} />
         </PaperProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

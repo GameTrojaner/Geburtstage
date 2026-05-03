@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Animated, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { Text, useTheme, Divider, Surface, Snackbar, Chip } from 'react-native-paper';
 import { Swipeable } from 'react-native-gesture-handler';
@@ -8,8 +8,6 @@ import { BirthdayCard } from '../components/BirthdayCard';
 import { groupBirthdayContacts, BirthdayGroup } from '../utils/birthday';
 import { filterHomeContacts, HomeFilter } from '../utils/home';
 import { ContactBirthday } from '../types';
-import { requestContactsPermission } from '../services/contacts';
-import { refreshAllWidgetsNow } from '../widget/requestUpdate';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -36,7 +34,6 @@ export function HomeScreen() {
     favorites,
     hidden,
     loadContacts,
-    setHasContactsPermission,
     toggleFavorite,
     togglePinned,
     hideContact,
@@ -46,7 +43,6 @@ export function HomeScreen() {
   const [snackVisible, setSnackVisible] = useState(false);
   const [lastHidden, setLastHidden] = useState<{ id: string; name: string } | null>(null);
   const [homeFilter, setHomeFilter] = useState<HomeFilter>('all');
-  const [permissionChecked, setPermissionChecked] = useState(false);
   const swipeableRefs = useRef<Map<string, Swipeable | null>>(new Map());
 
   const visibleContacts = useMemo(
@@ -58,18 +54,6 @@ export function HomeScreen() {
     () => filterHomeContacts(visibleContacts, favorites, homeFilter),
     [visibleContacts, favorites, homeFilter]
   );
-
-  useEffect(() => {
-    (async () => {
-      const granted = await requestContactsPermission();
-      setHasContactsPermission(granted);
-      setPermissionChecked(true);
-      if (granted) {
-        await loadContacts();
-        await refreshAllWidgetsNow();
-      }
-    })();
-  }, []);
 
   const onRefresh = useCallback(async () => {
     await loadContacts();
@@ -97,10 +81,6 @@ export function HomeScreen() {
         sections.push({ type: 'contact', contact: c, key: `${group.key}-${c.contactId}` });
       }
     }
-  }
-
-  if (!permissionChecked) {
-    return null;
   }
 
   if (!hasContactsPermission) {
