@@ -244,7 +244,20 @@ Builds:
       - npm run fdroid:check
       - cd android && ./gradlew assembleRelease -Pfdroid.build=true
 
+  - versionName: 1.0.0-beta.19
+    versionCode: 1000019
+    commit: v1.0.0-beta.19
+    subdir: .
+    sudo:
+      - apt-get update
+      - apt-get install -y npm openjdk-21-jdk
+    init:
+      - npm ci --legacy-peer-deps
+    build:
+      - npm run fdroid:check
+      - cd android && ./gradlew assembleRelease -Pfdroid.build=true
+
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.0.0-beta.18
-CurrentVersionCode: 1000018
+CurrentVersion: 1.0.0-beta.19
+CurrentVersionCode: 1000019
