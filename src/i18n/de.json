@@ -117,6 +117,7 @@
     "resetConfigDesc": "Alle Einstellungen und Daten löschen",
     "resetConfigConfirm": "Bist du sicher? Dies löscht alle Einstellungen, Favoriten, angehefteten Elemente und ausgeblendeten Kontakte.",
     "exportSuccess": "Einstellungen exportiert",
+    "exportError": "Fehler beim Exportieren",
     "importSuccess": "Einstellungen importiert",
     "importError": "Fehler beim Importieren",
     "resetSuccess": "Einstellungen auf Standard zurückgesetzt",

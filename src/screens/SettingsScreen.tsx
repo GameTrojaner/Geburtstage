@@ -135,6 +135,7 @@ export function SettingsScreen() {
       });
     } catch (error) {
       console.error('Export error:', error);
+      Alert.alert(t('settings.exportError'));
     } finally {
       setIsExporting(false);
     }

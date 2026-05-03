@@ -117,6 +117,7 @@
     "resetConfigDesc": "Clear all settings and data",
     "resetConfigConfirm": "Are you sure? This will delete all settings, favorites, pinned items, and hidden contacts.",
     "exportSuccess": "Settings exported",
+    "exportError": "Error exporting settings",
     "importSuccess": "Settings imported",
     "importError": "Error importing settings",
     "resetSuccess": "Settings reset to defaults",

@@ -1,7 +1,11 @@
 /**
- * Tests for the loading state management during config import, export, and reset.
- * Verifies that isImporting / isExporting / isResetting flags are set and
- * cleared correctly regardless of success or failure.
+ * Service-layer tests for config import, export, and reset operations.
+ * Verifies that service functions are called with correct arguments and
+ * that DocumentPicker cancellation skips import.
+ *
+ * Note: UI loading-flag lifecycle (isImporting / isExporting / isResetting)
+ * is not covered here; it lives in SettingsScreen component state and
+ * would require a component/renderHook test to assert directly.
  */
 
 jest.mock('expo-document-picker', () => ({
@@ -60,7 +64,7 @@ const mockExportData = {
   hidden: [],
 };
 
-describe('Config import loading state', () => {
+describe('Config import - service integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -89,7 +93,7 @@ describe('Config import loading state', () => {
   });
 });
 
-describe('Config export loading state', () => {
+describe('Config export - service integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -113,7 +117,7 @@ describe('Config export loading state', () => {
   });
 });
 
-describe('Config reset loading state', () => {
+describe('Config reset - service integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
