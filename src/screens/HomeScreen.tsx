@@ -45,6 +45,7 @@ export function HomeScreen() {
 
   const [snackVisible, setSnackVisible] = useState(false);
   const [lastHidden, setLastHidden] = useState<{ id: string; name: string } | null>(null);
+  const lastHiddenRef = useRef<{ id: string; name: string } | null>(null);
   const [homeFilter, setHomeFilter] = useState<HomeFilter>('all');
   const [permissionChecked, setPermissionChecked] = useState(false);
   const swipeableRefs = useRef<Map<string, Swipeable | null>>(new Map());
@@ -74,6 +75,29 @@ export function HomeScreen() {
   const onRefresh = useCallback(async () => {
     await loadContacts();
   }, [loadContacts]);
+
+  const handleHide = useCallback(async (contact: ContactBirthday) => {
+    await hideContact(contact.contactId);
+    const entry = { id: contact.contactId, name: contact.name };
+    lastHiddenRef.current = entry;
+    setLastHidden(entry);
+    setSnackVisible(true);
+  }, [hideContact]);
+
+  const handleUndo = useCallback(async () => {
+    const toRestore = lastHiddenRef.current;
+    if (!toRestore) return;
+    lastHiddenRef.current = null;
+    setSnackVisible(false);
+    setLastHidden(null);
+    try {
+      await unhideContact(toRestore.id);
+    } catch {
+      lastHiddenRef.current = toRestore;
+      setLastHidden(toRestore);
+      setSnackVisible(true);
+    }
+  }, [unhideContact]);
 
   const groups = groupBirthdayContacts(filteredContacts, pinned);
 
@@ -112,30 +136,6 @@ export function HomeScreen() {
       </View>
     );
   }
-
-  if (sections.length === 0 && !contactsLoading) {
-    return (
-      <View style={[styles.center, { backgroundColor: theme.colors.background }]}>
-        <Text variant="bodyLarge" style={{ color: theme.colors.onSurfaceVariant }}>
-          {t('home.noBirthdays')}
-        </Text>
-      </View>
-    );
-  }
-
-  const handleHide = async (contact: ContactBirthday) => {
-    await hideContact(contact.contactId);
-    setLastHidden({ id: contact.contactId, name: contact.name });
-    setSnackVisible(true);
-  };
-
-  const handleUndo = async () => {
-    if (lastHidden) {
-      await unhideContact(lastHidden.id);
-      setLastHidden(null);
-    }
-    setSnackVisible(false);
-  };
 
   const renderRightActions = (progress: Animated.AnimatedInterpolation<number>) => {
     const translateX = progress.interpolate({
@@ -184,28 +184,40 @@ export function HomeScreen() {
 
   return (
     <Surface style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <FlatList
-        data={sections}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.key}
-        ListHeaderComponent={
-          <View style={styles.filterRow}>
-            <Chip selected={homeFilter === 'all'} onPress={() => setHomeFilter('all')} compact>
-              {t('home.filterAll')}
-            </Chip>
-            <Chip selected={homeFilter === 'favorites'} onPress={() => setHomeFilter('favorites')} compact>
-              {t('home.filterFavorites')}
-            </Chip>
-          </View>
-        }
-        refreshControl={
-          <RefreshControl refreshing={contactsLoading} onRefresh={onRefresh} colors={[theme.colors.primary]} />
-        }
-        contentContainerStyle={styles.list}
-      />
+      {sections.length === 0 && !contactsLoading ? (
+        <View style={styles.center}>
+          <Text variant="bodyLarge" style={{ color: theme.colors.onSurfaceVariant }}>
+            {t('home.noBirthdays')}
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={sections}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.key}
+          ListHeaderComponent={
+            <View style={styles.filterRow}>
+              <Chip selected={homeFilter === 'all'} onPress={() => setHomeFilter('all')} compact>
+                {t('home.filterAll')}
+              </Chip>
+              <Chip selected={homeFilter === 'favorites'} onPress={() => setHomeFilter('favorites')} compact>
+                {t('home.filterFavorites')}
+              </Chip>
+            </View>
+          }
+          refreshControl={
+            <RefreshControl refreshing={contactsLoading} onRefresh={onRefresh} colors={[theme.colors.primary]} />
+          }
+          contentContainerStyle={styles.list}
+        />
+      )}
       <Snackbar
         visible={snackVisible}
-        onDismiss={() => setSnackVisible(false)}
+        onDismiss={() => {
+          setSnackVisible(false);
+          setLastHidden(null);
+          lastHiddenRef.current = null;
+        }}
         duration={4000}
         action={{ label: t('contacts.undo'), onPress: handleUndo }}
       >
