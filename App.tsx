@@ -79,7 +79,7 @@ export default function App() {
     if (hasContactsPermission && initialized) {
       rescheduleNotifications();
     }
-  }, [hasContactsPermission, initialized]);
+  }, [hasContactsPermission, initialized, rescheduleNotifications]);
 
   const isDark = settings.theme === 'system'
     ? systemColorScheme === 'dark'
